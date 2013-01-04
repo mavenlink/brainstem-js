@@ -19,3 +19,6 @@ rescue LoadError
     end
   end
 end
+
+task :spec => "jasmine:phantom:ci"
+task :default => :spec
