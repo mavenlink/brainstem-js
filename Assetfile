@@ -1,0 +1,19 @@
+require 'rake-pipeline-web-filters'
+
+output "dist"
+
+input "lib" do
+  match "**/*.coffee" do
+    coffee_script
+  end
+
+  match "**/*.js" do
+    concat "brainstem.js"
+  end
+end
+
+input "dist" do
+  match /\*\*\/[^(\.min)].js/ do
+    uglify
+  end
+end
