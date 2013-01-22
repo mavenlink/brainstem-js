@@ -1,19 +1,66 @@
 require 'rake-pipeline-web-filters'
+require 'jasmine-core'
 
-output "dist"
+output "build"
 
-input "lib" do
+input "src" do
+  match "**/*.coffee" do
+    coffee_script
+  end
+
+  match /^(helpers\/|models\/)?[^\/]+\.js$/ do
+    minispade :rewrite_requires => true, :module_id_generator => proc { |input|
+      input.path.sub(/\.js$/, '')
+    }, :string => true
+    concat "brainstem.js"
+  end
+end
+
+input "spec" do
+  output "build/spec"
+  
   match "**/*.coffee" do
     coffee_script
   end
 
   match "**/*.js" do
-    concat "brainstem.js"
+    reject "support/**/*.js"
+    minispade :rewrite_requires => true, :module_id_generator => proc { |input|
+      input.path.sub(/\.js$/, '')
+    }, :string => true
+    concat "specs.js"
+  end
+  
+  match "support/runner.html" do
+    concat "../index.html"
   end
 end
 
-input "dist" do
-  match /\*\*\/[^(\.min)].js/ do
-    uglify
+input "spec/support/vendor" do
+  output "build/vendor"
+  match "*.js" do
+    concat
+  end
+end
+
+input "spec/support" do
+
+  match "**/*.coffee" do
+    coffee_script
+  end
+
+  match "*.js" do
+    reject(/vendor/)
+    minispade :rewrite_requires => true, :module_id_generator => proc { |input|
+      input.path.sub(/spec\//, '/').sub(/\.js$/, '')
+    }, :string => true
+    concat "helpers-spade.js"
+  end
+end
+
+input Jasmine::Core.path do
+  output "build/jasmine"
+  match /^[^\/]+\.(js|css)$/ do
+    concat
   end
 end
