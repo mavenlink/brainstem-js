@@ -17,8 +17,6 @@ input "src" do
 end
 
 input "spec" do
-  output "build/spec"
-
   match "**/*.coffee" do
     coffee_script
   end
