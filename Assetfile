@@ -18,43 +18,54 @@ end
 
 input "spec" do
   output "build/spec"
-  
+
   match "**/*.coffee" do
     coffee_script
   end
 
   match "**/*.js" do
     reject "support/**/*.js"
+    reject "vendor/**/*.js"
+    reject "helpers/**/*.js"
     minispade :rewrite_requires => true, :module_id_generator => proc { |input|
       input.path.sub(/\.js$/, '')
     }, :string => true
     concat "specs.js"
   end
-  
-  match "support/runner.html" do
-    concat "../index.html"
+end
+
+input "spec/support" do
+  match "runner.html" do
+    concat "index.html"
+  end
+
+  match "**/*.coffee" do
+    coffee_script
+  end
+
+  match "**/*.js" do
+    concat
   end
 end
 
-input "spec/support/vendor" do
+input "spec/vendor" do
   output "build/vendor"
   match "*.js" do
     concat
   end
 end
 
-input "spec/support" do
+input "spec/helpers" do
 
   match "**/*.coffee" do
     coffee_script
   end
 
   match "*.js" do
-    reject(/vendor/)
     minispade :rewrite_requires => true, :module_id_generator => proc { |input|
-      input.path.sub(/spec\//, '/').sub(/\.js$/, '')
+      "helpers/" + input.path.sub(/\.js$/, '')
     }, :string => true
-    concat "helpers-spade.js"
+    concat "helpers.js"
   end
 end
 
