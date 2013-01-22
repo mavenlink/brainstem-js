@@ -1,20 +1,22 @@
-begin
-  require 'jasmine'
-  require File.expand_path("../spec/support/jasmine_config.rb", __FILE__)
-  load 'jasmine/tasks/jasmine.rake'
-  load 'jasmine-phantom/tasks.rake'
-rescue LoadError => e
-  puts e.message
-  abort "You didn't run bundle install, did you?"
+task :clean do
+  sh "rakep clean"
 end
 
-task :spec do
+task :build do
+  sh "rakep build"
+end
+
+task :spec => [:clean, :build] do
   begin
-    Rake::Task["jasmine:phantom:ci"].invoke
+    exec *%w(phantomjs build/headless.js build/headless.html)
   rescue Errno::ENOENT => e
     puts "Couldn't find phantomjs."
     abort "You didn't run `brew install phantomjs`, did you?"
   end
+end
+
+task :server => :clean do
+  exec "rakep server"
 end
 
 task :default => :spec
