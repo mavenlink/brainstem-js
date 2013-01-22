@@ -39,6 +39,10 @@ input "spec/support" do
     concat "index.html"
   end
 
+  match "headless.html" do
+    concat
+  end
+
   match "**/*.coffee" do
     coffee_script
   end
