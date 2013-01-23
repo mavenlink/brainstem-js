@@ -20,10 +20,7 @@ GIT
 PATH
   remote: .
   specs:
-    brainstemjs (0.1)
-      coffee-script (~> 2.2)
-      jasmine-core (~> 1.3.1)
-      rake-pipeline-web-filters (~> 0.6.0)
+    brainstem-js (0.1)
 
 GEM
   remote: https://rubygems.org/
@@ -45,7 +42,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  brainstemjs!
+  brainstem-js!
   bundler (~> 1.2)
+  coffee-script (~> 2.2)
+  jasmine-core (~> 1.3.1)
   rake-pipeline!
   rake-pipeline-web-filters!
