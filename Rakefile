@@ -6,7 +6,7 @@ task :build do
   sh "rakep build"
 end
 
-task :spec => [:clean, :build] do
+task :spec => :build do
   begin
     exec *%w(phantomjs build/headless.js build/headless.html)
   rescue Errno::ENOENT => e
