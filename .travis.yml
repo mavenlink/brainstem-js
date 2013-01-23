@@ -1,6 +1,8 @@
 language: ruby
 rvm: 1.9.3
 
+before_install: gem install bundler
+
 notifications:
   hipchat: 09a2719b3284ea0d0d247355fa5542@Mavenlink Dev
 
