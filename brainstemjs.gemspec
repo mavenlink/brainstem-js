@@ -10,7 +10,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["dev@mavenlink.com"]
   gem.description   = %q{The Brainstem storage manager JS library}
   gem.summary       = %q{Brainstem's JS components}
-  gem.homepage      = "http://github.com/mavenlink/brainstemjs"
+  gem.homepage      = "http://github.com/mavenlink/brainstem-js"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
