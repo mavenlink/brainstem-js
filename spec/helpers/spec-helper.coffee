@@ -2,9 +2,6 @@ window.App ?= {}
 window.App.Models ?= {}
 window.App.Collections ?= {}
 
-
-window.spec ?= {}
-
 beforeEach ->
   # Disable jQuery animations.
   $.fx.off = true

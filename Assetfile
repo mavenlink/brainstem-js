@@ -4,11 +4,11 @@ require 'jasmine-core'
 output "build"
 
 input "src" do
-  match "**/*.coffee" do
+  match "*.coffee" do
     coffee_script
   end
 
-  match /^(helpers\/|models\/)?[^\/]+\.js$/ do
+  match "*.js" do
     minispade :rewrite_requires => true, :module_id_generator => proc { |input|
       input.path.sub(/\.js$/, '')
     }, :string => true
@@ -65,7 +65,7 @@ input "spec/helpers" do
 
   match "*.js" do
     minispade :rewrite_requires => true, :module_id_generator => proc { |input|
-      "helpers/" + input.path.sub(/\.js$/, '')
+      input.path.sub(/\.js$/, '')
     }, :string => true
     concat "helpers.js"
   end
