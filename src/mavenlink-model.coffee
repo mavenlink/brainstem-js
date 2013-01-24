@@ -6,6 +6,11 @@ class Mavenlink.Model extends Backbone.Model
     super
     @setLoaded false
 
+  # Handle create and update responses with JSON root keys
+  parse: (resp, xhr) ->
+    modelObject = resp[this.paramRoot.pluralize()][0]
+    super(modelObject, xhr)
+
   # Retreive details about a named assocaition.  This is a class method.
   #     Model.associationDetails("workspace") # => {}
   #     timeEntry.constructor.associationDetails("workspace") # => {}
