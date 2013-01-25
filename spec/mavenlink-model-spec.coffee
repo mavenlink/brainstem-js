@@ -4,6 +4,15 @@ describe 'Mavenlink.Model', ->
   beforeEach ->
     model = new Mavenlink.Model()
 
+  describe 'parse', ->
+    it "parses ISO 8601 dates into date objects", ->
+      parsed = model.parse({created_at: "2013-01-25T11:25:57-08:00"})
+      expect(parsed.created_at).toEqual(1359141957000)
+
+    it "passes through dates in Ruby epoch seconds", ->
+      parsed = model.parse({created_at: 1359142047})
+      expect(parsed.created_at).toEqual(1359142047)
+
   describe 'setLoaded', ->
     it "should set the values of @loaded", ->
       model.setLoaded true
