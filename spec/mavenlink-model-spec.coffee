@@ -5,6 +5,17 @@ describe 'Mavenlink.Model', ->
     model = new Mavenlink.Model()
 
   describe 'parse', ->
+    beforeEach ->
+      model.paramRoot = "widget"
+
+    it "extracts object data from JSON with root keys", ->
+      parsed = model.parse({'widgets': [{id: 1}]})
+      expect(parsed.id).toEqual(1)
+
+    it "passes through object data from flat JSON", ->
+      parsed = model.parse({id: 1})
+      expect(parsed.id).toEqual(1)
+
     it "parses ISO 8601 dates into date objects", ->
       parsed = model.parse({created_at: "2013-01-25T11:25:57-08:00"})
       expect(parsed.created_at).toEqual(1359141957000)

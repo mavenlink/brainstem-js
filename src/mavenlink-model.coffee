@@ -8,7 +8,7 @@ class Mavenlink.Model extends Backbone.Model
 
   # Handle create and update responses with JSON root keys
   parse: (resp, xhr) ->
-    modelObject = resp[this.paramRoot.pluralize()][0]
+    modelObject = resp[this.paramRoot.pluralize()]?[0] || resp
     for k,v of modelObject
       # ISO 8601 formatted date strings
       if /\d{4}-\d\d-\d\dT\d\d\:\d\d:\d\d\-\d\d\:\d\d/.test(v)
