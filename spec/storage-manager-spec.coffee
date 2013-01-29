@@ -485,6 +485,34 @@ describe 'Storage Manager', ->
           collection2 = base.data.loadCollection "time_entries", include: ["workspace", "story"], only: 2
           expect(collection2.loaded).toBe false
 
+    describe "searching", ->
+      it "returns the matching items with includes, triggering reset and success", ->
+        server.respondWith "GET", "/api/stories.json?per_page=20&page=1&search=go+go+gadget+search", [ 200, {"Content-Type": "application/json"}, JSON.stringify(stories: [buildStory()]) ]
+
+        spy2 = jasmine.createSpy().andCallFake (collection) ->
+          expect(collection.loaded).toBe true
+        collection = base.data.loadCollection "stories", search: "go go gadget search", success: spy2
+        spy = jasmine.createSpy().andCallFake ->
+          expect(collection.loaded).toBe true
+        collection.bind "reset", spy
+        expect(collection.loaded).toBe false
+        server.respond()
+        expect(collection.loaded).toBe true
+        expect(spy).toHaveBeenCalled()
+        expect(spy2).toHaveBeenCalled()
+
+      it 'it goes to server even if we have matching items in cache', ->
+        expect(false).toBeTruthy()
+
+      it 'does not apply local filters/sorts', ->
+        expect(false).toBeTruthy()
+
+      it 'does not blow up when no results are returned', ->
+        expect(false).toBeTruthy()
+
+      it 'acts as if no search options were passed if the search string is blank', ->
+        expect(false).toBeTruthy()
+
   describe "createNewCollection", ->
     it "makes a new collection of the appropriate type", ->
       expect(base.data.createNewCollection("stories", [buildStory(), buildStory()]) instanceof App.Collections.Stories).toBe true

@@ -109,8 +109,8 @@ class window.App.StorageManager
       nextLevelInclude = hash[association] # ['workspace': [], 'story': [{ 'assignees': []}]]
       if nextLevelInclude.length
         association_ids = _(collection.models).chain().
-          map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
-          flatten().uniq().compact().pluck("id").sort().value()
+        map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
+        flatten().uniq().compact().pluck("id").sort().value()
         newCollectionName = collection.model.associationDetails(association).collectionName
         @_loadCollectionWithFirstLayer name: newCollectionName, only: association_ids, include: nextLevelInclude, success: (loadedAssociationCollection) =>
           @_handleNextLayer(loadedAssociationCollection, nextLevelInclude, callback)
@@ -120,6 +120,7 @@ class window.App.StorageManager
     options = $.extend({}, options)
     name = options.name
     only = if options.only then _.map((@_extractArray "only", options), (id) -> String(id)) else null
+    search = options.search
     include = _(options.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
     fields  = @_extractArray "fields",  options
     filters = @_extractArray "filters", options
@@ -161,12 +162,18 @@ class window.App.StorageManager
         #    stories: [{id: 10, title: "some story" }, {id: 11, title: "some other story" }]
         #  }
         # Loop over all returned data types and update our local storage to represent any new data.
+        searchIds = []
+
         for underscoredModelName, models of resp
           unless underscoredModelName == 'count'
             @storage(underscoredModelName).update models
+            if search? && underscoredModelName == "stories"
+              searchIds = _.pluck(models, 'id')
 
         if only?
           @_success options, collection, _.map(only, (id) -> cachedCollection.get(id))
+        else if search?
+          @_success options, collection, _.map(searchIds, (id) -> cachedCollection.get(id))
         else
           @getCollectionDetails(name).sortLengths[cacheKey] = options.page * options.perPage
           @_success options, collection, @orderFilterAndSlice(cachedCollection, comparator, collection, filters, options.page, options.perPage)
@@ -178,6 +185,7 @@ class window.App.StorageManager
     syncOptions.data.filters = filters.join(",") if filters.length
     syncOptions.data.per_page = options.perPage unless only?
     syncOptions.data.page = options.page unless only?
+    syncOptions.data.search = options.search if search?
 
     Backbone.sync.call collection, 'read', collection, syncOptions
 
