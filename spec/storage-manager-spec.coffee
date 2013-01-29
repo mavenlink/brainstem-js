@@ -83,6 +83,11 @@ describe 'Storage Manager', ->
       server.respond()
       expect(spy).toHaveBeenCalled()
 
+    it "can disbale caching", ->
+      spy = spyOn(base.data, 'loadCollection')
+      model = base.data.loadModel "time_entry", 1, cache: false
+      expect(spy.mostRecentCall.args[1]['cache']).toBe(false)
+
   describe 'loadCollection', ->
     it "loads a collection of models", ->
       server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(), buildTimeEntry()]) ]
@@ -485,7 +490,36 @@ describe 'Storage Manager', ->
           collection2 = base.data.loadCollection "time_entries", include: ["workspace", "story"], only: 2
           expect(collection2.loaded).toBe false
 
+    describe "disabling caching", ->
+      item = null
+
+      beforeEach ->
+        item = createStory()
+        server.respondWith "GET", "/api/stories.json?per_page=20&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(stories: [item]) ]
+
+      it "goes to server even if we have matching items in cache", ->
+        syncSpy = spyOn(Backbone, 'sync')
+        collection = base.data.loadCollection "stories", cache: false, only: item.id
+        expect(syncSpy).toHaveBeenCalled()
+
+      it "does not apply local filters/sorts", ->
+        spy = spyOn(base.data, 'orderFilterAndSlice')
+        collection = base.data.loadCollection "stories", cache: false
+        server.respond()
+        expect(spy).not.toHaveBeenCalled()
+        
+      it "still adds results to the cache", ->
+        spy = spyOn(base.data.storage('stories'), 'update')
+        collection = base.data.loadCollection "stories", cache: false
+        server.respond()
+        expect(spy).toHaveBeenCalled()
+
     describe "searching", ->
+      it 'turns off caching', ->
+        spy = spyOn(base.data, '_loadCollectionWithFirstLayer')
+        collection = base.data.loadCollection "stories", search: "the meaning of life"
+        expect(spy.mostRecentCall.args[0]['cache']).toBe(false)
+      
       it "returns the matching items with includes, triggering reset and success", ->
         server.respondWith "GET", "/api/stories.json?per_page=20&page=1&search=go+go+gadget+search", [ 200, {"Content-Type": "application/json"}, JSON.stringify(stories: [buildStory()]) ]
 
@@ -501,17 +535,15 @@ describe 'Storage Manager', ->
         expect(spy).toHaveBeenCalled()
         expect(spy2).toHaveBeenCalled()
 
-      it 'it goes to server even if we have matching items in cache', ->
-        expect(false).toBeTruthy()
-
-      it 'does not apply local filters/sorts', ->
-        expect(false).toBeTruthy()
-
       it 'does not blow up when no results are returned', ->
-        expect(false).toBeTruthy()
+        server.respondWith "GET", "/api/stories.json?per_page=20&page=1&search=go+go+gadget+search", [ 200, {"Content-Type": "application/json"}, JSON.stringify(stories: []) ]
+        collection = base.data.loadCollection "stories", search: "go go gadget search"
+        server.respond()
 
       it 'acts as if no search options were passed if the search string is blank', ->
-        expect(false).toBeTruthy()
+        server.respondWith "GET", "/api/stories.json?per_page=20&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(stories: []) ]
+        collection = base.data.loadCollection "stories", search: ""
+        server.respond()
 
   describe "createNewCollection", ->
     it "makes a new collection of the appropriate type", ->

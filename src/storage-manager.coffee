@@ -78,6 +78,8 @@ class window.App.StorageManager
     @_checkPageSettings options
     @_logDataUsage()
     include = @_wrapObjects(@_extractArray "include", options)
+    if options.search
+      options.cache = false
 
     comparator = @getCollectionDetails(name).klass.getComparatorWithIdFailover(options.order || "updated_at:desc")
     collection = options.collection || @createNewCollection name, [], comparator: comparator
@@ -131,19 +133,20 @@ class window.App.StorageManager
     comparator = @getCollectionDetails(name).klass.getComparatorWithIdFailover(order)
     collection = @createNewCollection name, [], comparator: comparator
 
-    if only?
-      alreadyLoadedIds = _.select only, (id) => cachedCollection.get(id)?.associationsAreLoaded(include)
-      if alreadyLoadedIds.length == only.length
-        # We've already seen every id that is being asked for and have all the associated data.
-        @_success options, collection, _.map only, (id) => cachedCollection.get(id)
-        return collection
-    else
-      # Check if we have, at some point, requested enough records with this this order and filter(s).
-      if (@getCollectionDetails(name).sortLengths[cacheKey] || 0) >= options.perPage * options.page
-        subset = @orderFilterAndSlice(cachedCollection, comparator, collection, filters, options.page, options.perPage)
-        if (_.all(subset, (model) => model.associationsAreLoaded(include)))
-          @_success options, collection, subset
+    unless options.cache == false
+      if only?
+        alreadyLoadedIds = _.select only, (id) => cachedCollection.get(id)?.associationsAreLoaded(include)
+        if alreadyLoadedIds.length == only.length
+          # We've already seen every id that is being asked for and have all the associated data.
+          @_success options, collection, _.map only, (id) => cachedCollection.get(id)
           return collection
+      else
+        # Check if we have, at some point, requested enough records with this this order and filter(s).
+        if (@getCollectionDetails(name).sortLengths[cacheKey] || 0) >= options.perPage * options.page
+          subset = @orderFilterAndSlice(cachedCollection, comparator, collection, filters, options.page, options.perPage)
+          if (_.all(subset, (model) => model.associationsAreLoaded(include)))
+            @_success options, collection, subset
+            return collection
 
     if options.page - (@getCollectionDetails(name).sortLengths[cacheKey] / options.perPage) > 1
       Utils.throwError("You cannot request a page of data greater than #{@getCollectionDetails(name).sortLengths[cacheKey] / options.perPage} for this collection.  Please request only sequential pages.")
@@ -162,18 +165,19 @@ class window.App.StorageManager
         #    stories: [{id: 10, title: "some story" }, {id: 11, title: "some other story" }]
         #  }
         # Loop over all returned data types and update our local storage to represent any new data.
-        searchIds = []
+        primaryCollectionModels = null
 
         for underscoredModelName, models of resp
           unless underscoredModelName == 'count'
             @storage(underscoredModelName).update models
-            if search? && underscoredModelName == "stories"
-              searchIds = _.pluck(models, 'id')
+            if underscoredModelName == name
+              primaryCollectionModels = models
+
+        if options.cache == false && !only?
+          only = _(primaryCollectionModels).pluck("id")
 
         if only?
           @_success options, collection, _.map(only, (id) -> cachedCollection.get(id))
-        else if search?
-          @_success options, collection, _.map(searchIds, (id) -> cachedCollection.get(id))
         else
           @getCollectionDetails(name).sortLengths[cacheKey] = options.page * options.perPage
           @_success options, collection, @orderFilterAndSlice(cachedCollection, comparator, collection, filters, options.page, options.perPage)
@@ -185,7 +189,8 @@ class window.App.StorageManager
     syncOptions.data.filters = filters.join(",") if filters.length
     syncOptions.data.per_page = options.perPage unless only?
     syncOptions.data.page = options.page unless only?
-    syncOptions.data.search = options.search if search?
+    if search
+      syncOptions.data.search = search
 
     Backbone.sync.call collection, 'read', collection, syncOptions
 
