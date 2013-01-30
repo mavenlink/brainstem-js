@@ -6,6 +6,16 @@ class Mavenlink.Model extends Backbone.Model
     super
     @setLoaded false
 
+  # Handle create and update responses with JSON root keys
+  parse: (resp, xhr) ->
+    modelObject = resp[this.paramRoot.pluralize()]?[0] || resp
+    for k,v of modelObject
+      # ISO 8601 formatted date strings
+      if /\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}/.test(v)
+        # Date.parse will support ISO 8601 in ECMAScript 5, this uses a shim
+        modelObject[k] = Date.parse(v)
+    super(modelObject, xhr)
+
   # Retreive details about a named assocaition.  This is a class method.
   #     Model.associationDetails("workspace") # => {}
   #     timeEntry.constructor.associationDetails("workspace") # => {}
