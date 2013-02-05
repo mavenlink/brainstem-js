@@ -219,9 +219,9 @@ describe 'Mavenlink.Model', ->
       expect(defaultBlacklistKeys.length).toBeGreaterThan(0)
 
       for key in defaultBlacklistKeys
-        model.set(defaultBlacklistKeys, true)
+        model.set(key, true)
 
-      json = model.toServerJSON()
+      json = model.toServerJSON("create")
       for key in defaultBlacklistKeys
         expect(json[key]).toBeUndefined()
 
@@ -230,9 +230,9 @@ describe 'Mavenlink.Model', ->
       spyOn(model, 'createJSONBlacklist').andReturn(createBlacklist)
 
       for key in createBlacklist
-        model.set(createBlacklist, true)
+        model.set(key, true)
 
-      json = model.toServerJSON()
+      json = model.toServerJSON("create")
       for key in createBlacklist
         expect(json[key]).toBeUndefined()
 
@@ -241,8 +241,8 @@ describe 'Mavenlink.Model', ->
       spyOn(model, 'updateJSONBlacklist').andReturn(updateBlacklist)
 
       for key in updateBlacklist
-        model.set(updateBlacklist, true)
+        model.set(key, true)
 
-      json = model.toServerJSON()
+      json = model.toServerJSON("update")
       for key in updateBlacklist
         expect(json[key]).toBeUndefined()

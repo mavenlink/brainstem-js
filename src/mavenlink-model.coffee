@@ -100,9 +100,9 @@ class Mavenlink.Model extends Backbone.Model
 
     switch method
       when "create"
-        blacklist.concat @createJSONBlacklist()
+        blacklist = blacklist.concat @createJSONBlacklist()
       when "update"
-        blacklist.concat @updateJSONBlacklist()
+        blacklist = blacklist.concat @updateJSONBlacklist()
 
     for blacklistKey in blacklist
       delete json[blacklistKey]
