@@ -207,3 +207,42 @@ describe 'Mavenlink.Model', ->
       expect(model.matchesSearch("b ar")).toBeTruthy()
       expect(model.matchesSearch("b: ar")).toBeTruthy()
       expect(model.matchesSearch("bar")).toBeFalsy()
+
+  describe "toServerJSON", ->
+    it "calls toJSON", ->
+      spy = spyOn(model, "toJSON").andCallThrough()
+      model.toServerJSON()
+      expect(spy).toHaveBeenCalled()
+
+    it "always removes default blacklisted keys", ->
+      defaultBlacklistKeys = model.defaultJSONBlacklist()
+      expect(defaultBlacklistKeys.length).toBeGreaterThan(0)
+
+      for key in defaultBlacklistKeys
+        model.set(defaultBlacklistKeys, true)
+
+      json = model.toServerJSON()
+      for key in defaultBlacklistKeys
+        expect(json[key]).toBeUndefined()
+
+    it "removes blacklisted keys for create actions", ->
+      createBlacklist = ['flies', 'ants', 'fire ants']
+      spyOn(model, 'createJSONBlacklist').andReturn(createBlacklist)
+
+      for key in createBlacklist
+        model.set(createBlacklist, true)
+
+      json = model.toServerJSON()
+      for key in createBlacklist
+        expect(json[key]).toBeUndefined()
+
+    it "removes blacklisted keys for update actions", ->
+      updateBlacklist = ['possums', 'racoons', 'potatoes']
+      spyOn(model, 'updateJSONBlacklist').andReturn(updateBlacklist)
+
+      for key in updateBlacklist
+        model.set(updateBlacklist, true)
+
+      json = model.toServerJSON()
+      for key in updateBlacklist
+        expect(json[key]).toBeUndefined()

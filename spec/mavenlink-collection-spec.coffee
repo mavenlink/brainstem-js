@@ -117,6 +117,12 @@ describe 'Mavenlink.Collection', ->
       collection.setLoaded true
       expect(spy).toHaveBeenCalledWith(collection)
 
+  describe "toServerJSON", ->
+    it "calls through to toJSON", ->
+      spy = spyOn(collection, 'toJSON')
+      collection.toServerJSON()
+      expect(spy).toHaveBeenCalled()
+
   describe "ordering and filtering", ->
     beforeEach ->
       collection = new Mavenlink.Collection([

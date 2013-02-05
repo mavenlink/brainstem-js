@@ -34,6 +34,9 @@ class Mavenlink.Collection extends Backbone.Collection
   getWithAssocation: (id) =>
     @get(id)
 
+  toServerJSON: (method) =>
+    @toJSON()
+
   # Return a function that applies the given filter(s).
   @getFilterer: (filters) ->
     filters ||= []

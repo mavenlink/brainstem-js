@@ -33,3 +33,11 @@ describe "Backbone Rails MavenSync", ->
         base.data.loadCollection "time_entries", error: -> callCount += 1
         server.respond()
         expect(callCount).toEqual(1)
+
+  describe "updating models", ->
+    it "should use toServerJSON instead of toJSON", ->
+      spyOn($, 'ajax')
+      modelSpy = spyOn(Mavenlink.Model.prototype, 'toServerJSON')
+      model = buildTimeEntry()
+      model.save()
+      expect(modelSpy).toHaveBeenCalled()

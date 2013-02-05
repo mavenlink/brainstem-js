@@ -16,7 +16,7 @@ class Mavenlink.Model extends Backbone.Model
         modelObject[k] = Date.parse(v)
     super(modelObject, xhr)
 
-  # Retreive details about a named assocaition.  This is a class method.
+  # Retreive details about a named association.  This is a class method.
   #     Model.associationDetails("workspace") # => {}
   #     timeEntry.constructor.associationDetails("workspace") # => {}
   @associationDetails: (association) ->
@@ -84,5 +84,29 @@ class Mavenlink.Model extends Backbone.Model
     for text in [@get('title'), @get('description')]
       if text && text.toLowerCase().replace(/[,:]/g, '').indexOf(string.toLowerCase().replace(/[,:]/g, '')) > -1
         return true
+
+  defaultJSONBlacklist: ->
+    ['id', 'created_at', 'updated_at']
+
+  createJSONBlacklist: ->
+    []
+
+  updateJSONBlacklist: ->
+    []
+
+  toServerJSON: (method) =>
+    json = @toJSON()
+    blacklist = @defaultJSONBlacklist()
+
+    switch method
+      when "create"
+        blacklist.concat @createJSONBlacklist()
+      when "update"
+        blacklist.concat @updateJSONBlacklist()
+
+    for blacklistKey in blacklist
+      delete json[blacklistKey]
+
+    json
 
 _.extend(Mavenlink.Model.prototype, Mavenlink.LoadingMixin);
