@@ -8,6 +8,7 @@ class Mavenlink.Collection extends Backbone.Collection
   update: (models) ->
     models = models.models if models.models?
     for model in models
+      model = this.model.parse(model) if this.model.parse?
       backboneModel = @_prepareModel(model)
       if backboneModel
         if modelInCollection = @get(backboneModel.id)

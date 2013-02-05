@@ -16,9 +16,9 @@ describe 'Mavenlink.Model', ->
       parsed = model.parse({id: 1})
       expect(parsed.id).toEqual(1)
 
-    it "parses ISO 8601 dates into date objects", ->
+    it "parses ISO 8601 dates into epoch seconds", ->
       parsed = model.parse({created_at: "2013-01-25T11:25:57-08:00"})
-      expect(parsed.created_at).toEqual(1359141957000)
+      expect(parsed.created_at).toEqual(1359141957)
 
     it "passes through dates in Ruby epoch seconds", ->
       parsed = model.parse({created_at: 1359142047})
