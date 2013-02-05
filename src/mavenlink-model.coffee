@@ -6,15 +6,19 @@ class Mavenlink.Model extends Backbone.Model
     super
     @setLoaded false
 
-  # Handle create and update responses with JSON root keys
-  parse: (resp, xhr) ->
-    modelObject = resp[this.paramRoot.pluralize()]?[0] || resp
+  # class method to parse ISO8601 dates into seconds since epoch
+  @parse: (modelObject) ->
     for k,v of modelObject
-      # ISO 8601 formatted date strings
+      # Date.parse will support ISO 8601 natively in ECMAScript 5, this uses a shim
       if /\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}/.test(v)
-        # Date.parse will support ISO 8601 in ECMAScript 5, this uses a shim
-        modelObject[k] = Date.parse(v)
-    super(modelObject, xhr)
+        # ruby times were seconds, not ms, so we convert to seconds here
+        modelObject[k] = (Date.parse(v) / 1000)
+    return modelObject
+
+  # Handle create and update responses with JSON root keys
+  parse: (resp, xhr) =>
+    modelObject = resp[this.paramRoot.pluralize()]?[0] || resp
+    super(this.constructor.parse(modelObject), xhr)
 
   # Retreive details about a named association.  This is a class method.
   #     Model.associationDetails("workspace") # => {}
