@@ -34,7 +34,10 @@ Backbone.sync = (method, modelOrCollection, options) ->
   if !params.data && modelOrCollection && (method == 'create' || method == 'update')
     data = {}
 
-    json = modelOrCollection.toServerJSON(method)
+    if modelOrCollection.toServerJSON?
+      json = modelOrCollection.toServerJSON(method)
+    else
+      json = modelOrCollection.toJSON()
 
     if modelOrCollection.paramRoot
       data[modelOrCollection.paramRoot] = json

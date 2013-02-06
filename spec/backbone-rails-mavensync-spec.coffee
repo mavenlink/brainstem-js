@@ -35,9 +35,21 @@ describe "Backbone Rails MavenSync", ->
         expect(callCount).toEqual(1)
 
   describe "updating models", ->
-    it "should use toServerJSON instead of toJSON", ->
+    beforeEach ->
       spyOn($, 'ajax')
+
+    it "should use toServerJSON instead of toJSON", ->
       modelSpy = spyOn(Mavenlink.Model.prototype, 'toServerJSON')
       model = buildTimeEntry()
       model.save()
       expect(modelSpy).toHaveBeenCalled()
+
+    it "should fall back on toJSON if toServerJSON does not exist", ->
+      class TestClass extends Backbone.Model
+        url: "unused"
+
+      spy = spyOn(TestClass.prototype, 'toJSON')
+      model = new TestClass()
+      model.save()
+
+      expect(spy).toHaveBeenCalled()
