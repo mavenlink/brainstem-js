@@ -16,13 +16,13 @@ describe 'Mavenlink.Model', ->
       parsed = model.parse({id: 1})
       expect(parsed.id).toEqual(1)
 
-    it "parses ISO 8601 dates into epoch seconds", ->
+    it "parses ISO 8601 dates into date objects / milliseconds", ->
       parsed = model.parse({created_at: "2013-01-25T11:25:57-08:00"})
-      expect(parsed.created_at).toEqual(1359141957)
+      expect(parsed.created_at).toEqual(1359141957000)
 
-    it "passes through dates in Ruby epoch seconds", ->
-      parsed = model.parse({created_at: 1359142047})
-      expect(parsed.created_at).toEqual(1359142047)
+    it "passes through dates in milliseconds already", ->
+      parsed = model.parse({created_at: 1359142047000})
+      expect(parsed.created_at).toEqual(1359142047000)
 
   describe 'setLoaded', ->
     it "should set the values of @loaded", ->
