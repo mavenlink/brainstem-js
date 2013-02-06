@@ -1,4 +1,4 @@
-describe "Backbone Rails MavenSync", ->
+describe "Brainstem.Sync", ->
 
   describe "error handling", ->
 
