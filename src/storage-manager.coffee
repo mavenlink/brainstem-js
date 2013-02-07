@@ -49,7 +49,7 @@ class window.Brainstem.StorageManager
   # when the load, and any dependent loads, are complete.
   #     model = manager.loadModel "time_entry"
   #     model = manager.loadModel "time_entry", fields: ["title", "notes"]
-  #     model = manager.loadModel "time_entry", include: ["workspace", "story"]
+  #     model = manager.loadModel "time_entry", include: ["project", "task"]
   loadModel: (name, id, options) =>
     options = _.clone(options || {})
     oldSuccess = options.success
@@ -69,10 +69,10 @@ class window.Brainstem.StorageManager
   #     collection = manager.loadCollection "time_entries"
   #     collection = manager.loadCollection "time_entries", only: [2, 6]
   #     collection = manager.loadCollection "time_entries", fields: ["title", "notes"]
-  #     collection = manager.loadCollection "time_entries", include: ["workspace", "story"]
-  #     collection = manager.loadCollection "time_entries", include: ["workspace:title,description", "story:due_date"]
-  #     collection = manager.loadCollection "stories",      include: ["assets", { "assignees": "account" }, { "sub_stories": ["assignees", "assets"] }]
-  #     collection = manager.loadCollection "time_entries", filters: ["workspace_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
+  #     collection = manager.loadCollection "time_entries", include: ["project", "task"]
+  #     collection = manager.loadCollection "time_entries", include: ["project:title,description", "task:due_date"]
+  #     collection = manager.loadCollection "tasks",      include: ["assets", { "assignees": "account" }, { "sub_tasks": ["assignees", "assets"] }]
+  #     collection = manager.loadCollection "time_entries", filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
   loadCollection: (name, options) =>
     options = $.extend({}, options, name: name)
     @_checkPageSettings options
@@ -102,13 +102,13 @@ class window.Brainstem.StorageManager
     collection
 
   _handleNextLayer: (collection, include, callback) =>
-    # Collection is a fully populated collection of stories whose first layer of associations are loaded.
-    # include is a hierarchical list of associations on those stories:
-    #   [{ 'time_entries': ['workspace': [], 'story': [{ 'assignees': []}]] }, { 'workspace': [] }]
+    # Collection is a fully populated collection of tasks whose first layer of associations are loaded.
+    # include is a hierarchical list of associations on those tasks:
+    #   [{ 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }, { 'project': [] }]
 
-    _(include).each (hash) => # { 'time_entries': ['workspace': [], 'story': [{ 'assignees': []}]] }
+    _(include).each (hash) => # { 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }
       association = _.keys(hash)[0] # time_entries
-      nextLevelInclude = hash[association] # ['workspace': [], 'story': [{ 'assignees': []}]]
+      nextLevelInclude = hash[association] # ['project': [], 'task': [{ 'assignees': []}]]
       if nextLevelInclude.length
         association_ids = _(collection.models).chain().
         map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
@@ -160,9 +160,9 @@ class window.Brainstem.StorageManager
       success: (resp, status, xhr) =>
         # The server response should look something like this:
         #  {
-        #    time_entries: [{ id: 2, title: "te1", workspace_id: 6, story_id: [10, 11] }]
-        #    workspaces: [{id: 6, title: "some workspace", time_entry_ids: [2] }]
-        #    stories: [{id: 10, title: "some story" }, {id: 11, title: "some other story" }]
+        #    time_entries: [{ id: 2, title: "te1", project_id: 6, task_id: [10, 11] }]
+        #    projects: [{id: 6, title: "some project", time_entry_ids: [2] }]
+        #    tasks: [{id: 10, title: "some task" }, {id: 11, title: "some other task" }]
         #  }
         # Loop over all returned data types and update our local storage to represent any new data.
         primaryCollectionModels = null

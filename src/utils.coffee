@@ -8,4 +8,4 @@ class window.Brainstem.Utils
     console?.log "Error:", args...
 
   @throwError: (message) =>
-    throw new Error("#{Backbone.history.getFragment()}: #{message}")
+    throw new Error("#{Backbone.hitask.getFragment()}: #{message}")

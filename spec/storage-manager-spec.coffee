@@ -25,33 +25,33 @@ describe 'Brainstem Storage Manager', ->
 
   describe "reset", ->
     it "should clear all storage and sort lengths", ->
-      createStory()
-      createWorkspace()
-      expect(base.data.storage("workspaces").length).toEqual 1
-      expect(base.data.storage("stories").length).toEqual 1
-      base.data.collections["workspaces"].sortLengths = { "foo": "bar" }
+      createTask()
+      createProject()
+      expect(base.data.storage("projects").length).toEqual 1
+      expect(base.data.storage("tasks").length).toEqual 1
+      base.data.collections["projects"].sortLengths = { "foo": "bar" }
       base.data.reset()
-      expect(base.data.collections["workspaces"].sortLengths).toEqual {}
-      expect(base.data.storage("workspaces").length).toEqual 0
-      expect(base.data.storage("stories").length).toEqual 0
+      expect(base.data.collections["projects"].sortLengths).toEqual {}
+      expect(base.data.storage("projects").length).toEqual 0
+      expect(base.data.storage("tasks").length).toEqual 0
 
   describe "loadModel", ->
     beforeEach ->
-      stories = [buildStory(id: 2, title: "a story", workspace_id: 15)]
-      workspaces = [buildWorkspace(id: 15)]
-      timeEntries = [buildTimeEntry(story_id: 2, workspace_id: 15, id: 1, title: "a time entry")]
+      tasks = [buildTask(id: 2, title: "a task", project_id: 15)]
+      projects = [buildProject(id: 15)]
+      timeEntries = [buildTimeEntry(task_id: 2, project_id: 15, id: 1, title: "a time entry")]
       server.respondWith "GET", "/api/time_entries?only=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: timeEntries) ]
-      server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&only=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: timeEntries, stories: stories, workspaces: workspaces) ]
+      server.respondWith "GET", "/api/time_entries?include=project%3Btask&only=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: timeEntries, tasks: tasks, projects: projects) ]
 
     it "loads a single model from the server, including associations", ->
-      model = base.data.loadModel "time_entry", 1, include: ["workspace", "story"]
+      model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
       expect(model.loaded).toBe false
       server.respond()
       expect(model.loaded).toBe true
       expect(model.id).toEqual 1
       expect(model.get("title")).toEqual "a time entry"
-      expect(model.get('story').get('title')).toEqual "a story"
-      expect(model.get('workspace').id).toEqual 15
+      expect(model.get('task').get('title')).toEqual "a task"
+      expect(model.get('project').id).toEqual 15
 
     it "works even when the server returned associations of the same type", ->
       posts = [buildPost(id: 2, reply: true), buildPost(id: 3, reply: true), buildPost(id: 1, reply: false, reply_ids: [2, 3])]
@@ -64,12 +64,12 @@ describe 'Brainstem Storage Manager', ->
       expect(model.get("replies").pluck("id")).toEqual [2, 3]
 
     it "triggers changes", ->
-      model = base.data.loadModel "time_entry", 1, include: ["workspace", "story"]
+      model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
       spy = jasmine.createSpy().andCallFake ->
         expect(model.loaded).toBe true
         expect(model.get("title")).toEqual "a time entry"
-        expect(model.get('story').get('title')).toEqual "a story"
-        expect(model.get('workspace').id).toEqual 15
+        expect(model.get('task').get('title')).toEqual "a task"
+        expect(model.get('project').id).toEqual 15
       model.bind "change", spy
       expect(spy).not.toHaveBeenCalled()
       server.respond()
@@ -151,28 +151,28 @@ describe 'Brainstem Storage Manager', ->
       json = null
 
       beforeEach ->
-        stories = [buildStory(id: 2, title: "a story")]
-        workspaces = [buildWorkspace(id: 15), buildWorkspace(id: 10)]
-        timeEntries = [buildTimeEntry(story_id: 2, workspace_id: 15, id: 1), buildTimeEntry(story_id: null, workspace_id: 10, id: 2)]
-        server.respondWith "GET", /\/api\/time_entries\?include=workspace%3Bstory&per_page=\d+&page=\d+/, [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: timeEntries, stories: stories, workspaces: workspaces) ]
-        server.respondWith "GET", /\/api\/time_entries\?include=workspace&per_page=\d+&page=\d+/, [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: timeEntries, workspaces: workspaces) ]
+        tasks = [buildTask(id: 2, title: "a task")]
+        projects = [buildProject(id: 15), buildProject(id: 10)]
+        timeEntries = [buildTimeEntry(task_id: 2, project_id: 15, id: 1), buildTimeEntry(task_id: null, project_id: 10, id: 2)]
+        server.respondWith "GET", /\/api\/time_entries\?include=project%3Btask&per_page=\d+&page=\d+/, [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: timeEntries, tasks: tasks, projects: projects) ]
+        server.respondWith "GET", /\/api\/time_entries\?include=project&per_page=\d+&page=\d+/, [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: timeEntries, projects: projects) ]
 
       it "loads collections that should be included", ->
-        collection = base.data.loadCollection "time_entries", include: ["workspace", "story"]
+        collection = base.data.loadCollection "time_entries", include: ["project", "task"]
         spy = jasmine.createSpy().andCallFake ->
           expect(collection.loaded).toBe true
-          expect(collection.get(1).get('story').get('title')).toEqual "a story"
-          expect(collection.get(2).get('story')).toBeFalsy()
-          expect(collection.get(1).get('workspace').id).toEqual 15
-          expect(collection.get(2).get('workspace').id).toEqual 10
+          expect(collection.get(1).get('task').get('title')).toEqual "a task"
+          expect(collection.get(2).get('task')).toBeFalsy()
+          expect(collection.get(1).get('project').id).toEqual 15
+          expect(collection.get(2).get('project').id).toEqual 10
         collection.bind "reset", spy
         expect(collection.loaded).toBe false
         server.respond()
         expect(collection.loaded).toBe true
         expect(spy).toHaveBeenCalled()
 
-      it "applies filters when loading collections from the server (so that associations of the same type as the primary can be handled- posts with replies; stories with substories, etc.)", ->
-        posts = [buildPost(workspace_id: 15, id: 1, reply_ids: [2]), buildPost(workspace_id: 15, id: 2, subject_id: 1, reply: true)]
+      it "applies filters when loading collections from the server (so that associations of the same type as the primary can be handled- posts with replies; tasks with subtasks, etc.)", ->
+        posts = [buildPost(project_id: 15, id: 1, reply_ids: [2]), buildPost(project_id: 15, id: 2, subject_id: 1, reply: true)]
         server.respondWith "GET", "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=20&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(posts: posts) ]
         collection = base.data.loadCollection "posts", include: ["replies"], filters: "parents_only:true"
         server.respond()
@@ -182,49 +182,49 @@ describe 'Brainstem Storage Manager', ->
       describe "fetching multiple levels of associations", ->
         # We cannot have default filters that restrict the dataset.  At least not for only queries.
         it "seperately requests each layer of associations", ->
-          workspaceOneTimeEntryStory = buildStory()
-          workspaceOneTimeEntry = buildTimeEntry(title: "without story"); workspaceOneTimeEntryWithStory = buildTimeEntry(id: workspaceOneTimeEntry.id, story_id: workspaceOneTimeEntryStory.id, title: "with story")
-          workspaceOne = buildWorkspace(); workspaceOneWithTimeEntries = buildWorkspace(id: workspaceOne.id, time_entry_ids: [workspaceOneTimeEntry.id])
-          workspaceTwo = buildWorkspace(); workspaceTwoWithTimeEntries = buildWorkspace(id: workspaceTwo.id, time_entry_ids: [])
-          storyOneAssignee = buildUser()
-          storyTwoAssignee = buildUser()
-          storyOneSubAssignee = buildUser()
-          storyOneSub = buildStory(workspace_id: workspaceOne.id, parent_id: 10); storyOneSubWithAssignees = buildStory(id: storyOneSub.id, assignee_ids: [storyOneSubAssignee.id], parent_id: 10)
-          storyTwoSub = buildStory(workspace_id: workspaceTwo.id, parent_id: 11); storyTwoSubWithAssignees = buildStory(id: storyTwoSub.id, assignee_ids: [storyTwoAssignee.id], parent_id: 11)
-          storyOne = buildStory(id: 10, workspace_id: workspaceOne.id, assignee_ids: [storyOneAssignee.id], sub_story_ids: [storyOneSub])
-          storyTwo = buildStory(id: 11, workspace_id: workspaceTwo.id, assignee_ids: [storyTwoAssignee.id], sub_story_ids: [storyTwoSub])
+          projectOneTimeEntryTask = buildTask()
+          projectOneTimeEntry = buildTimeEntry(title: "without task"); projectOneTimeEntryWithTask = buildTimeEntry(id: projectOneTimeEntry.id, task_id: projectOneTimeEntryTask.id, title: "with task")
+          projectOne = buildProject(); projectOneWithTimeEntries = buildProject(id: projectOne.id, time_entry_ids: [projectOneTimeEntry.id])
+          projectTwo = buildProject(); projectTwoWithTimeEntries = buildProject(id: projectTwo.id, time_entry_ids: [])
+          taskOneAssignee = buildUser()
+          taskTwoAssignee = buildUser()
+          taskOneSubAssignee = buildUser()
+          taskOneSub = buildTask(project_id: projectOne.id, parent_id: 10); taskOneSubWithAssignees = buildTask(id: taskOneSub.id, assignee_ids: [taskOneSubAssignee.id], parent_id: 10)
+          taskTwoSub = buildTask(project_id: projectTwo.id, parent_id: 11); taskTwoSubWithAssignees = buildTask(id: taskTwoSub.id, assignee_ids: [taskTwoAssignee.id], parent_id: 11)
+          taskOne = buildTask(id: 10, project_id: projectOne.id, assignee_ids: [taskOneAssignee.id], sub_task_ids: [taskOneSub])
+          taskTwo = buildTask(id: 11, project_id: projectTwo.id, assignee_ids: [taskTwoAssignee.id], sub_task_ids: [taskTwoSub])
 
-          server.respondWith "GET", "/api/stories.json?include=assignees%3Bworkspace%3Bsub_stories&filters=parents_only%3Atrue&per_page=20&page=1",
-              [ 200, {"Content-Type": "application/json"}, JSON.stringify(stories: [storyOne, storyTwo, storyOneSub, storyTwoSub], users: [storyOneAssignee, storyTwoAssignee], workspaces: [workspaceOne, workspaceTwo]) ]
+          server.respondWith "GET", "/api/tasks.json?include=assignees%3Bproject%3Bsub_tasks&filters=parents_only%3Atrue&per_page=20&page=1",
+              [ 200, {"Content-Type": "application/json"}, JSON.stringify(tasks: [taskOne, taskTwo, taskOneSub, taskTwoSub], users: [taskOneAssignee, taskTwoAssignee], projects: [projectOne, projectTwo]) ]
 
-          server.respondWith "GET", "/api/stories.json?include=assignees&only=#{storyOneSub.id}%2C#{storyTwoSub.id}",
-              [ 200, {"Content-Type": "application/json"}, JSON.stringify(stories: [storyOneSubWithAssignees, storyTwoSubWithAssignees], users: [storyOneSubAssignee, storyTwoAssignee]) ]
+          server.respondWith "GET", "/api/tasks.json?include=assignees&only=#{taskOneSub.id}%2C#{taskTwoSub.id}",
+              [ 200, {"Content-Type": "application/json"}, JSON.stringify(tasks: [taskOneSubWithAssignees, taskTwoSubWithAssignees], users: [taskOneSubAssignee, taskTwoAssignee]) ]
 
-          server.respondWith "GET", "/api/workspaces?include=time_entries&only=#{workspaceOne.id}%2C#{workspaceTwo.id}",
-              [ 200, {"Content-Type": "application/json"}, JSON.stringify(workspaces: [workspaceOneWithTimeEntries, workspaceTwoWithTimeEntries], time_entries: [workspaceOneTimeEntry]) ]
+          server.respondWith "GET", "/api/projects?include=time_entries&only=#{projectOne.id}%2C#{projectTwo.id}",
+              [ 200, {"Content-Type": "application/json"}, JSON.stringify(projects: [projectOneWithTimeEntries, projectTwoWithTimeEntries], time_entries: [projectOneTimeEntry]) ]
 
-          server.respondWith "GET", "/api/time_entries?include=story&only=#{workspaceOneTimeEntry.id}",
-              [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [workspaceOneTimeEntryWithStory], stories: [workspaceOneTimeEntryStory]) ]
+          server.respondWith "GET", "/api/time_entries?include=task&only=#{projectOneTimeEntry.id}",
+              [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [projectOneTimeEntryWithTask], tasks: [projectOneTimeEntryTask]) ]
 
           callCount = 0
           checkStructure = (collection) ->
-            expect(collection.pluck("id").sort()).toEqual [storyOne.id, storyTwo.id]
-            expect(collection.get(storyOne.id).get("workspace").id).toEqual workspaceOne.id
-            expect(collection.get(storyOne.id).get("assignees").pluck("id")).toEqual [storyOneAssignee.id]
-            expect(collection.get(storyTwo.id).get("assignees").pluck("id")).toEqual [storyTwoAssignee.id]
-            expect(collection.get(storyOne.id).get("sub_stories").pluck("id")).toEqual [storyOneSub.id]
-            expect(collection.get(storyTwo.id).get("sub_stories").pluck("id")).toEqual [storyTwoSub.id]
-            expect(collection.get(storyOne.id).get("sub_stories").get(storyOneSub.id).get("assignees").pluck("id")).toEqual [storyOneSubAssignee.id]
-            expect(collection.get(storyTwo.id).get("sub_stories").get(storyTwoSub.id).get("assignees").pluck("id")).toEqual [storyTwoAssignee.id]
-            expect(collection.get(storyOne.id).get("workspace").get("time_entries").pluck("id")).toEqual [workspaceOneTimeEntry.id]
-            expect(collection.get(storyOne.id).get("workspace").get("time_entries").models[0].get("story").id).toEqual workspaceOneTimeEntryStory.id
+            expect(collection.pluck("id").sort()).toEqual [taskOne.id, taskTwo.id]
+            expect(collection.get(taskOne.id).get("project").id).toEqual projectOne.id
+            expect(collection.get(taskOne.id).get("assignees").pluck("id")).toEqual [taskOneAssignee.id]
+            expect(collection.get(taskTwo.id).get("assignees").pluck("id")).toEqual [taskTwoAssignee.id]
+            expect(collection.get(taskOne.id).get("sub_tasks").pluck("id")).toEqual [taskOneSub.id]
+            expect(collection.get(taskTwo.id).get("sub_tasks").pluck("id")).toEqual [taskTwoSub.id]
+            expect(collection.get(taskOne.id).get("sub_tasks").get(taskOneSub.id).get("assignees").pluck("id")).toEqual [taskOneSubAssignee.id]
+            expect(collection.get(taskTwo.id).get("sub_tasks").get(taskTwoSub.id).get("assignees").pluck("id")).toEqual [taskTwoAssignee.id]
+            expect(collection.get(taskOne.id).get("project").get("time_entries").pluck("id")).toEqual [projectOneTimeEntry.id]
+            expect(collection.get(taskOne.id).get("project").get("time_entries").models[0].get("task").id).toEqual projectOneTimeEntryTask.id
             callCount += 1
 
           success = jasmine.createSpy().andCallFake checkStructure
-          collection = base.data.loadCollection "stories", filters: "parents_only:true", success: success, include: [
+          collection = base.data.loadCollection "tasks", filters: "parents_only:true", success: success, include: [
                                                                       "assignees",
-                                                                      "workspace": ["time_entries": "story"],
-                                                                      "sub_stories": ["assignees"]
+                                                                      "project": ["time_entries": "task"],
+                                                                      "sub_tasks": ["assignees"]
                                                                     ]
           collection.bind "loaded", checkStructure
           collection.bind "reset", checkStructure
@@ -236,69 +236,69 @@ describe 'Brainstem Storage Manager', ->
       describe "caching", ->
         describe "without ordering", ->
           it "doesn't go to the server when it already has the data", ->
-            collection1 = base.data.loadCollection "time_entries", include: ["workspace", "story"], page: 1, perPage: 2
+            collection1 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 2
             server.respond()
             expect(collection1.loaded).toBe true
             spy = jasmine.createSpy()
-            collection2 = base.data.loadCollection "time_entries", include: ["workspace", "story"], page: 1, perPage: 2, success: spy
+            collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 2, success: spy
             expect(spy).toHaveBeenCalled()
             expect(collection2.loaded).toBe true
-            expect(collection2.get(1).get('story').get('title')).toEqual "a story"
-            expect(collection2.get(2).get('story')).toBeFalsy()
-            expect(collection2.get(1).get('workspace').id).toEqual 15
-            expect(collection2.get(2).get('workspace').id).toEqual 10
+            expect(collection2.get(1).get('task').get('title')).toEqual "a task"
+            expect(collection2.get(2).get('task')).toBeFalsy()
+            expect(collection2.get(1).get('project').id).toEqual 15
+            expect(collection2.get(2).get('project').id).toEqual 10
 
           it "does go to the server when more records are requested than it has previously requested, and remembers previously requested pages", ->
-            collection1 = base.data.loadCollection "time_entries", include: ["workspace", "story"], page: 1, perPage: 2
+            collection1 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 2
             server.respond()
             expect(collection1.loaded).toBe true
-            collection2 = base.data.loadCollection "time_entries", include: ["workspace", "story"], page: 2, perPage: 2
+            collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 2, perPage: 2
             expect(collection2.loaded).toBe false
             server.respond()
             expect(collection2.loaded).toBe true
-            collection3 = base.data.loadCollection "time_entries", include: ["workspace"], page: 1, perPage: 2
+            collection3 = base.data.loadCollection "time_entries", include: ["project"], page: 1, perPage: 2
             expect(collection3.loaded).toBe true
 
           it "does go to the server when some associations are missing, when otherwise it would have the data", ->
-            collection1 = base.data.loadCollection "time_entries", include: ["workspace"], page: 1, perPage: 2
+            collection1 = base.data.loadCollection "time_entries", include: ["project"], page: 1, perPage: 2
             server.respond()
             expect(collection1.loaded).toBe true
-            collection2 = base.data.loadCollection "time_entries", include: ["workspace", "story"], page: 1, perPage: 2
+            collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 2
             expect(collection2.loaded).toBe false
 
           it "goes to the server when a page size change neccesitates it", ->
-            collection1 = base.data.loadCollection "time_entries", include: ["workspace"], page: 1, perPage: 2
+            collection1 = base.data.loadCollection "time_entries", include: ["project"], page: 1, perPage: 2
             server.respond()
             expect(collection1.loaded).toBe true
-            collection2 = base.data.loadCollection "time_entries", include: ["workspace"], page: 1, perPage: 1
+            collection2 = base.data.loadCollection "time_entries", include: ["project"], page: 1, perPage: 1
             expect(collection2.loaded).toBe true
-            collection3 = base.data.loadCollection "time_entries", include: ["workspace"], page: 1, perPage: 3
+            collection3 = base.data.loadCollection "time_entries", include: ["project"], page: 1, perPage: 3
             expect(collection3.loaded).toBe false
 
           it "raises an error when more than one additional page is requested", ->
-            collection1 = base.data.loadCollection "time_entries", include: ["workspace"], page: 1, perPage: 2
+            collection1 = base.data.loadCollection "time_entries", include: ["project"], page: 1, perPage: 2
             server.respond()
             expect(collection1.loaded).toBe true
 
-            collection1 = base.data.loadCollection "time_entries", include: ["workspace"], page: 3, perPage: 1
+            collection1 = base.data.loadCollection "time_entries", include: ["project"], page: 3, perPage: 1
             expect(collection1.loaded).toBe false
 
-            expect(-> base.data.loadCollection "time_entries", include: ["workspace"], page: 3, perPage: 2).toThrow()
-            expect(-> base.data.loadCollection "time_entries", include: ["workspace"], page: 4, perPage: 2).toThrow()
-            expect(-> base.data.loadCollection "time_entries", include: ["workspace"], page: 4, perPage: 1).toThrow()
-            expect(-> base.data.loadCollection "time_entries", include: ["workspace"], page: 5, perPage: 1).toThrow()
+            expect(-> base.data.loadCollection "time_entries", include: ["project"], page: 3, perPage: 2).toThrow()
+            expect(-> base.data.loadCollection "time_entries", include: ["project"], page: 4, perPage: 2).toThrow()
+            expect(-> base.data.loadCollection "time_entries", include: ["project"], page: 4, perPage: 1).toThrow()
+            expect(-> base.data.loadCollection "time_entries", include: ["project"], page: 5, perPage: 1).toThrow()
 
         describe "with ordering and filtering", ->
           now = ws10 = ws11 = te1Ws10 = te2Ws10 = te1Ws11 = te2Ws11 = null
 
           beforeEach ->
             now = (new Date()).getTime() / 1000
-            ws10 = buildWorkspace(id: 10)
-            ws11 = buildWorkspace(id: 11)
-            te1Ws10 = buildTimeEntry(story_id: null, workspace_id: 10, id: 1, created_at: now - 20, updated_at: now - 10)
-            te2Ws10 = buildTimeEntry(story_id: null, workspace_id: 10, id: 2, created_at: now - 10, updated_at: now - 5)
-            te1Ws11 = buildTimeEntry(story_id: null, workspace_id: 11, id: 3, created_at: now - 100, updated_at: now - 4)
-            te2Ws11 = buildTimeEntry(story_id: null, workspace_id: 11, id: 4, created_at: now - 200, updated_at: now - 12)
+            ws10 = buildProject(id: 10)
+            ws11 = buildProject(id: 11)
+            te1Ws10 = buildTimeEntry(task_id: null, project_id: 10, id: 1, created_at: now - 20, updated_at: now - 10)
+            te2Ws10 = buildTimeEntry(task_id: null, project_id: 10, id: 2, created_at: now - 10, updated_at: now - 5)
+            te1Ws11 = buildTimeEntry(task_id: null, project_id: 11, id: 3, created_at: now - 100, updated_at: now - 4)
+            te2Ws11 = buildTimeEntry(task_id: null, project_id: 11, id: 4, created_at: now - 200, updated_at: now - 12)
 
           it "cuts pages correctly in the client", ->
             server.respondWith "GET", "/api/time_entries?order=created_at%3Aasc&per_page=2&page=1", [ 200, {"Content-Type": "application/json"},
@@ -316,80 +316,80 @@ describe 'Brainstem Storage Manager', ->
           it "seperately keeps track of the depth of data requested by sort order and filter", ->
             server.responses = []
 
-            server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&order=updated_at%3Adesc&filters=workspace_id%3A10&per_page=2&page=1", [ 200, {"Content-Type": "application/json"},
-              JSON.stringify(time_entries: [te2Ws10, te1Ws10], stories: [], workspaces: [ws10]) ]
-            server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&order=updated_at%3Adesc&filters=workspace_id%3A11&per_page=2&page=1", [ 200, {"Content-Type": "application/json"},
-              JSON.stringify(time_entries: [te1Ws11, te2Ws11], stories: [], workspaces: [ws11]) ]
-            server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&order=created_at%3Aasc&filters=workspace_id%3A11&per_page=2&page=1", [ 200, {"Content-Type": "application/json"},
-              JSON.stringify(time_entries: [te2Ws11, te1Ws11], stories: [], workspaces: [ws11]) ]
-            server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&order=created_at%3Aasc&per_page=4&page=1", [ 200, {"Content-Type": "application/json"},
-              JSON.stringify(time_entries: [te2Ws11, te1Ws11, te1Ws10, te2Ws10], stories: [], workspaces: [ws10, ws11]) ]
-            server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&per_page=4&page=1", [ 200, {"Content-Type": "application/json"},
-              JSON.stringify(time_entries: [te1Ws11, te2Ws10, te1Ws10, te2Ws11], stories: [], workspaces: [ws10, ws11]) ]
+            server.respondWith "GET", "/api/time_entries?include=project%3Btask&order=updated_at%3Adesc&filters=project_id%3A10&per_page=2&page=1", [ 200, {"Content-Type": "application/json"},
+              JSON.stringify(time_entries: [te2Ws10, te1Ws10], tasks: [], projects: [ws10]) ]
+            server.respondWith "GET", "/api/time_entries?include=project%3Btask&order=updated_at%3Adesc&filters=project_id%3A11&per_page=2&page=1", [ 200, {"Content-Type": "application/json"},
+              JSON.stringify(time_entries: [te1Ws11, te2Ws11], tasks: [], projects: [ws11]) ]
+            server.respondWith "GET", "/api/time_entries?include=project%3Btask&order=created_at%3Aasc&filters=project_id%3A11&per_page=2&page=1", [ 200, {"Content-Type": "application/json"},
+              JSON.stringify(time_entries: [te2Ws11, te1Ws11], tasks: [], projects: [ws11]) ]
+            server.respondWith "GET", "/api/time_entries?include=project%3Btask&order=created_at%3Aasc&per_page=4&page=1", [ 200, {"Content-Type": "application/json"},
+              JSON.stringify(time_entries: [te2Ws11, te1Ws11, te1Ws10, te2Ws10], tasks: [], projects: [ws10, ws11]) ]
+            server.respondWith "GET", "/api/time_entries?include=project%3Btask&per_page=4&page=1", [ 200, {"Content-Type": "application/json"},
+              JSON.stringify(time_entries: [te1Ws11, te2Ws10, te1Ws10, te2Ws11], tasks: [], projects: [ws10, ws11]) ]
 
             # Make a server request
-            collection1 = base.data.loadCollection "time_entries", include: ["workspace", "story"], order: "updated_at:desc", filters: ["workspace_id:10"], page: 1, perPage: 2
+            collection1 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "updated_at:desc", filters: ["project_id:10"], page: 1, perPage: 2
             expect(collection1.loaded).toBe false
             server.respond()
             expect(collection1.loaded).toBe true
             expect(collection1.pluck("id")).toEqual [te2Ws10.id, te1Ws10.id] # Show that it came back in the explicit order setup above
             # Make another request, this time handled by the cache.
-            collection2 = base.data.loadCollection "time_entries", include: ["workspace", "story"], order: "updated_at:desc", filters: ["workspace_id:10"], page: 1, perPage: 2
+            collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "updated_at:desc", filters: ["project_id:10"], page: 1, perPage: 2
             expect(collection2.loaded).toBe true
             expect(collection2.pluck("id")).toEqual [te2Ws10.id, te1Ws10.id] # Show that it also came back in the correct order.
 
             # Do it again, this time with a different filter.
-            collection3 = base.data.loadCollection "time_entries", include: ["workspace", "story"], order: "updated_at:desc", filters: ["workspace_id:11"], page: 1, perPage: 2
+            collection3 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "updated_at:desc", filters: ["project_id:11"], page: 1, perPage: 2
             expect(collection3.loaded).toBe false
             server.respond()
             expect(collection3.loaded).toBe true
             expect(collection3.pluck("id")).toEqual [te1Ws11.id, te2Ws11.id]
-            collection4 = base.data.loadCollection "time_entries", include: ["workspace"], order: "updated_at:desc", filters: ["workspace_id:11"], page: 1, perPage: 2
+            collection4 = base.data.loadCollection "time_entries", include: ["project"], order: "updated_at:desc", filters: ["project_id:11"], page: 1, perPage: 2
             expect(collection4.loaded).toBe true
             expect(collection4.pluck("id")).toEqual [te1Ws11.id, te2Ws11.id]
 
             # Do it again, this time with a different order.
-            collection5 = base.data.loadCollection "time_entries", include: ["workspace", "story"], order: "created_at:asc", filters: ["workspace_id:11"], page: 1, perPage: 2
+            collection5 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "created_at:asc", filters: ["project_id:11"], page: 1, perPage: 2
             expect(collection5.loaded).toBe false
             server.respond()
             expect(collection5.loaded).toBe true
             expect(collection5.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id]
-            collection6 = base.data.loadCollection "time_entries", include: ["story"], order: "created_at:asc", filters: ["workspace_id:11"], page: 1, perPage: 2
+            collection6 = base.data.loadCollection "time_entries", include: ["task"], order: "created_at:asc", filters: ["project_id:11"], page: 1, perPage: 2
             expect(collection6.loaded).toBe true
             expect(collection6.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id]
 
             # Do it again, this time without a filter.
-            collection7 = base.data.loadCollection "time_entries", include: ["workspace", "story"], order: "created_at:asc", page: 1, perPage: 4
+            collection7 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "created_at:asc", page: 1, perPage: 4
             expect(collection7.loaded).toBe false
             server.respond()
             expect(collection7.loaded).toBe true
             expect(collection7.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id, te1Ws10.id, te2Ws10.id]
-            collection8 = base.data.loadCollection "time_entries", include: ["workspace", "story"], order: "created_at:asc", page: 1, perPage: 3
+            collection8 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "created_at:asc", page: 1, perPage: 3
             expect(collection8.loaded).toBe true
             expect(collection8.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id, te1Ws10.id]
 
             # Do it again, this time without an order, so it should use the default (updated_at:desc).
-            collection9 = base.data.loadCollection "time_entries", include: ["workspace", "story"], page: 1, perPage: 4
+            collection9 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 4
             expect(collection9.loaded).toBe false
             server.respond()
             expect(collection9.loaded).toBe true
             expect(collection9.pluck("id")).toEqual [te1Ws11.id, te2Ws10.id, te1Ws10.id, te2Ws11.id]
-            collection10 = base.data.loadCollection "time_entries", include: ["workspace", "story"], page: 1, perPage: 3
+            collection10 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 3
             expect(collection10.loaded).toBe true
             expect(collection10.pluck("id")).toEqual [te1Ws11.id, te2Ws10.id, te1Ws10.id]
 
     describe "handling of only", ->
       describe "when getting data from the server", ->
         it "returns the requested ids with includes, triggering reset and success", ->
-          server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&only=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(story_id: null, workspace_id: 10, id: 2)], stories: [], workspaces: [buildWorkspace(id: 10)]) ]
+          server.respondWith "GET", "/api/time_entries?include=project%3Btask&only=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(task_id: null, project_id: 10, id: 2)], tasks: [], projects: [buildProject(id: 10)]) ]
 
           spy2 = jasmine.createSpy().andCallFake (collection) ->
             expect(collection.loaded).toBe true
-          collection = base.data.loadCollection "time_entries", include: ["workspace", "story"], only: 2, success: spy2
+          collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: 2, success: spy2
           spy = jasmine.createSpy().andCallFake ->
             expect(collection.loaded).toBe true
-            expect(collection.get(2).get('story')).toBeFalsy()
-            expect(collection.get(2).get('workspace').id).toEqual 10
+            expect(collection.get(2).get('task')).toBeFalsy()
+            expect(collection.get(2).get('project').id).toEqual 10
             expect(collection.length).toEqual 1
           collection.bind "reset", spy
           expect(collection.loaded).toBe false
@@ -399,57 +399,57 @@ describe 'Brainstem Storage Manager', ->
           expect(spy2).toHaveBeenCalled()
 
         it "only requests ids that we don't already have", ->
-          server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&only=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(story_id: null, workspace_id: 10, id: 2)], stories: [], workspaces: [buildWorkspace(id: 10)]) ]
-          server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&only=3", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(story_id: null, workspace_id: 11, id: 3)], stories: [], workspaces: [buildWorkspace(id: 11)]) ]
+          server.respondWith "GET", "/api/time_entries?include=project%3Btask&only=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(task_id: null, project_id: 10, id: 2)], tasks: [], projects: [buildProject(id: 10)]) ]
+          server.respondWith "GET", "/api/time_entries?include=project%3Btask&only=3", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(task_id: null, project_id: 11, id: 3)], tasks: [], projects: [buildProject(id: 11)]) ]
 
-          collection = base.data.loadCollection "time_entries", include: ["workspace", "story"], only: 2
+          collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: 2
           expect(collection.loaded).toBe false
           server.respond()
           expect(collection.loaded).toBe true
-          expect(collection.get(2).get('workspace').id).toEqual 10
-          collection2 = base.data.loadCollection "time_entries", include: ["workspace", "story"], only: [2, 3]
+          expect(collection.get(2).get('project').id).toEqual 10
+          collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
           expect(collection2.loaded).toBe false
           server.respond()
           expect(collection2.loaded).toBe true
-          expect(collection2.get(2).get('workspace').id).toEqual 10
-          expect(collection2.get(3).get('workspace').id).toEqual 11
+          expect(collection2.get(2).get('project').id).toEqual 10
+          expect(collection2.get(3).get('project').id).toEqual 11
           expect(collection2.length).toEqual 2
 
         it "does request ids from the server again when they don't have all associations loaded yet", ->
-          server.respondWith "GET", "/api/time_entries?include=workspace&only=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(workspace_id: 10, id: 2, story_id: 5)], workspaces: [buildWorkspace(id: 10)]) ]
-          server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&only=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(workspace_id: 10, id: 2, story_id: 5)], stories: [buildStory(id: 5)], workspaces: [buildWorkspace(id: 10)]) ]
-          server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&only=3", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(workspace_id: 11, id: 3, story_id: null)], stories: [], workspaces: [buildWorkspace(id: 11)]) ]
+          server.respondWith "GET", "/api/time_entries?include=project&only=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 5)], projects: [buildProject(id: 10)]) ]
+          server.respondWith "GET", "/api/time_entries?include=project%3Btask&only=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 5)], tasks: [buildTask(id: 5)], projects: [buildProject(id: 10)]) ]
+          server.respondWith "GET", "/api/time_entries?include=project%3Btask&only=3", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 11)]) ]
 
-          base.data.loadCollection "time_entries", include: ["workspace"], only: 2
+          base.data.loadCollection "time_entries", include: ["project"], only: 2
           server.respond()
-          base.data.loadCollection "time_entries", include: ["workspace", "story"], only: 3
+          base.data.loadCollection "time_entries", include: ["project", "task"], only: 3
           server.respond()
-          collection2 = base.data.loadCollection "time_entries", include: ["workspace", "story"], only: [2, 3]
+          collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
           expect(collection2.loaded).toBe false
           server.respond()
           expect(collection2.loaded).toBe true
-          expect(collection2.get(2).get('story').id).toEqual 5
+          expect(collection2.get(2).get('task').id).toEqual 5
           expect(collection2.length).toEqual 2
 
         it "doesn't go to the server if it doesn't need to", ->
-          server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&only=2%2C3", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(workspace_id: 10, id: 2, story_id: null), buildTimeEntry(workspace_id: 11, id: 3)], stories: [], workspaces: [buildWorkspace(id: 10), buildWorkspace(id: 11)]) ]
-          collection = base.data.loadCollection "time_entries", include: ["workspace", "story"], only: [2, 3]
+          server.respondWith "GET", "/api/time_entries?include=project%3Btask&only=2%2C3", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)]) ]
+          collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
           expect(collection.loaded).toBe false
           server.respond()
           expect(collection.loaded).toBe true
-          expect(collection.get(2).get('workspace').id).toEqual 10
-          expect(collection.get(3).get('workspace').id).toEqual 11
+          expect(collection.get(2).get('project').id).toEqual 10
+          expect(collection.get(3).get('project').id).toEqual 11
           expect(collection.length).toEqual 2
           spy = jasmine.createSpy()
-          collection2 = base.data.loadCollection "time_entries", include: ["workspace"], only: [2, 3], success: spy
+          collection2 = base.data.loadCollection "time_entries", include: ["project"], only: [2, 3], success: spy
           expect(spy).toHaveBeenCalled()
           expect(collection2.loaded).toBe true
-          expect(collection2.get(2).get('workspace').id).toEqual 10
-          expect(collection2.get(3).get('workspace').id).toEqual 11
+          expect(collection2.get(2).get('project').id).toEqual 10
+          expect(collection2.get(3).get('project').id).toEqual 11
           expect(collection2.length).toEqual 2
 
         it "returns an empty collection when passed in an empty array", ->
-          timeEntries = [buildTimeEntry(story_id: 2, workspace_id: 15, id: 1), buildTimeEntry(workspace_id: 10, id: 2)]
+          timeEntries = [buildTimeEntry(task_id: 2, project_id: 15, id: 1), buildTimeEntry(project_id: 10, id: 2)]
           server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: timeEntries) ]
 
           collection = base.data.loadCollection "time_entries", only: []
@@ -462,70 +462,70 @@ describe 'Brainstem Storage Manager', ->
           expect(collection.length).toEqual 2
 
         it "accepts a success function that gets triggered on cache hit", ->
-          server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&only=2%2C3", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(workspace_id: 10, id: 2, story_id: null), buildTimeEntry(workspace_id: 11, id: 3, story_id: null)], stories: [], workspaces: [buildWorkspace(id: 10), buildWorkspace(id: 11)]) ]
-          base.data.loadCollection "time_entries", include: ["workspace", "story"], only: [2, 3]
+          server.respondWith "GET", "/api/time_entries?include=project%3Btask&only=2%2C3", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)]) ]
+          base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
           server.respond()
           spy = jasmine.createSpy().andCallFake (collection) ->
             expect(collection.loaded).toBe true
-            expect(collection.get(2).get('workspace').id).toEqual 10
-            expect(collection.get(3).get('workspace').id).toEqual 11
-          collection2 = base.data.loadCollection "time_entries", include: ["workspace"], only: [2, 3], success: spy
+            expect(collection.get(2).get('project').id).toEqual 10
+            expect(collection.get(3).get('project').id).toEqual 11
+          collection2 = base.data.loadCollection "time_entries", include: ["project"], only: [2, 3], success: spy
           expect(spy).toHaveBeenCalled()
 
         it "does not update sort lengths on only queries", ->
-          server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&only=2%2C3", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(workspace_id: 10, id: 2, story_id: null), buildTimeEntry(workspace_id: 11, id: 3, story_id: null)], stories: [], workspaces: [buildWorkspace(id: 10), buildWorkspace(id: 11)]) ]
-          collection = base.data.loadCollection "time_entries", include: ["workspace", "story"], only: [2, 3]
+          server.respondWith "GET", "/api/time_entries?include=project%3Btask&only=2%2C3", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)]) ]
+          collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
           expect(Object.keys base.data.getCollectionDetails("time_entries")["sortLengths"]).toEqual []
           server.respond()
           expect(Object.keys base.data.getCollectionDetails("time_entries")["sortLengths"]).toEqual []
 
         it "does go to the server on a repeat request if an association is missing", ->
-          server.respondWith "GET", "/api/time_entries?include=workspace&only=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(workspace_id: 10, id: 2, story_id: 6)], workspaces: [buildWorkspace(id: 10)]) ]
-          server.respondWith "GET", "/api/time_entries?include=workspace%3Bstory&only=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(workspace_id: 10, id: 2, story_id: 6)], stories: [buildStory(id: 6)], workspaces: [buildWorkspace(id: 10)]) ]
+          server.respondWith "GET", "/api/time_entries?include=project&only=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 6)], projects: [buildProject(id: 10)]) ]
+          server.respondWith "GET", "/api/time_entries?include=project%3Btask&only=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 6)], tasks: [buildTask(id: 6)], projects: [buildProject(id: 10)]) ]
 
-          collection = base.data.loadCollection "time_entries", include: ["workspace"], only: 2
+          collection = base.data.loadCollection "time_entries", include: ["project"], only: 2
           expect(collection.loaded).toBe false
           server.respond()
           expect(collection.loaded).toBe true
-          collection2 = base.data.loadCollection "time_entries", include: ["workspace", "story"], only: 2
+          collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], only: 2
           expect(collection2.loaded).toBe false
 
     describe "disabling caching", ->
       item = null
 
       beforeEach ->
-        item = createStory()
-        server.respondWith "GET", "/api/stories.json?per_page=20&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(stories: [item]) ]
+        item = createTask()
+        server.respondWith "GET", "/api/tasks.json?per_page=20&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(tasks: [item]) ]
 
       it "goes to server even if we have matching items in cache", ->
         syncSpy = spyOn(Backbone, 'sync')
-        collection = base.data.loadCollection "stories", cache: false, only: item.id
+        collection = base.data.loadCollection "tasks", cache: false, only: item.id
         expect(syncSpy).toHaveBeenCalled()
 
       it "does not apply local filters/sorts", ->
         spy = spyOn(base.data, 'orderFilterAndSlice')
-        collection = base.data.loadCollection "stories", cache: false
+        collection = base.data.loadCollection "tasks", cache: false
         server.respond()
         expect(spy).not.toHaveBeenCalled()
         
       it "still adds results to the cache", ->
-        spy = spyOn(base.data.storage('stories'), 'update')
-        collection = base.data.loadCollection "stories", cache: false
+        spy = spyOn(base.data.storage('tasks'), 'update')
+        collection = base.data.loadCollection "tasks", cache: false
         server.respond()
         expect(spy).toHaveBeenCalled()
 
     describe "searching", ->
       it 'turns off caching', ->
         spy = spyOn(base.data, '_loadCollectionWithFirstLayer')
-        collection = base.data.loadCollection "stories", search: "the meaning of life"
+        collection = base.data.loadCollection "tasks", search: "the meaning of life"
         expect(spy.mostRecentCall.args[0]['cache']).toBe(false)
       
       it "returns the matching items with includes, triggering reset and success", ->
-        server.respondWith "GET", "/api/stories.json?per_page=20&page=1&search=go+go+gadget+search", [ 200, {"Content-Type": "application/json"}, JSON.stringify(stories: [buildStory()]) ]
+        server.respondWith "GET", "/api/tasks.json?per_page=20&page=1&search=go+go+gadget+search", [ 200, {"Content-Type": "application/json"}, JSON.stringify(tasks: [buildTask()]) ]
 
         spy2 = jasmine.createSpy().andCallFake (collection) ->
           expect(collection.loaded).toBe true
-        collection = base.data.loadCollection "stories", search: "go go gadget search", success: spy2
+        collection = base.data.loadCollection "tasks", search: "go go gadget search", success: spy2
         spy = jasmine.createSpy().andCallFake ->
           expect(collection.loaded).toBe true
         collection.bind "reset", spy
@@ -536,23 +536,23 @@ describe 'Brainstem Storage Manager', ->
         expect(spy2).toHaveBeenCalled()
 
       it 'does not blow up when no results are returned', ->
-        server.respondWith "GET", "/api/stories.json?per_page=20&page=1&search=go+go+gadget+search", [ 200, {"Content-Type": "application/json"}, JSON.stringify(stories: []) ]
-        collection = base.data.loadCollection "stories", search: "go go gadget search"
+        server.respondWith "GET", "/api/tasks.json?per_page=20&page=1&search=go+go+gadget+search", [ 200, {"Content-Type": "application/json"}, JSON.stringify(tasks: []) ]
+        collection = base.data.loadCollection "tasks", search: "go go gadget search"
         server.respond()
 
       it 'acts as if no search options were passed if the search string is blank', ->
-        server.respondWith "GET", "/api/stories.json?per_page=20&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(stories: []) ]
-        collection = base.data.loadCollection "stories", search: ""
+        server.respondWith "GET", "/api/tasks.json?per_page=20&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(tasks: []) ]
+        collection = base.data.loadCollection "tasks", search: ""
         server.respond()
 
   describe "createNewCollection", ->
     it "makes a new collection of the appropriate type", ->
-      expect(base.data.createNewCollection("stories", [buildStory(), buildStory()]) instanceof App.Collections.Stories).toBe true
+      expect(base.data.createNewCollection("tasks", [buildTask(), buildTask()]) instanceof App.Collections.Tasks).toBe true
 
     it "can accept a 'loaded' flag", ->
-      collection = base.data.createNewCollection("stories", [buildStory(), buildStory()])
+      collection = base.data.createNewCollection("tasks", [buildTask(), buildTask()])
       expect(collection.loaded).toBe false
-      collection = base.data.createNewCollection("stories", [buildStory(), buildStory()], loaded: true)
+      collection = base.data.createNewCollection("tasks", [buildTask(), buildTask()], loaded: true)
       expect(collection.loaded).toBe true
 
   describe "_wrapObjects", ->

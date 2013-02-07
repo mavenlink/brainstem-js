@@ -8,8 +8,8 @@ class App.Models.TimeEntry extends Brainstem.Model
       else "/api/time_entries/#{@id}"
 
   @associations:
-    workspace: "workspaces"
-    story: "stories"
+    project: "projects"
+    task: "tasks"
     user: "users"
 
 class App.Collections.TimeEntries extends Brainstem.Collection

@@ -30,31 +30,31 @@ spec.defineBuilders = ->
     id: (n) -> return n
   }
 
-  window.defineBuilder "workspace", App.Models.Workspace, {
+  window.defineBuilder "project", App.Models.Project, {
     id: (n) -> return n
-    title: "new workspace"
+    title: "new project"
   }
 
   getTimeEntryDefaults = ->
-    workspace = buildWorkspace()
+    project = buildProject()
 
     return {
       id: (n)-> return n
-      workspace_id: workspace.get("id")
+      project_id: project.get("id")
     }
   window.defineBuilder "timeEntry", App.Models.TimeEntry, getTimeEntryDefaults()
 
-  getStoryDefaults = ->
-    workspace = buildWorkspace()
+  getTaskDefaults = ->
+    project = buildProject()
 
     return {
       id: (n) -> n
-      workspace_id: workspace.get("id")
-      description: "a very interesting story"
-      title: (n) -> "new Story#{n}"
+      project_id: project.get("id")
+      description: "a very interesting task"
+      title: (n) -> "new Task#{n}"
       archived: false
       parent_id: null
     }
-  window.defineBuilder "story", App.Models.Story, getStoryDefaults()
+  window.defineBuilder "task", App.Models.Task, getTaskDefaults()
 
   window.defineBuilder "post", App.Models.Post, {}

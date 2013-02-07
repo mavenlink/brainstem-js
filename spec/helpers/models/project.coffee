@@ -1,14 +1,14 @@
-class App.Models.Workspace extends Brainstem.Model
-  paramRoot: 'workspace'
+class App.Models.Project extends Brainstem.Model
+  paramRoot: 'project'
 
   @associations:
-    stories: ["stories"]
+    tasks: ["tasks"]
     time_entries: ["time_entries"]
     primary_counterpart: "users"
 
-class App.Collections.Workspaces extends Brainstem.Collection
-  model: App.Models.Workspace
-  url: '/api/workspaces'
+class App.Collections.Projects extends Brainstem.Collection
+  model: App.Models.Project
+  url: '/api/projects'
 
   @defaultFilters: ["include_archived:false"]
 

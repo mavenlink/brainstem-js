@@ -21,8 +21,8 @@ class window.Brainstem.Model extends Backbone.Model
     super(this.constructor.parse(modelObject), xhr)
 
   # Retreive details about a named association.  This is a class method.
-  #     Model.associationDetails("workspace") # => {}
-  #     timeEntry.constructor.associationDetails("workspace") # => {}
+  #     Model.associationDetails("project") # => {}
+  #     timeEntry.constructor.associationDetails("project") # => {}
   @associationDetails: (association) ->
     @associationDetailsCache ||= {}
     if @associations && @associations[association]
@@ -42,7 +42,7 @@ class window.Brainstem.Model extends Backbone.Model
 
   # This method determines if all of the provided associations have been loaded for this model.  If no associations are
   # provided, all associations are assumed.
-  #   model.associationsAreLoaded(["workspace", "story"]) # => true|false
+  #   model.associationsAreLoaded(["project", "task"]) # => true|false
   #   model.associationsAreLoaded() # => true|false
   associationsAreLoaded: (associations) =>
     associations ||= _.keys(@constructor.associations)
@@ -58,7 +58,7 @@ class window.Brainstem.Model extends Backbone.Model
   get: (field, options = {}) =>
     if details = @constructor.associationDetails(field)
       if details.type == "BelongsTo"
-        id = @get(details.key) # workspace_id
+        id = @get(details.key) # project_id
         if id?
           base.data.storage(details.collectionName).get(id) || (Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}"))
       else

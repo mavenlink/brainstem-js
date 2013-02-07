@@ -82,115 +82,115 @@ describe 'Brainstem.Model', ->
     describe 'associationsAreLoaded', ->
       describe "with BelongsTo associations", ->
         it "should return true when all provided associations are loaded for the model (ignoring fields for now)", ->
-          timeEntry = new App.Models.TimeEntry(id: 5, workspace_id: 10, story_id: 2)
-          expect(timeEntry.associationsAreLoaded(["workspace:title", "story"])).toBeFalsy()
-          createWorkspace( id: 10, title: "a workspace!")
-          expect(timeEntry.associationsAreLoaded(["workspace", "story"])).toBeFalsy()
-          expect(timeEntry.associationsAreLoaded(["workspace:title"])).toBeTruthy()
-          createStory(id: 2, title: "a story!")
-          expect(timeEntry.associationsAreLoaded(["workspace:title", "story"])).toBeTruthy()
-          expect(timeEntry.associationsAreLoaded(["workspace"])).toBeTruthy()
-          expect(timeEntry.associationsAreLoaded(["story"])).toBeTruthy()
+          timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2)
+          expect(timeEntry.associationsAreLoaded(["project:title", "task"])).toBeFalsy()
+          createProject( id: 10, title: "a project!")
+          expect(timeEntry.associationsAreLoaded(["project", "task"])).toBeFalsy()
+          expect(timeEntry.associationsAreLoaded(["project:title"])).toBeTruthy()
+          createTask(id: 2, title: "a task!")
+          expect(timeEntry.associationsAreLoaded(["project:title", "task"])).toBeTruthy()
+          expect(timeEntry.associationsAreLoaded(["project"])).toBeTruthy()
+          expect(timeEntry.associationsAreLoaded(["task"])).toBeTruthy()
 
         it "should default to all of the associations defined on the model", ->
-          timeEntry = new App.Models.TimeEntry(id: 5, workspace_id: 10, story_id: 2, user_id: 666)
+          timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2, user_id: 666)
           expect(timeEntry.associationsAreLoaded()).toBeFalsy()
-          createWorkspace(id: 10, title: "a workspace!")
+          createProject(id: 10, title: "a project!")
           expect(timeEntry.associationsAreLoaded()).toBeFalsy()
-          createStory(id: 2, title: "a story!")
+          createTask(id: 2, title: "a task!")
           expect(timeEntry.associationsAreLoaded()).toBeFalsy()
           createUser(id:666)
           expect(timeEntry.associationsAreLoaded()).toBeTruthy()
 
         it "should appear loaded when an association is null, but not loaded when the key is missing", ->
           timeEntry = buildTimeEntry()
-          delete timeEntry.attributes.workspace_id
-          expect(timeEntry.associationsAreLoaded(["workspace"])).toBeFalsy()
-          timeEntry = new App.Models.TimeEntry(id: 5, workspace_id: null)
-          expect(timeEntry.associationsAreLoaded(["workspace"])).toBeTruthy()
-          timeEntry = new App.Models.TimeEntry(id: 5, workspace_id: 2)
-          expect(timeEntry.associationsAreLoaded(["workspace"])).toBeFalsy()
+          delete timeEntry.attributes.project_id
+          expect(timeEntry.associationsAreLoaded(["project"])).toBeFalsy()
+          timeEntry = new App.Models.TimeEntry(id: 5, project_id: null)
+          expect(timeEntry.associationsAreLoaded(["project"])).toBeTruthy()
+          timeEntry = new App.Models.TimeEntry(id: 5, project_id: 2)
+          expect(timeEntry.associationsAreLoaded(["project"])).toBeFalsy()
 
       describe "with HasMany associations", ->
         it "should return true when all provided associations are loaded", ->
-          workspace = new App.Models.Workspace(id: 5, time_entry_ids: [10, 11], story_ids: [2, 3])
-          expect(workspace.associationsAreLoaded(["time_entries:title", "stories"])).toBeFalsy()
+          project = new App.Models.Project(id: 5, time_entry_ids: [10, 11], task_ids: [2, 3])
+          expect(project.associationsAreLoaded(["time_entries:title", "tasks"])).toBeFalsy()
           createTimeEntry(id: 10)
-          expect(workspace.associationsAreLoaded(["time_entries"])).toBeFalsy()
+          expect(project.associationsAreLoaded(["time_entries"])).toBeFalsy()
           createTimeEntry(id: 11)
-          expect(workspace.associationsAreLoaded(["time_entries"])).toBeTruthy()
-          expect(workspace.associationsAreLoaded(["time_entries", "stories"])).toBeFalsy()
-          expect(workspace.associationsAreLoaded(["stories"])).toBeFalsy()
-          createStory(id: 2)
-          expect(workspace.associationsAreLoaded(["stories"])).toBeFalsy()
-          createStory(id: 3)
-          expect(workspace.associationsAreLoaded(["stories"])).toBeTruthy()
-          expect(workspace.associationsAreLoaded(["stories", "time_entries"])).toBeTruthy()
+          expect(project.associationsAreLoaded(["time_entries"])).toBeTruthy()
+          expect(project.associationsAreLoaded(["time_entries", "tasks"])).toBeFalsy()
+          expect(project.associationsAreLoaded(["tasks"])).toBeFalsy()
+          createTask(id: 2)
+          expect(project.associationsAreLoaded(["tasks"])).toBeFalsy()
+          createTask(id: 3)
+          expect(project.associationsAreLoaded(["tasks"])).toBeTruthy()
+          expect(project.associationsAreLoaded(["tasks", "time_entries"])).toBeTruthy()
 
         it "should appear loaded when an association is an empty array, but not loaded when the key is missing", ->
-          workspace = new App.Models.Workspace(id: 5, time_entry_ids: [])
-          expect(workspace.associationsAreLoaded(["time_entries"])).toBeTruthy()
-          expect(workspace.associationsAreLoaded(["stories"])).toBeFalsy()
+          project = new App.Models.Project(id: 5, time_entry_ids: [])
+          expect(project.associationsAreLoaded(["time_entries"])).toBeTruthy()
+          expect(project.associationsAreLoaded(["tasks"])).toBeFalsy()
 
     describe "get", ->
       it "should delegate to Backbone.Model#get for anything that is not an association", ->
-        timeEntry = new App.Models.TimeEntry(id: 5, workspace_id: 10, story_id: 2, title: "foo")
+        timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2, title: "foo")
         expect(timeEntry.get("title")).toEqual "foo"
         expect(timeEntry.get("missing")).toBeUndefined()
 
       describe "BelongsTo associations", ->
         it "should return associations", ->
-          timeEntry = new App.Models.TimeEntry(id: 5, workspace_id: 10, story_id: 2)
-          expect(-> timeEntry.get("workspace")).toThrow()
-          base.data.storage("workspaces").add { id: 10, title: "a workspace!" }
-          expect(timeEntry.get("workspace").get("title")).toEqual "a workspace!"
-          expect(timeEntry.get("workspace")).toEqual base.data.storage("workspaces").get(10)
+          timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2)
+          expect(-> timeEntry.get("project")).toThrow()
+          base.data.storage("projects").add { id: 10, title: "a project!" }
+          expect(timeEntry.get("project").get("title")).toEqual "a project!"
+          expect(timeEntry.get("project")).toEqual base.data.storage("projects").get(10)
 
         it "should return null when we don't have an association id", ->
-          timeEntry = new App.Models.TimeEntry(id: 5, story_id: 2)
-          expect(timeEntry.get("workspace")).toBeFalsy()
+          timeEntry = new App.Models.TimeEntry(id: 5, task_id: 2)
+          expect(timeEntry.get("project")).toBeFalsy()
 
         it "should throw when we have an association id but it cannot be found", ->
-          timeEntry = new App.Models.TimeEntry(id: 5, story_id: 2)
-          expect(-> timeEntry.get("story")).toThrow()
+          timeEntry = new App.Models.TimeEntry(id: 5, task_id: 2)
+          expect(-> timeEntry.get("task")).toThrow()
 
       describe "HasMany associations", ->
         it "should return HasMany associations", ->
-          workspace = new App.Models.Workspace(id: 5, time_entry_ids: [2, 5])
-          expect(-> workspace.get("time_entries")).toThrow()
-          base.data.storage("time_entries").add buildTimeEntry(id: 2, workspace_id: 5, title: "first time entry")
-          base.data.storage("time_entries").add buildTimeEntry(id: 5, workspace_id: 5, title: "second time entry")
-          expect(workspace.get("time_entries").get(2).get("title")).toEqual "first time entry"
-          expect(workspace.get("time_entries").get(5).get("title")).toEqual "second time entry"
+          project = new App.Models.Project(id: 5, time_entry_ids: [2, 5])
+          expect(-> project.get("time_entries")).toThrow()
+          base.data.storage("time_entries").add buildTimeEntry(id: 2, project_id: 5, title: "first time entry")
+          base.data.storage("time_entries").add buildTimeEntry(id: 5, project_id: 5, title: "second time entry")
+          expect(project.get("time_entries").get(2).get("title")).toEqual "first time entry"
+          expect(project.get("time_entries").get(5).get("title")).toEqual "second time entry"
 
         it "should return null when we don't have any association ids", ->
-          workspace = new App.Models.Workspace(id: 5)
-          expect(workspace.get("time_entries").models).toEqual []
+          project = new App.Models.Project(id: 5)
+          expect(project.get("time_entries").models).toEqual []
 
         it "should throw when we have an association id but it cannot be found", ->
-          workspace = new App.Models.Workspace(id: 5, time_entry_ids: [2, 5])
-          expect(-> workspace.get("time_entries")).toThrow()
+          project = new App.Models.Project(id: 5, time_entry_ids: [2, 5])
+          expect(-> project.get("time_entries")).toThrow()
 
         it "should apply a sort order to has many associations if it is provided at time of get", ->
-          story = createStory(id: 5, sub_story_ids: [103, 77, 99])
-          createStory(id:103 , position: 3, updated_at: 845785)
-          createStory(id:77 , position: 2, updated_at: 995785)
-          createStory(id:99 , position: 1, updated_at: 635785)
+          task = createTask(id: 5, sub_task_ids: [103, 77, 99])
+          createTask(id:103 , position: 3, updated_at: 845785)
+          createTask(id:77 , position: 2, updated_at: 995785)
+          createTask(id:99 , position: 1, updated_at: 635785)
 
-          subStories = story.get("sub_stories")
-          expect(subStories.at(0).get('position')).toEqual(3)
-          expect(subStories.at(1).get('position')).toEqual(2)
-          expect(subStories.at(2).get('position')).toEqual(1)
+          subTasks = task.get("sub_tasks")
+          expect(subTasks.at(0).get('position')).toEqual(3)
+          expect(subTasks.at(1).get('position')).toEqual(2)
+          expect(subTasks.at(2).get('position')).toEqual(1)
 
-          subStories = story.get("sub_stories", order: "position:asc")
-          expect(subStories.at(0).get('position')).toEqual(1)
-          expect(subStories.at(1).get('position')).toEqual(2)
-          expect(subStories.at(2).get('position')).toEqual(3)
+          subTasks = task.get("sub_tasks", order: "position:asc")
+          expect(subTasks.at(0).get('position')).toEqual(1)
+          expect(subTasks.at(1).get('position')).toEqual(2)
+          expect(subTasks.at(2).get('position')).toEqual(3)
 
-          subStories = story.get("sub_stories", order: "updated_at:desc")
-          expect(subStories.at(0).get('id')).toEqual(77)
-          expect(subStories.at(1).get('id')).toEqual(103)
-          expect(subStories.at(2).get('id')).toEqual(99)
+          subTasks = task.get("sub_tasks", order: "updated_at:desc")
+          expect(subTasks.at(0).get('id')).toEqual(77)
+          expect(subTasks.at(1).get('id')).toEqual(103)
+          expect(subTasks.at(2).get('id')).toEqual(99)
 
   describe "matchesSearch", ->
     it "does a textual match on the title and description of the model", ->

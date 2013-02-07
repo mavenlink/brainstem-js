@@ -1,15 +1,15 @@
-class App.Models.Story extends Brainstem.Model
-  paramRoot: 'story'
+class App.Models.Task extends Brainstem.Model
+  paramRoot: 'task'
 
   @associations:
-    workspace: "workspaces"
+    project: "projects"
     assignees: ["users"]
-    sub_stories: ["stories"]
-    parent: "stories"
+    sub_tasks: ["tasks"]
+    parent: "tasks"
 
-class App.Collections.Stories extends Brainstem.Collection
-  model: App.Models.Story
-  url: '/api/stories.json'
+class App.Collections.Tasks extends Brainstem.Collection
+  model: App.Models.Task
+  url: '/api/tasks.json'
 
   @defaultFilters: ["archived:false"]
 

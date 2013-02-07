@@ -3,8 +3,8 @@ class App.Models.Post extends Brainstem.Model
 
   @associations:
     replies:            ["posts"]
-    workspace:          "workspaces"
-    story:              "stories"
+    project:            "projects"
+    task:               "tasks"
     user:               "users"
 
 class App.Collections.Posts extends Brainstem.Collection
@@ -19,11 +19,5 @@ class App.Collections.Posts extends Brainstem.Collection
         return (model) -> !model.get("reply")
       else
         return (model) -> true
-    else
-      super
-
-  @getComparator: (field) ->
-    if field == "newest_reply_at"
-      return (a, b) -> a.getNewestReplyOrCreatedAt().getTime() - b.getNewestReplyOrCreatedAt().getTime()
     else
       super

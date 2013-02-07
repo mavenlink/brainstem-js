@@ -161,10 +161,10 @@ describe 'Brainstem.Collection', ->
         expect(_(collection.filter(Brainstem.Collection.getFilterer(["updated_at:5", "search:Gat"]))).pluck("id")).toEqual []
 
       it "handles default filters", ->
-        class WorkspacesWithDefault extends Brainstem.Collection
+        class ProjectsWithDefault extends Brainstem.Collection
           @defaultFilters: ["title:Gamma"]
 
-        expect(_(collection.filter(WorkspacesWithDefault.getFilterer())).pluck("id")).toEqual [4, 6, 5]
-        expect(_(collection.filter(WorkspacesWithDefault.getFilterer([]))).pluck("id")).toEqual [4, 6, 5]
-        expect(_(collection.filter(WorkspacesWithDefault.getFilterer("cool:true"))).pluck("id")).toEqual [5]
-        expect(_(collection.filter(WorkspacesWithDefault.getFilterer("title:Alpha"))).pluck("id")).toEqual [2]
+        expect(_(collection.filter(ProjectsWithDefault.getFilterer())).pluck("id")).toEqual [4, 6, 5]
+        expect(_(collection.filter(ProjectsWithDefault.getFilterer([]))).pluck("id")).toEqual [4, 6, 5]
+        expect(_(collection.filter(ProjectsWithDefault.getFilterer("cool:true"))).pluck("id")).toEqual [5]
+        expect(_(collection.filter(ProjectsWithDefault.getFilterer("title:Alpha"))).pluck("id")).toEqual [2]
