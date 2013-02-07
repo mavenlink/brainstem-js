@@ -1,4 +1,4 @@
-class App.Models.User extends Mavenlink.Model
+class App.Models.User extends Brainstem.Model
   paramRoot: 'user'
 
   defaults:
@@ -9,6 +9,6 @@ class App.Models.User extends Mavenlink.Model
   getDisplayName: =>
     if (@get('id') == base.currentUserId()) then 'You' else @get('full_name')
 
-class App.Collections.Users extends Mavenlink.Collection
+class App.Collections.Users extends Brainstem.Collection
   model: App.Models.User
   url: "/api/users"

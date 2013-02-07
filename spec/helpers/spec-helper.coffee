@@ -10,7 +10,20 @@ beforeEach ->
   $('#jasmine_content').html("<div id='wrapper'></div><div id='overlays'></div><div id='side-nav'></div><div id='main-view'></div></div>")
 
   # Setup a new base.
-  window.base = new App.Mobile.Base(mavenlinkUserId: 55662187)
+  window.base = {}
+  window.base.data = new Brainstem.StorageManager()
+  window.base.data.addCollection 'time_entries', App.Collections.TimeEntries
+  window.base.data.addCollection 'expenses', App.Collections.Expenses
+  window.base.data.addCollection 'posts', App.Collections.Posts
+  window.base.data.addCollection 'assets', App.Collections.Assets
+  window.base.data.addCollection 'google_documents', App.Collections.GoogleDocuments
+  window.base.data.addCollection 'stories', App.Collections.Stories
+  window.base.data.addCollection 'workspaces', App.Collections.Workspaces
+  window.base.data.addCollection 'workspace_invitations', App.Collections.WorkspaceInvitations
+  window.base.data.addCollection 'users', App.Collections.Users
+  window.base.data.addCollection 'contacts', App.Collections.Contacts
+  window.base.data.addCollection 'participations', App.Collections.Participations
+
 
   # Define builders
   spec.defineBuilders()
@@ -27,15 +40,12 @@ beforeEach ->
   # Prevent any actual navigation.
   spyOn Backbone.History.prototype, 'start'
   spyOn Backbone.History.prototype, 'navigate'
-  spyOn base, "navigateAway"
-  spyOn base, "setupWakeupTimer"
 
   # Use Jasmine's mock clock.  You can make time pass with jasmine.Clock.tick(N).
   jasmine.Clock.useMock()
 
 afterEach ->
   window.clearLiveEventBindings()
-  window?.base?.cleanup()
   window.server.restore()
   $('#jasmine_content').html("")
   jasmine.Clock.reset()

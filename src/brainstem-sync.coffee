@@ -1,12 +1,12 @@
 Backbone.sync = (method, modelOrCollection, options) ->
   getUrl = (model, method) ->
     if model.methodUrl && _.isFunction model.methodUrl
-      model.methodUrl(method || 'read') || (Utils.throwError("A 'url' property or function must be specified"))
+      model.methodUrl(method || 'read') || (Brainstem.Utils.throwError("A 'url' property or function must be specified"))
     else
       if model.url && _.isFunction model.url
         model.url()
       else
-        model.url || (Utils.throwError("A 'url' property or function must be specified"))
+        model.url || (Brainstem.Utils.throwError("A 'url' property or function must be specified"))
 
   methodMap =
     create: 'POST'
@@ -29,7 +29,7 @@ Backbone.sync = (method, modelOrCollection, options) ->
       modelOrCollection.trigger 'sync:start'
   }, options)
 
-  params.error = base.makeErrorHandler(params.error, params)
+  params.error = Brainstem.Utils.makeErrorHandler(params.error, params)
 
   if !params.data && modelOrCollection && (method == 'create' || method == 'update')
     data = {}

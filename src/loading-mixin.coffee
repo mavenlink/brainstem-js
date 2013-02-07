@@ -1,6 +1,6 @@
-window.Mavenlink ?= {}
+window.Brainstem ?= {}
 
-Mavenlink.LoadingMixin =
+Brainstem.LoadingMixin =
   setLoaded: (state, options) ->
     options = { trigger: true } unless options? && options.trigger? && !options.trigger
     @loaded = state

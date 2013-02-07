@@ -1,15 +1,5 @@
-class App.Models.Post extends Mavenlink.Model
+class App.Models.Post extends Brainstem.Model
   paramRoot: 'post'
-
-  validate: (attrs) =>
-    window.App.Validator(attrs, {
-      message:
-        custom: @validateReplyMessage
-      workspace_id:
-        numeric: { min: 0, message: "A workspace is required." }
-      story_id:
-        numeric: { min: 0, allowBlank: true }
-    })
 
   methodUrl: (method) ->
     switch method
@@ -28,33 +18,7 @@ class App.Models.Post extends Mavenlink.Model
     assets:             ["assets"]
     google_documents:   ["google_documents"]
 
-  validateReplyMessage: (field, attrs, settings) ->
-    unless attrs.id
-      msg = $.trim(attrs[field])
-      if msg == ""
-        return "Message may not be blank"
-      else if msg.length > 10000
-        return "Message must be between 1 and 10000 characters."
-
-  latestReply: =>
-    if @get('newest_reply') then @get('newest_reply') else @
-
-  getNewestReplyOrCreatedAt: =>
-    new Date(Utils.slashedDateFormat(@get('newest_reply_at') || @get('created_at')))
-
-  addNewReply: (reply) =>
-    @attributes.newest_reply_id = reply.id
-    @attributes.newest_reply_user_id = reply.attributes.user_id
-    delete @attributes.reply_ids
-
-  getAttachments: =>
-    attachments = []
-    if @get("has_attachments")
-      attachments = [].concat(@get('assets').models, @get('google_documents').models)
-    attachments
-
-
-class App.Collections.Posts extends Mavenlink.Collection
+class App.Collections.Posts extends Brainstem.Collection
   model: App.Models.Post
   url: '/api/posts'
 
@@ -74,13 +38,3 @@ class App.Collections.Posts extends Mavenlink.Collection
       return (a, b) -> a.getNewestReplyOrCreatedAt().getTime() - b.getNewestReplyOrCreatedAt().getTime()
     else
       super
-
-  getWithAssocation: (id) =>
-    model = super
-
-    unless model
-      for post in @models
-        model = post.get('replies')?.get(id)
-        break if model
-
-    return model

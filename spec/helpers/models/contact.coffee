@@ -1,4 +1,4 @@
-class App.Models.Contact extends Mavenlink.Model
+class App.Models.Contact extends Brainstem.Model
   paramRoot: 'contact'
 
   defaults:
@@ -10,18 +10,7 @@ class App.Models.Contact extends Mavenlink.Model
   @associations:
     connection: "users"
 
-  matchesSearch: (string) =>
-    for text in [@get("connection").get('full_name'), @get("connection").get('email_address')]
-      if text && text.toLowerCase().replace(/[,:]/g, '').indexOf(string.toLowerCase().replace(/[,:]/g, '')) > -1
-        return true
-
-  getDefaultRole: =>
-    if @get('client_occurrences') > @get('consultant_occurrences')
-      'buyer'
-    else
-      'maven'
-
-class App.Collections.Contacts extends Mavenlink.Collection
+class App.Collections.Contacts extends Brainstem.Collection
   model: App.Models.Contact
   url: "/api/contacts"
 

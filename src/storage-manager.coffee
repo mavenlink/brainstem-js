@@ -1,12 +1,12 @@
-window.App ?= {}
+window.Brainstem ?= {}
 
-# Todo: Record access timestamps on all Mavenlink.Models by overloading #get and #set.  Keep a sorted list (Heap?) of model references.
+# Todo: Record access timestamps on all Brainstem.Models by overloading #get and #set.  Keep a sorted list (Heap?) of model references.
 #    clean up the oldest ones if memory is low
 #    allow passing a recency parameter to the StorageManager
 
-# The StorageManager class is used to manage a set of Mavenlink.Collections.  It is responsible for loading data and
+# The StorageManager class is used to manage a set of Brainstem.Collections.  It is responsible for loading data and
 # maintaining caches.
-class window.App.StorageManager
+class window.Brainstem.StorageManager
   constructor: ->
     @collections = {}
 
@@ -149,7 +149,7 @@ class window.App.StorageManager
             return collection
 
     if options.page - (@getCollectionDetails(name).sortLengths[cacheKey] / options.perPage) > 1
-      Utils.throwError("You cannot request a page of data greater than #{@getCollectionDetails(name).sortLengths[cacheKey] / options.perPage} for this collection.  Please request only sequential pages.")
+      Brainstem.Utils.throwError("You cannot request a page of data greater than #{@getCollectionDetails(name).sortLengths[cacheKey] / options.perPage} for this collection.  Please request only sequential pages.")
 
     # If we haven't returned yet, we need to go to the server to load some missing data.
 
@@ -214,7 +214,7 @@ class window.App.StorageManager
     options.page = 1 if options.page < 1
 
   collectionError: (name) =>
-    Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")
+    Brainstem.Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")
 
   createNewCollection: (collectionName, models = [], options = {}) =>
     loaded = options.loaded

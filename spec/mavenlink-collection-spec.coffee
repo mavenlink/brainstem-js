@@ -1,8 +1,8 @@
-describe 'Mavenlink.Collection', ->
+describe 'Brainstem.Collection', ->
   collection = updateArray = null
 
   beforeEach ->
-    collection = new Mavenlink.Collection([{id: 2, title: "1"}, {id: 3, title: "2"}, {title: "3"}])
+    collection = new Brainstem.Collection([{id: 2, title: "1"}, {id: 3, title: "2"}, {title: "3"}])
     updateArray = [{id: 2, title: "1 new"}, {id: 4, title: "this is new"}]
 
   describe 'update', ->
@@ -13,7 +13,7 @@ describe 'Mavenlink.Collection', ->
       expect(collection.get(4).get('title')).toEqual "this is new"
 
     it "works with a collection", ->
-      newCollection = new Mavenlink.Collection(updateArray)
+      newCollection = new Brainstem.Collection(updateArray)
       collection.update newCollection
       expect(collection.get(2).get('title')).toEqual "1 new"
       expect(collection.get(3).get('title')).toEqual "2"
@@ -125,43 +125,43 @@ describe 'Mavenlink.Collection', ->
 
   describe "ordering and filtering", ->
     beforeEach ->
-      collection = new Mavenlink.Collection([
-        new Mavenlink.Model(id: 2, title: "Alpha", updated_at: 2,  cool: false),
-        new Mavenlink.Model(id: 3, title: "Beta",  updated_at: 10, cool: true),
-        new Mavenlink.Model(id: 4, title: "Gamma", updated_at: 5,  cool: false),
-        new Mavenlink.Model(id: 6, title: "Gamma", updated_at: 5,  cool: false),
-        new Mavenlink.Model(id: 5, title: "Gamma", updated_at: 4,  cool: true)
+      collection = new Brainstem.Collection([
+        new Brainstem.Model(id: 2, title: "Alpha", updated_at: 2,  cool: false),
+        new Brainstem.Model(id: 3, title: "Beta",  updated_at: 10, cool: true),
+        new Brainstem.Model(id: 4, title: "Gamma", updated_at: 5,  cool: false),
+        new Brainstem.Model(id: 6, title: "Gamma", updated_at: 5,  cool: false),
+        new Brainstem.Model(id: 5, title: "Gamma", updated_at: 4,  cool: true)
       ])
 
     describe "@getComparatorWithIdFailover", ->
       it "returns a comparator that works for numerical ordering of unix timestamps, failing over to id when they're the same", ->
-        newCollection = new Mavenlink.Collection collection.models, comparator: Mavenlink.Collection.getComparatorWithIdFailover("updated_at:desc")
+        newCollection = new Brainstem.Collection collection.models, comparator: Brainstem.Collection.getComparatorWithIdFailover("updated_at:desc")
         newCollection.sort()
         expect(newCollection.pluck("id")).toEqual [3, 6, 4, 5, 2]
 
-        newCollection = new Mavenlink.Collection collection.models, comparator: Mavenlink.Collection.getComparatorWithIdFailover("updated_at:asc")
+        newCollection = new Brainstem.Collection collection.models, comparator: Brainstem.Collection.getComparatorWithIdFailover("updated_at:asc")
         newCollection.sort()
         expect(newCollection.pluck("id")).toEqual [2, 5, 4, 6, 3]
 
     describe "@getFilterer", ->
       it "returns a filter that can handle filtering any attribute by an exact value", ->
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer("updated_at:10"))).pluck("id")).toEqual [3]
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer("title:Gamma"))).pluck("id")).toEqual [4, 6, 5]
+        expect(_(collection.filter(Brainstem.Collection.getFilterer("updated_at:10"))).pluck("id")).toEqual [3]
+        expect(_(collection.filter(Brainstem.Collection.getFilterer("title:Gamma"))).pluck("id")).toEqual [4, 6, 5]
 
       it "works with booleans", ->
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer("cool:true"))).pluck("id")).toEqual [3, 5]
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer("cool:false"))).pluck("id")).toEqual [2, 4, 6]
+        expect(_(collection.filter(Brainstem.Collection.getFilterer("cool:true"))).pluck("id")).toEqual [3, 5]
+        expect(_(collection.filter(Brainstem.Collection.getFilterer("cool:false"))).pluck("id")).toEqual [2, 4, 6]
 
       it "can accept an array of filters and compose them", ->
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer(["updated_at:10", "title:foo"]))).pluck("id")).toEqual []
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer(["title:Gamma", "updated_at:4"]))).pluck("id")).toEqual [5]
+        expect(_(collection.filter(Brainstem.Collection.getFilterer(["updated_at:10", "title:foo"]))).pluck("id")).toEqual []
+        expect(_(collection.filter(Brainstem.Collection.getFilterer(["title:Gamma", "updated_at:4"]))).pluck("id")).toEqual [5]
 
       it "can accept a search param and calls matchesSearch on the model", ->
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer(["updated_at:5", "search:Ga"]))).pluck("id")).toEqual [4, 6]
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer(["updated_at:5", "search:Gat"]))).pluck("id")).toEqual []
+        expect(_(collection.filter(Brainstem.Collection.getFilterer(["updated_at:5", "search:Ga"]))).pluck("id")).toEqual [4, 6]
+        expect(_(collection.filter(Brainstem.Collection.getFilterer(["updated_at:5", "search:Gat"]))).pluck("id")).toEqual []
 
       it "handles default filters", ->
-        class WorkspacesWithDefault extends Mavenlink.Collection
+        class WorkspacesWithDefault extends Brainstem.Collection
           @defaultFilters: ["title:Gamma"]
 
         expect(_(collection.filter(WorkspacesWithDefault.getFilterer())).pluck("id")).toEqual [4, 6, 5]

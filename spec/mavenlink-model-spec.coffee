@@ -1,8 +1,8 @@
-describe 'Mavenlink.Model', ->
+describe 'Brainstem.Model', ->
   model = null
 
   beforeEach ->
-    model = new Mavenlink.Model()
+    model = new Brainstem.Model()
 
   describe 'parse', ->
     beforeEach ->
@@ -54,7 +54,7 @@ describe 'Mavenlink.Model', ->
   describe 'associations', ->
     describe 'associationDetails', ->
 
-      class TestClass extends Mavenlink.Model
+      class TestClass extends Brainstem.Model
         @associations:
           my_users: ["storage_system_collection_name"]
           my_user: "users"

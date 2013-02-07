@@ -1,6 +1,6 @@
 #= require ./loading-mixin
 
-class Mavenlink.Collection extends Backbone.Collection
+class window.Brainstem.Collection extends Backbone.Collection
   constructor: ->
     super
     @setLoaded false
@@ -16,7 +16,7 @@ class Mavenlink.Collection extends Backbone.Collection
         else
           @add backboneModel
       else
-        Utils.warn "Unable to update collection with invalid model", model
+        Brainstem.Utils.warn "Unable to update collection with invalid model", model
 
   ids: => _.keys(@_byId)
 
@@ -27,7 +27,7 @@ class Mavenlink.Collection extends Backbone.Collection
     base.data.loadCollection @lastFetchOptions.name, _.extend({}, @lastFetchOptions, options, page: @lastFetchOptions.page + 1, collection: this, success: success)
 
   reload: (options) =>
-    base.clearCaches()
+    base.data.reset()
     @reset [], silent: true
     @setLoaded false
     base.data.loadCollection @lastFetchOptions.name, _.extend({}, @lastFetchOptions, options, page: 1, collection: this)
@@ -70,4 +70,4 @@ class Mavenlink.Collection extends Backbone.Collection
   @getComparator: (field) ->
     return (a, b) -> a.get(field) - b.get(field)
 
-_.extend(Mavenlink.Collection.prototype, Mavenlink.LoadingMixin);
+_.extend(Brainstem.Collection.prototype, Brainstem.LoadingMixin);

@@ -1,8 +1,8 @@
-describe 'Storage Manager', ->
+describe 'Brainstem Storage Manager', ->
   manager = null
 
   beforeEach ->
-    manager = new App.StorageManager()
+    manager = new Brainstem.StorageManager()
 
   describe 'addCollection and getCollectionDetails', ->
     it "tracks a named collection", ->

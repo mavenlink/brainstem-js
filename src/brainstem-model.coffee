@@ -1,7 +1,7 @@
 #= require ./loading-mixin
 
 # Extend Backbone.Model to include associations.
-class Mavenlink.Model extends Backbone.Model
+class window.Brainstem.Model extends Backbone.Model
   constructor: ->
     super
     @setLoaded false
@@ -113,4 +113,4 @@ class Mavenlink.Model extends Backbone.Model
 
     json
 
-_.extend(Mavenlink.Model.prototype, Mavenlink.LoadingMixin);
+_.extend(Brainstem.Model.prototype, Brainstem.LoadingMixin);
