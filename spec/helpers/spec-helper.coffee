@@ -2,6 +2,15 @@ window.App ?= {}
 window.App.Models ?= {}
 window.App.Collections ?= {}
 
+window.resultsArray = (key, models) ->
+  _(models).map (model) -> [key, model.get("id")]
+
+window.respondWith = (server, url, options) ->
+  server.respondWith options.method || "GET",
+                     url, [ options.status || 200,
+                           {"Content-Type": options.content_type || "application/json"},
+                           JSON.stringify($.extend {}, options.data, results: resultsArray(options.data[options.resultsFrom])) ]
+
 beforeEach ->
   # Disable jQuery animations.
   $.fx.off = true

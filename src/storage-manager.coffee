@@ -168,7 +168,7 @@ class window.Brainstem.StorageManager
         primaryCollectionModels = null
 
         for underscoredModelName, models of resp
-          unless underscoredModelName == 'count'
+          unless underscoredModelName == 'count' || underscoredModelName == 'results'
             @storage(underscoredModelName).update models
             if underscoredModelName == name
               primaryCollectionModels = models

@@ -29,9 +29,9 @@ describe 'Brainstem.Collection', ->
 
   describe "loadNextPage", ->
     it "loads the next page of data for a collection that has previously been loaded in the storage manager, returns the collection and whether it thinks there is another page or not", ->
-      server.respondWith "GET", "/api/time_entries?per_page=2&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(), buildTimeEntry()]) ]
-      server.respondWith "GET", "/api/time_entries?per_page=2&page=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(), buildTimeEntry()]) ]
-      server.respondWith "GET", "/api/time_entries?per_page=2&page=3", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry()]) ]
+      respondWith server, "/api/time_entries?per_page=2&page=1", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
+      respondWith server, "/api/time_entries?per_page=2&page=2", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
+      respondWith server, "/api/time_entries?per_page=2&page=3", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry()] }
       collection = base.data.loadCollection "time_entries", perPage: 2
       server.respond()
       expect(collection.lastFetchOptions.page).toEqual 1
@@ -54,14 +54,14 @@ describe 'Brainstem.Collection', ->
 
   describe "reload", ->
     it "reloads the collection with the original params", ->
-      server.respondWith "GET", "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=5&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(posts: [buildPost(message: "old post", reply_ids: [])]) ]
+      respondWith server, "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "old post", reply_ids: [])] }
       collection = base.data.loadCollection "posts", include: ["replies"], filters: "parents_only:true", perPage: 5
       server.respond()
       expect(collection.lastFetchOptions.page).toEqual 1
       expect(collection.lastFetchOptions.perPage).toEqual 5
       expect(collection.lastFetchOptions.include).toEqual ["replies"]
       server.responses = []
-      server.respondWith "GET", "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=5&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(posts: [buildPost(message: "new post", reply_ids: [])]) ]
+      respondWith server, "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "new post", reply_ids: [])] }
       expect(collection.models[0].get("message")).toEqual "old post"
       resetCounter = jasmine.createSpy("resetCounter")
       loadedCounter = jasmine.createSpy("loadedCounter")
