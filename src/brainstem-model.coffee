@@ -84,11 +84,6 @@ class window.Brainstem.Model extends Backbone.Model
   className: =>
     @paramRoot
 
-  matchesSearch: (string) =>
-    for text in [@get('title'), @get('description')]
-      if text && text.toLowerCase().replace(/[,:]/g, '').indexOf(string.toLowerCase().replace(/[,:]/g, '')) > -1
-        return true
-
   defaultJSONBlacklist: ->
     ['id', 'created_at', 'updated_at']
 

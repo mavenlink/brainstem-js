@@ -17,7 +17,7 @@ class window.Brainstem.StorageManager
       klass: collectionClass
       modelKlass: collectionClass.prototype.model
       storage: new collectionClass()
-      sortLengths: {}
+      cache: {}
 
   # Access the cache for a particular collection.
   #    manager.storage("time_entries").get(12).get("title")
@@ -33,7 +33,7 @@ class window.Brainstem.StorageManager
   reset: =>
     for name, attributes of @collections
       attributes.storage.reset []
-      attributes.sortLengths = {}
+      attributes.cache = {}
 
   # Access details of a collection.  An error will be thrown if the collection cannot be found.
   getCollectionDetails: (name) =>
@@ -127,7 +127,7 @@ class window.Brainstem.StorageManager
     fields  = @_extractArray "fields",  options
     filters = @_extractArray "filters", options
     order = options.order || "updated_at:desc"
-    cacheKey = order + "|" + _(filters).sort().join(",")
+    cacheKey = "#{order}|#{_(filters).sort().join(",")}|#{options.page}|#{options.perPage}"
 
     cachedCollection = @storage name
     comparator = @getCollectionDetails(name).klass.getComparatorWithIdFailover(order)
@@ -142,14 +142,11 @@ class window.Brainstem.StorageManager
           return collection
       else
         # Check if we have, at some point, requested enough records with this this order and filter(s).
-        if (@getCollectionDetails(name).sortLengths[cacheKey] || 0) >= options.perPage * options.page
-          subset = @orderFilterAndSlice(cachedCollection, comparator, collection, filters, options.page, options.perPage)
+        if @getCollectionDetails(name).cache[cacheKey]
+          subset = _(@getCollectionDetails(name).cache[cacheKey]).map (result) -> base.data.storage(result[0]).get(result[1])
           if (_.all(subset, (model) => model.associationsAreLoaded(include)))
             @_success options, collection, subset
             return collection
-
-    if options.page - (@getCollectionDetails(name).sortLengths[cacheKey] / options.perPage) > 1
-      Brainstem.Utils.throwError("You cannot request a page of data greater than #{@getCollectionDetails(name).sortLengths[cacheKey] / options.perPage} for this collection.  Please request only sequential pages.")
 
     # If we haven't returned yet, we need to go to the server to load some missing data.
 
@@ -160,27 +157,27 @@ class window.Brainstem.StorageManager
       success: (resp, status, xhr) =>
         # The server response should look something like this:
         #  {
+        #    count: 200,
+        #    results: [["tasks", 10], ["tasks", 11]],
         #    time_entries: [{ id: 2, title: "te1", project_id: 6, task_id: [10, 11] }]
         #    projects: [{id: 6, title: "some project", time_entry_ids: [2] }]
         #    tasks: [{id: 10, title: "some task" }, {id: 11, title: "some other task" }]
         #  }
         # Loop over all returned data types and update our local storage to represent any new data.
-        primaryCollectionModels = null
 
+        results = resp['results']
         for underscoredModelName, models of resp
           unless underscoredModelName == 'count' || underscoredModelName == 'results'
             @storage(underscoredModelName).update models
-            if underscoredModelName == name
-              primaryCollectionModels = models
 
-        if options.cache == false && !only?
-          only = _(primaryCollectionModels).pluck("id")
+        unless options.cache == false || only?
+          @getCollectionDetails(name).cache[cacheKey] = results
 
         if only?
           @_success options, collection, _.map(only, (id) -> cachedCollection.get(id))
         else
-          @getCollectionDetails(name).sortLengths[cacheKey] = options.page * options.perPage
-          @_success options, collection, @orderFilterAndSlice(cachedCollection, comparator, collection, filters, options.page, options.perPage)
+          @_success options, collection, _(results).map (result) -> base.data.storage(result[0]).get(result[1])
+
 
     syncOptions.data.include = include.join(";") if include.length
     syncOptions.data.only = _.difference(only, alreadyLoadedIds).join(",") if only?
@@ -225,13 +222,6 @@ class window.Brainstem.StorageManager
 
   createNewModel: (modelName, options) =>
     new (@getCollectionDetails(modelName.pluralize()).modelKlass)(options || {})
-
-  orderFilterAndSlice: (collection, comparator, filterCollection, filters, page, perPage) =>
-    collection = collection.models if collection.models?
-    subset = _(collection).sort(comparator)
-    subset = _(subset).filter(filterCollection.constructor.getFilterer(filters))
-    sliced = subset.slice((page - 1) * perPage, page * perPage)
-    return sliced
 
   _extractArray: (option, options) =>
     result = options[option]

@@ -29,9 +29,9 @@ describe 'Brainstem Storage Manager', ->
       createProject()
       expect(base.data.storage("projects").length).toEqual 1
       expect(base.data.storage("tasks").length).toEqual 1
-      base.data.collections["projects"].sortLengths = { "foo": "bar" }
+      base.data.collections["projects"].cache = { "foo": "bar" }
       base.data.reset()
-      expect(base.data.collections["projects"].sortLengths).toEqual {}
+      expect(base.data.collections["projects"].cache).toEqual {}
       expect(base.data.storage("projects").length).toEqual 0
       expect(base.data.storage("tasks").length).toEqual 0
 
@@ -236,6 +236,8 @@ describe 'Brainstem Storage Manager', ->
             collection1 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 2
             server.respond()
             expect(collection1.loaded).toBe true
+            expect(collection1.get(1).get('project').id).toEqual 15
+            expect(collection1.get(2).get('project').id).toEqual 10
             spy = jasmine.createSpy()
             collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 2, success: spy
             expect(spy).toHaveBeenCalled()
@@ -263,28 +265,6 @@ describe 'Brainstem Storage Manager', ->
             collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 2
             expect(collection2.loaded).toBe false
 
-          it "goes to the server when a page size change neccesitates it", ->
-            collection1 = base.data.loadCollection "time_entries", include: ["project"], page: 1, perPage: 2
-            server.respond()
-            expect(collection1.loaded).toBe true
-            collection2 = base.data.loadCollection "time_entries", include: ["project"], page: 1, perPage: 1
-            expect(collection2.loaded).toBe true
-            collection3 = base.data.loadCollection "time_entries", include: ["project"], page: 1, perPage: 3
-            expect(collection3.loaded).toBe false
-
-          it "raises an error when more than one additional page is requested", ->
-            collection1 = base.data.loadCollection "time_entries", include: ["project"], page: 1, perPage: 2
-            server.respond()
-            expect(collection1.loaded).toBe true
-
-            collection1 = base.data.loadCollection "time_entries", include: ["project"], page: 3, perPage: 1
-            expect(collection1.loaded).toBe false
-
-            expect(-> base.data.loadCollection "time_entries", include: ["project"], page: 3, perPage: 2).toThrow()
-            expect(-> base.data.loadCollection "time_entries", include: ["project"], page: 4, perPage: 2).toThrow()
-            expect(-> base.data.loadCollection "time_entries", include: ["project"], page: 4, perPage: 1).toThrow()
-            expect(-> base.data.loadCollection "time_entries", include: ["project"], page: 5, perPage: 1).toThrow()
-
         describe "with ordering and filtering", ->
           now = ws10 = ws11 = te1Ws10 = te2Ws10 = te1Ws11 = te2Ws11 = null
 
@@ -307,7 +287,7 @@ describe 'Brainstem Storage Manager', ->
             server.respond()
             expect(collection.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id, te1Ws10.id, te2Ws10.id]
 
-          it "seperately keeps track of the depth of data requested by sort order and filter", ->
+          it "seperately caches data requested by different sort orders and filters", ->
             server.responses = []
             respondWith server, "/api/time_entries?include=project%3Btask&order=updated_at%3Adesc&filters=project_id%3A10&per_page=2&page=1",
                         data: { results: resultsArray("time_entries", [te2Ws10, te1Ws10]), time_entries: [te2Ws10, te1Ws10], tasks: [], projects: [ws10] }
@@ -356,9 +336,6 @@ describe 'Brainstem Storage Manager', ->
             server.respond()
             expect(collection7.loaded).toBe true
             expect(collection7.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id, te1Ws10.id, te2Ws10.id]
-            collection8 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "created_at:asc", page: 1, perPage: 3
-            expect(collection8.loaded).toBe true
-            expect(collection8.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id, te1Ws10.id]
 
             # Do it again, this time without an order, so it should use the default (updated_at:desc).
             collection9 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 4
@@ -366,9 +343,6 @@ describe 'Brainstem Storage Manager', ->
             server.respond()
             expect(collection9.loaded).toBe true
             expect(collection9.pluck("id")).toEqual [te1Ws11.id, te2Ws10.id, te1Ws10.id, te2Ws11.id]
-            collection10 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 3
-            expect(collection10.loaded).toBe true
-            expect(collection10.pluck("id")).toEqual [te1Ws11.id, te2Ws10.id, te1Ws10.id]
 
     describe "handling of only", ->
       describe "when getting data from the server", ->
@@ -405,9 +379,9 @@ describe 'Brainstem Storage Manager', ->
           expect(collection2.loaded).toBe false
           server.respond()
           expect(collection2.loaded).toBe true
-          expect(collection2.get(2).get('project').id).toEqual 10
-          expect(collection2.get(3).get('project').id).toEqual 11
           expect(collection2.length).toEqual 2
+#          expect(collection2.get(2).get('project').id).toEqual 10
+#          expect(collection2.get(3).get('project').id).toEqual 11
 
         it "does request ids from the server again when they don't have all associations loaded yet", ->
           respondWith server, "/api/time_entries?include=project&only=2",
@@ -475,9 +449,9 @@ describe 'Brainstem Storage Manager', ->
           respondWith server, "/api/time_entries?include=project%3Btask&only=2%2C3",
                       data: { results: [["time_entries", 2], ["time_entries", 3]], time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
           collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
-          expect(Object.keys base.data.getCollectionDetails("time_entries")["sortLengths"]).toEqual []
+          expect(Object.keys base.data.getCollectionDetails("time_entries")["cache"]).toEqual []
           server.respond()
-          expect(Object.keys base.data.getCollectionDetails("time_entries")["sortLengths"]).toEqual []
+          expect(Object.keys base.data.getCollectionDetails("time_entries")["cache"]).toEqual []
 
         it "does go to the server on a repeat request if an association is missing", ->
           respondWith server, "/api/time_entries?include=project&only=2",
@@ -503,12 +477,6 @@ describe 'Brainstem Storage Manager', ->
         collection = base.data.loadCollection "tasks", cache: false, only: item.id
         expect(syncSpy).toHaveBeenCalled()
 
-      it "does not apply local filters/sorts", ->
-        spy = spyOn(base.data, 'orderFilterAndSlice')
-        collection = base.data.loadCollection "tasks", cache: false
-        server.respond()
-        expect(spy).not.toHaveBeenCalled()
-        
       it "still adds results to the cache", ->
         spy = spyOn(base.data.storage('tasks'), 'update')
         collection = base.data.loadCollection "tasks", cache: false

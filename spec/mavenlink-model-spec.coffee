@@ -192,22 +192,6 @@ describe 'Brainstem.Model', ->
           expect(subTasks.at(1).get('id')).toEqual(103)
           expect(subTasks.at(2).get('id')).toEqual(99)
 
-  describe "matchesSearch", ->
-    it "does a textual match on the title and description of the model", ->
-      model.set(title: "foo", description: "BAR")
-      expect(model.matchesSearch("fo")).toBeTruthy()
-      expect(model.matchesSearch("star")).toBeFalsy()
-      expect(model.matchesSearch("bar")).toBeTruthy()
-
-    it "symetrically ignores colons and commas", ->
-      model.set(title: "fo,o", description: "B: AR")
-      expect(model.matchesSearch("foo")).toBeTruthy()
-      expect(model.matchesSearch(",o")).toBeTruthy()
-      expect(model.matchesSearch("fo,o")).toBeTruthy()
-      expect(model.matchesSearch("b ar")).toBeTruthy()
-      expect(model.matchesSearch("b: ar")).toBeTruthy()
-      expect(model.matchesSearch("bar")).toBeFalsy()
-
   describe "toServerJSON", ->
     it "calls toJSON", ->
       spy = spyOn(model, "toJSON").andCallThrough()

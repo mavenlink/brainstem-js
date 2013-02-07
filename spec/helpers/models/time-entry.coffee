@@ -15,9 +15,3 @@ class App.Models.TimeEntry extends Brainstem.Model
 class App.Collections.TimeEntries extends Brainstem.Collection
   model: App.Models.TimeEntry
   url: '/api/time_entries'
-
-  @getComparator: (field) ->
-    if field == "date_performed"
-      return (a, b) -> a.getDatePerformed().getTime() - b.getDatePerformed().getTime()
-    else
-      super
