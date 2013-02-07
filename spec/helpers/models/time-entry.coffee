@@ -1,12 +1,9 @@
 class App.Models.TimeEntry extends Brainstem.Model
   paramRoot: 'time_entry'
 
-  defaults:
-    billable: true
-
   methodUrl: (method) ->
     switch method
-      when "delete" then "/api/time_entries/#{@id}?workspace_id=#{@attributes.workspace_id}"
+      when "delete" then "/api/time_entries"
       when "create" then "/api/time_entries"
       else "/api/time_entries/#{@id}"
 

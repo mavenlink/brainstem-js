@@ -1,12 +1,6 @@
 class App.Models.Story extends Brainstem.Model
   paramRoot: 'story'
 
-  methodUrl: (method) ->
-    switch method
-      when "delete" then "/api/stories/#{@id}?workspace_id=#{@attributes.workspace_id}"
-      when "create" then "/api/stories"
-      else "/api/stories/#{@id}"
-
   @associations:
     workspace: "workspaces"
     assignees: ["users"]

@@ -13,16 +13,10 @@ beforeEach ->
   window.base = {}
   window.base.data = new Brainstem.StorageManager()
   window.base.data.addCollection 'time_entries', App.Collections.TimeEntries
-  window.base.data.addCollection 'expenses', App.Collections.Expenses
   window.base.data.addCollection 'posts', App.Collections.Posts
-  window.base.data.addCollection 'assets', App.Collections.Assets
-  window.base.data.addCollection 'google_documents', App.Collections.GoogleDocuments
   window.base.data.addCollection 'stories', App.Collections.Stories
   window.base.data.addCollection 'workspaces', App.Collections.Workspaces
-  window.base.data.addCollection 'workspace_invitations', App.Collections.WorkspaceInvitations
   window.base.data.addCollection 'users', App.Collections.Users
-  window.base.data.addCollection 'contacts', App.Collections.Contacts
-  window.base.data.addCollection 'participations', App.Collections.Participations
 
 
   # Define builders

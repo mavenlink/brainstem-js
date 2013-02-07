@@ -1,21 +1,10 @@
 class App.Models.Workspace extends Brainstem.Model
   paramRoot: 'workspace'
 
-  defaults:
-    consultant_role_name: 'Consultants'
-    client_role_name: 'Clients'
-
-  methodUrl: (method) ->
-    switch method
-      when "create" then "/api/workspaces"
-      else "/api/workspaces/#{@id}"
-
   @associations:
     stories: ["stories"]
     time_entries: ["time_entries"]
     primary_counterpart: "users"
-    participants: ["users"]
-    participations: ["participations"]
 
 class App.Collections.Workspaces extends Brainstem.Collection
   model: App.Models.Workspace

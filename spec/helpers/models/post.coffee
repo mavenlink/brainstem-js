@@ -1,22 +1,11 @@
 class App.Models.Post extends Brainstem.Model
   paramRoot: 'post'
 
-  methodUrl: (method) ->
-    switch method
-      when "delete" then "/api/posts/#{@id}?post_id=#{@attributes.workspace_id}"
-      when "create" then "/api/posts"
-      else "/api/posts/#{@id}"
-
   @associations:
     replies:            ["posts"]
-    newest_reply:       "posts"
-    newest_reply_user:  "users"
-    recipients:         ["users"]
     workspace:          "workspaces"
     story:              "stories"
     user:               "users"
-    assets:             ["assets"]
-    google_documents:   ["google_documents"]
 
 class App.Collections.Posts extends Brainstem.Collection
   model: App.Models.Post
