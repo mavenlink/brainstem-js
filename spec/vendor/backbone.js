@@ -892,24 +892,24 @@
     //     });
     //
     route: function(route, name, callback) {
-      Backbone.hitask || (Backbone.hitask = new Hitask);
+      Backbone.history || (Backbone.history = new History);
       if (!_.isRegExp(route)) route = this._routeToRegExp(route);
       if (!callback) callback = this[name];
-      Backbone.hitask.route(route, _.bind(function(fragment) {
+      Backbone.history.route(route, _.bind(function(fragment) {
         var args = this._extractParameters(route, fragment);
         callback && callback.apply(this, args);
         this.trigger.apply(this, ['route:' + name].concat(args));
-        Backbone.hitask.trigger('route', this, name, args);
+        Backbone.history.trigger('route', this, name, args);
       }, this));
       return this;
     },
 
-    // Simple proxy to `Backbone.hitask` to save a fragment into the hitask.
+    // Simple proxy to `Backbone.history` to save a fragment into the history.
     navigate: function(fragment, options) {
-      Backbone.hitask.navigate(fragment, options);
+      Backbone.history.navigate(fragment, options);
     },
 
-    // Bind all defined routes to `Backbone.hitask`. We have to reverse the
+    // Bind all defined routes to `Backbone.history`. We have to reverse the
     // order of the routes here to support behavior where the most general
     // routes can be defined at the bottom of the route map.
     _bindRoutes: function() {
@@ -940,12 +940,12 @@
 
   });
 
-  // Backbone.Hitask
+  // Backbone.History
   // ----------------
 
-  // Handles cross-browser hitask management, based on URL fragments. If the
+  // Handles cross-browser history management, based on URL fragments. If the
   // browser does not support `onhashchange`, falls back to polling.
-  var Hitask = Backbone.Hitask = function() {
+  var History = Backbone.History = function() {
     this.handlers = [];
     _.bindAll(this, 'checkUrl');
   };
@@ -956,11 +956,11 @@
   // Cached regex for detecting MSIE.
   var isExplorer = /msie [\w.]+/;
 
-  // Has the hitask handling already been started?
-  Hitask.started = false;
+  // Has the history handling already been started?
+  History.started = false;
 
-  // Set up all inheritable **Backbone.Hitask** properties and methods.
-  _.extend(Hitask.prototype, Events, {
+  // Set up all inheritable **Backbone.History** properties and methods.
+  _.extend(History.prototype, Events, {
 
     // The default interval to poll for hash changes, if necessary, is
     // twenty times a second.
@@ -993,15 +993,15 @@
     // Start the hash change handling, returning `true` if the current URL matches
     // an existing route, and `false` otherwise.
     start: function(options) {
-      if (Hitask.started) throw new Error("Backbone.hitask has already been started");
-      Hitask.started = true;
+      if (History.started) throw new Error("Backbone.history has already been started");
+      History.started = true;
 
       // Figure out the initial configuration. Do we need an iframe?
       // Is pushState desired ... is it available?
       this.options          = _.extend({}, {root: '/'}, this.options, options);
       this._wantsHashChange = this.options.hashChange !== false;
       this._wantsPushState  = !!this.options.pushState;
-      this._hasPushState    = !!(this.options.pushState && window.hitask && window.hitask.pushState);
+      this._hasPushState    = !!(this.options.pushState && window.history && window.history.pushState);
       var fragment          = this.getFragment();
       var docMode           = document.documentMode;
       var oldIE             = (isExplorer.exec(navigator.userAgent.toLowerCase()) && (!docMode || docMode <= 7));
@@ -1039,7 +1039,7 @@
       // in a browser where it could be `pushState`-based instead...
       } else if (this._wantsPushState && this._hasPushState && atRoot && loc.hash) {
         this.fragment = this.getHash().replace(routeStripper, '');
-        window.hitask.replaceState({}, document.title, loc.protocol + '//' + loc.host + this.options.root + this.fragment);
+        window.history.replaceState({}, document.title, loc.protocol + '//' + loc.host + this.options.root + this.fragment);
       }
 
       if (!this.options.silent) {
@@ -1047,12 +1047,12 @@
       }
     },
 
-    // Disable Backbone.hitask, perhaps temporarily. Not useful in a real app,
+    // Disable Backbone.history, perhaps temporarily. Not useful in a real app,
     // but possibly useful for unit testing Routers.
     stop: function() {
       $(window).unbind('popstate', this.checkUrl).unbind('hashchange', this.checkUrl);
       clearInterval(this._checkUrlInterval);
-      Hitask.started = false;
+      History.started = false;
     },
 
     // Add a route to be tested when the fragment changes. Routes added later
@@ -1085,15 +1085,15 @@
       return matched;
     },
 
-    // Save a fragment into the hash hitask, or replace the URL state if the
+    // Save a fragment into the hash history, or replace the URL state if the
     // 'replace' option is passed. You are responsible for properly URL-encoding
     // the fragment in advance.
     //
     // The options object can contain `trigger: true` if you wish to have the
     // route callback be fired (not usually desirable), or `replace: true`, if
-    // you wish to modify the current URL without adding an entry to the hitask.
+    // you wish to modify the current URL without adding an entry to the history.
     navigate: function(fragment, options) {
-      if (!Hitask.started) return false;
+      if (!History.started) return false;
       if (!options || options === true) options = {trigger: options};
       var frag = (fragment || '').replace(routeStripper, '');
       if (this.fragment == frag) return;
@@ -1102,22 +1102,22 @@
       if (this._hasPushState) {
         if (frag.indexOf(this.options.root) != 0) frag = this.options.root + frag;
         this.fragment = frag;
-        window.hitask[options.replace ? 'replaceState' : 'pushState']({}, document.title, frag);
+        window.history[options.replace ? 'replaceState' : 'pushState']({}, document.title, frag);
 
       // If hash changes haven't been explicitly disabled, update the hash
-      // fragment to store hitask.
+      // fragment to store history.
       } else if (this._wantsHashChange) {
         this.fragment = frag;
         this._updateHash(window.location, frag, options.replace);
         if (this.iframe && (frag != this.getFragment(this.getHash(this.iframe)))) {
-          // Opening and closing the iframe tricks IE7 and earlier to push a hitask entry on hash-tag change.
+          // Opening and closing the iframe tricks IE7 and earlier to push a history entry on hash-tag change.
           // When replace is true, we don't want this.
           if(!options.replace) this.iframe.document.open().close();
           this._updateHash(this.iframe.location, frag, options.replace);
         }
 
       // If you've told us that you explicitly don't want fallback hashchange-
-      // based hitask, then `navigate` becomes a page refresh.
+      // based history, then `navigate` becomes a page refresh.
       } else {
         window.location.assign(this.options.root + fragment);
       }
@@ -1125,7 +1125,7 @@
     },
 
     // Update the hash location, either replacing the current entry, or adding
-    // a new one to the browser hitask.
+    // a new one to the browser history.
     _updateHash: function(location, fragment, replace) {
       if (replace) {
         location.replace(location.toString().replace(/(javascript:|#).*$/, '') + '#' + fragment);

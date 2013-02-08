@@ -39,14 +39,14 @@ beforeEach ->
   window.server = sinon.fakeServer.create()
   sinon.log = -> console.log arguments
 
-  # Requests for Backbone.hitask.getFragment() will always return the contents of spec.fragment.
-  Backbone.hitask ||= new Backbone.Hitask
-  spyOn(Backbone.hitask, 'getFragment').andCallFake -> window.spec.fragment
+  # Requests for Backbone.history.getFragment() will always return the contents of spec.fragment.
+  Backbone.history ||= new Backbone.History
+  spyOn(Backbone.history, 'getFragment').andCallFake -> window.spec.fragment
   window.spec.fragment = "mock/path"
 
   # Prevent any actual navigation.
-  spyOn Backbone.Hitask.prototype, 'start'
-  spyOn Backbone.Hitask.prototype, 'navigate'
+  spyOn Backbone.History.prototype, 'start'
+  spyOn Backbone.History.prototype, 'navigate'
 
   # Use Jasmine's mock clock.  You can make time pass with jasmine.Clock.tick(N).
   jasmine.Clock.useMock()
