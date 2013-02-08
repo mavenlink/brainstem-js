@@ -17,7 +17,6 @@ Backbone.sync = (method, modelOrCollection, options) ->
   type = methodMap[method]
 
   params = _.extend({
-    contentType: 'application/json'
     type:         type
     dataType:     'json'
     url:          options.url || getUrl modelOrCollection, method
@@ -32,6 +31,7 @@ Backbone.sync = (method, modelOrCollection, options) ->
   params.error = Brainstem.Utils.makeErrorHandler(params.error, params)
 
   if !params.data && modelOrCollection && (method == 'create' || method == 'update')
+    params.contentType = 'application/json'
     data = {}
 
     if modelOrCollection.toServerJSON?
