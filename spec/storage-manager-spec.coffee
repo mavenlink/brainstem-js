@@ -380,8 +380,8 @@ describe 'Brainstem Storage Manager', ->
           server.respond()
           expect(collection2.loaded).toBe true
           expect(collection2.length).toEqual 2
-#          expect(collection2.get(2).get('project').id).toEqual 10
-#          expect(collection2.get(3).get('project').id).toEqual 11
+          expect(collection2.get(2).get('project').id).toEqual 10
+          expect(collection2.get(3).get('project').id).toEqual 11
 
         it "does request ids from the server again when they don't have all associations loaded yet", ->
           respondWith server, "/api/time_entries?include=project&only=2",
