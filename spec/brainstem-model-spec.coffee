@@ -84,10 +84,10 @@ describe 'Brainstem.Model', ->
         it "should return true when all provided associations are loaded for the model (ignoring fields for now)", ->
           timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2)
           expect(timeEntry.associationsAreLoaded(["project:title", "task"])).toBeFalsy()
-          createProject( id: 10, title: "a project!")
+          buildAndCacheProject( id: 10, title: "a project!")
           expect(timeEntry.associationsAreLoaded(["project", "task"])).toBeFalsy()
           expect(timeEntry.associationsAreLoaded(["project:title"])).toBeTruthy()
-          createTask(id: 2, title: "a task!")
+          buildAndCacheTask(id: 2, title: "a task!")
           expect(timeEntry.associationsAreLoaded(["project:title", "task"])).toBeTruthy()
           expect(timeEntry.associationsAreLoaded(["project"])).toBeTruthy()
           expect(timeEntry.associationsAreLoaded(["task"])).toBeTruthy()
@@ -95,15 +95,15 @@ describe 'Brainstem.Model', ->
         it "should default to all of the associations defined on the model", ->
           timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2, user_id: 666)
           expect(timeEntry.associationsAreLoaded()).toBeFalsy()
-          createProject(id: 10, title: "a project!")
+          buildAndCacheProject(id: 10, title: "a project!")
           expect(timeEntry.associationsAreLoaded()).toBeFalsy()
-          createTask(id: 2, title: "a task!")
+          buildAndCacheTask(id: 2, title: "a task!")
           expect(timeEntry.associationsAreLoaded()).toBeFalsy()
-          createUser(id:666)
+          buildAndCacheUser(id:666)
           expect(timeEntry.associationsAreLoaded()).toBeTruthy()
 
         it "should appear loaded when an association is null, but not loaded when the key is missing", ->
-          timeEntry = buildTimeEntry()
+          timeEntry = buildAndCacheTimeEntry()
           delete timeEntry.attributes.project_id
           expect(timeEntry.associationsAreLoaded(["project"])).toBeFalsy()
           timeEntry = new App.Models.TimeEntry(id: 5, project_id: null)
@@ -115,15 +115,15 @@ describe 'Brainstem.Model', ->
         it "should return true when all provided associations are loaded", ->
           project = new App.Models.Project(id: 5, time_entry_ids: [10, 11], task_ids: [2, 3])
           expect(project.associationsAreLoaded(["time_entries:title", "tasks"])).toBeFalsy()
-          createTimeEntry(id: 10)
+          buildAndCacheTimeEntry(id: 10)
           expect(project.associationsAreLoaded(["time_entries"])).toBeFalsy()
-          createTimeEntry(id: 11)
+          buildAndCacheTimeEntry(id: 11)
           expect(project.associationsAreLoaded(["time_entries"])).toBeTruthy()
           expect(project.associationsAreLoaded(["time_entries", "tasks"])).toBeFalsy()
           expect(project.associationsAreLoaded(["tasks"])).toBeFalsy()
-          createTask(id: 2)
+          buildAndCacheTask(id: 2)
           expect(project.associationsAreLoaded(["tasks"])).toBeFalsy()
-          createTask(id: 3)
+          buildAndCacheTask(id: 3)
           expect(project.associationsAreLoaded(["tasks"])).toBeTruthy()
           expect(project.associationsAreLoaded(["tasks", "time_entries"])).toBeTruthy()
 
@@ -172,10 +172,10 @@ describe 'Brainstem.Model', ->
           expect(-> project.get("time_entries")).toThrow()
 
         it "should apply a sort order to has many associations if it is provided at time of get", ->
-          task = createTask(id: 5, sub_task_ids: [103, 77, 99])
-          createTask(id:103 , position: 3, updated_at: 845785)
-          createTask(id:77 , position: 2, updated_at: 995785)
-          createTask(id:99 , position: 1, updated_at: 635785)
+          task = buildAndCacheTask(id: 5, sub_task_ids: [103, 77, 99])
+          buildAndCacheTask(id:103 , position: 3, updated_at: 845785)
+          buildAndCacheTask(id:77 , position: 2, updated_at: 995785)
+          buildAndCacheTask(id:99 , position: 1, updated_at: 635785)
 
           subTasks = task.get("sub_tasks")
           expect(subTasks.at(0).get('position')).toEqual(3)

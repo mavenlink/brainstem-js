@@ -25,8 +25,8 @@ describe 'Brainstem Storage Manager', ->
 
   describe "reset", ->
     it "should clear all storage and sort lengths", ->
-      createTask()
-      createProject()
+      buildAndCacheTask()
+      buildAndCacheProject()
       expect(base.data.storage("projects").length).toEqual 1
       expect(base.data.storage("tasks").length).toEqual 1
       base.data.collections["projects"].cache = { "foo": "bar" }
@@ -468,7 +468,7 @@ describe 'Brainstem Storage Manager', ->
       item = null
 
       beforeEach ->
-        item = createTask()
+        item = buildTask()
         respondWith server, "/api/tasks.json?per_page=20&page=1", data: { results: [["tasks", item.id]], tasks: [item] }
 
       it "goes to server even if we have matching items in cache", ->

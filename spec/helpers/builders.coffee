@@ -24,7 +24,7 @@ spec.defineBuilders = ->
       obj
 
     eval("window.#{"build_#{name.underscore()}".camelize(true)} = builder")
-    eval("window.#{"create_#{name.underscore()}".camelize(true)} = creator")
+    eval("window.#{"build_and_cache_#{name.underscore()}".camelize(true)} = creator")
 
   window.defineBuilder "user", App.Models.User, {
     id: (n) -> return n
