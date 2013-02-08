@@ -143,7 +143,7 @@ class window.Brainstem.StorageManager
       else
         # Check if we have, at some point, requested enough records with this this order and filter(s).
         if @getCollectionDetails(name).cache[cacheKey]
-          subset = _(@getCollectionDetails(name).cache[cacheKey]).map (result) -> base.data.storage(result[0]).get(result[1])
+          subset = _(@getCollectionDetails(name).cache[cacheKey]).map (result) -> base.data.storage(result.key).get(result.id)
           if (_.all(subset, (model) => model.associationsAreLoaded(include)))
             @_success options, collection, subset
             return collection
@@ -176,7 +176,7 @@ class window.Brainstem.StorageManager
         if only?
           @_success options, collection, _.map(only, (id) -> cachedCollection.get(id))
         else
-          @_success options, collection, _(results).map (result) -> base.data.storage(result[0]).get(result[1])
+          @_success options, collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
 
 
     syncOptions.data.include = include.join(";") if include.length

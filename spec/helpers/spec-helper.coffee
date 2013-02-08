@@ -3,7 +3,7 @@ window.App.Models ?= {}
 window.App.Collections ?= {}
 
 window.resultsArray = (key, models) ->
-  _(models).map (model) -> [key, model.get("id")]
+  _(models).map (model) -> { key: key, id: model.get("id") }
 
 window.respondWith = (server, url, options) ->
   if options.resultsFrom?

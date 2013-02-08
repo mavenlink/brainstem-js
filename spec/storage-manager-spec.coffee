@@ -55,7 +55,7 @@ describe 'Brainstem Storage Manager', ->
 
     it "works even when the server returned associations of the same type", ->
       posts = [buildPost(id: 2, reply: true), buildPost(id: 3, reply: true), buildPost(id: 1, reply: false, reply_ids: [2, 3])]
-      respondWith server, "/api/posts?include=replies&only=1", data: { results: [["posts", 1]], posts: posts }
+      respondWith server, "/api/posts?include=replies&only=1", data: { results: [{ key: "posts", id: 1 }], posts: posts }
       model = base.data.loadModel "post", 1, include: ["replies"]
       expect(model.loaded).toBe false
       server.respond()
@@ -91,7 +91,7 @@ describe 'Brainstem Storage Manager', ->
   describe 'loadCollection', ->
     it "loads a collection of models", ->
       timeEntries = [buildTimeEntry(), buildTimeEntry()]
-      respondWith server, "/api/time_entries?per_page=20&page=1", data: { results: resultsArray("time_entries", timeEntries), time_entries: timeEntries }
+      respondWith server, "/api/time_entries?per_page=20&page=1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
       collection = base.data.loadCollection "time_entries"
       expect(collection.length).toBe 0
       server.respond()
@@ -115,7 +115,7 @@ describe 'Brainstem Storage Manager', ->
     describe "passing an optional collection", ->
       it "accepts an optional collection instead of making a new one", ->
         timeEntry = buildTimeEntry()
-        respondWith server, "/api/time_entries?per_page=20&page=1", data: { results: [["time_entries", timeEntry.id]], time_entries: [timeEntry] }
+        respondWith server, "/api/time_entries?per_page=20&page=1", data: { results: [{ key: "time_entries", id: timeEntry.id }], time_entries: [timeEntry] }
         collection = new App.Collections.TimeEntries([buildTimeEntry(), buildTimeEntry()])
         collection.setLoaded true
         base.data.loadCollection "time_entries", collection: collection
@@ -128,7 +128,7 @@ describe 'Brainstem Storage Manager', ->
 
       it "can take an optional reset command to reset the collection before using it", ->
         timeEntry = buildTimeEntry()
-        respondWith server, "/api/time_entries?per_page=20&page=1", data: { results: [["time_entries", timeEntry.id]], time_entries: [timeEntry] }
+        respondWith server, "/api/time_entries?per_page=20&page=1", data: { results: [{ key: "time_entries", id: timeEntry.id }], time_entries: [timeEntry] }
         collection = new App.Collections.TimeEntries([buildTimeEntry(), buildTimeEntry()])
         collection.setLoaded true
         spyOn(collection, 'reset').andCallThrough()
@@ -143,7 +143,7 @@ describe 'Brainstem Storage Manager', ->
 
     it "triggers reset", ->
       timeEntry = buildTimeEntry()
-      respondWith server, "/api/time_entries?per_page=20&page=1", data: { results: [["time_entries", timeEntry.id]], time_entries: [timeEntry] }
+      respondWith server, "/api/time_entries?per_page=20&page=1", data: { results: [{ key: "time_entries", id: timeEntry.id}], time_entries: [timeEntry] }
       collection = base.data.loadCollection "time_entries"
       expect(collection.loaded).toBe false
       spy = jasmine.createSpy().andCallFake ->
@@ -160,8 +160,8 @@ describe 'Brainstem Storage Manager', ->
         projects = [buildProject(id: 15), buildProject(id: 10)]
         timeEntries = [buildTimeEntry(task_id: 2, project_id: 15, id: 1), buildTimeEntry(task_id: null, project_id: 10, id: 2)]
 
-        respondWith server, /\/api\/time_entries\?include=project%3Btask&per_page=\d+&page=\d+/, data: { results: resultsArray("time_entries", timeEntries), time_entries: timeEntries, tasks: tasks, projects: projects }
-        respondWith server, /\/api\/time_entries\?include=project&per_page=\d+&page=\d+/, data: { results: resultsArray("time_entries", timeEntries), time_entries: timeEntries, projects: projects }
+        respondWith server, /\/api\/time_entries\?include=project%3Btask&per_page=\d+&page=\d+/, resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
+        respondWith server, /\/api\/time_entries\?include=project&per_page=\d+&page=\d+/, resultsFrom: "time_entries", data: { time_entries: timeEntries, projects: projects }
 
       it "loads collections that should be included", ->
         collection = base.data.loadCollection "time_entries", include: ["project", "task"]
@@ -179,7 +179,7 @@ describe 'Brainstem Storage Manager', ->
 
       it "applies filters when loading collections from the server (so that associations of the same type as the primary can be handled- posts with replies; tasks with subtasks, etc.)", ->
         posts = [buildPost(project_id: 15, id: 1, reply_ids: [2]), buildPost(project_id: 15, id: 2, subject_id: 1, reply: true)]
-        respondWith server, "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=20&page=1", data: { results: [["posts", 1]], posts: posts }
+        respondWith server, "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=20&page=1", data: { results: [{ key: "posts", id: 1}], posts: posts }
         collection = base.data.loadCollection "posts", include: ["replies"], filters: "parents_only:true"
         server.respond()
         expect(collection.pluck("id")).toEqual [1]
@@ -422,8 +422,7 @@ describe 'Brainstem Storage Manager', ->
 
         it "returns an empty collection when passed in an empty array", ->
           timeEntries = [buildTimeEntry(task_id: 2, project_id: 15, id: 1), buildTimeEntry(project_id: 10, id: 2)]
-          respondWith server, "/api/time_entries?per_page=20&page=1",
-                      data: { results: [["time_entries", 1], ["time_entries", 2]], time_entries: timeEntries }
+          respondWith server, "/api/time_entries?per_page=20&page=1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
           collection = base.data.loadCollection "time_entries", only: []
           expect(collection.loaded).toBe true
           expect(collection.length).toEqual 0
@@ -492,7 +491,7 @@ describe 'Brainstem Storage Manager', ->
       it "returns the matching items with includes, triggering reset and success", ->
         task = buildTask()
         respondWith server, "/api/tasks.json?per_page=20&page=1&search=go+go+gadget+search",
-                    data: { results: [["tasks", task.id]], tasks: [task] }
+                    data: { results: [{key: "tasks", id: task.id}], tasks: [task] }
         spy2 = jasmine.createSpy().andCallFake (collection) ->
           expect(collection.loaded).toBe true
         collection = base.data.loadCollection "tasks", search: "go go gadget search", success: spy2
