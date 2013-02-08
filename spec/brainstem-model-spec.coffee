@@ -200,12 +200,16 @@ describe 'Brainstem.Model', ->
 
     it "always removes default blacklisted keys", ->
       defaultBlacklistKeys = model.defaultJSONBlacklist()
-      expect(defaultBlacklistKeys.length).toBeGreaterThan(0)
+      expect(defaultBlacklistKeys.length).toEqual(0)
 
+      model.defaultJSONBlacklist = -> ['foo', 'bar']
+
+      model.set('safe', true)
       for key in defaultBlacklistKeys
         model.set(key, true)
 
       json = model.toServerJSON("create")
+      expect(json['safe']).toEqual(true)
       for key in defaultBlacklistKeys
         expect(json[key]).toBeUndefined()
 
