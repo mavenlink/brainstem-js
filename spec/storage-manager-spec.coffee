@@ -348,7 +348,7 @@ describe 'Brainstem Storage Manager', ->
       describe "when getting data from the server", ->
         it "returns the requested ids with includes, triggering reset and success", ->
           respondWith server, "/api/time_entries?include=project%3Btask&only=2",
-                      data: { results: [["time_entries", 2]], time_entries: [buildTimeEntry(task_id: null, project_id: 10, id: 2)], tasks: [], projects: [buildProject(id: 10)] }
+                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(task_id: null, project_id: 10, id: 2)], tasks: [], projects: [buildProject(id: 10)] }
           spy2 = jasmine.createSpy().andCallFake (collection) ->
             expect(collection.loaded).toBe true
           collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: 2, success: spy2
@@ -366,9 +366,9 @@ describe 'Brainstem Storage Manager', ->
 
         it "only requests ids that we don't already have", ->
           respondWith server, "/api/time_entries?include=project%3Btask&only=2",
-                      data: { results: [["time_entries", 2]], time_entries: [buildTimeEntry(task_id: null, project_id: 10, id: 2)], tasks: [], projects: [buildProject(id: 10)] }
+                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(task_id: null, project_id: 10, id: 2)], tasks: [], projects: [buildProject(id: 10)] }
           respondWith server, "/api/time_entries?include=project%3Btask&only=3",
-                      data: { results: [["time_entries", 3]], time_entries: [buildTimeEntry(task_id: null, project_id: 11, id: 3)], tasks: [], projects: [buildProject(id: 11)] }
+                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(task_id: null, project_id: 11, id: 3)], tasks: [], projects: [buildProject(id: 11)] }
 
           collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: 2
           expect(collection.loaded).toBe false
@@ -385,11 +385,11 @@ describe 'Brainstem Storage Manager', ->
 
         it "does request ids from the server again when they don't have all associations loaded yet", ->
           respondWith server, "/api/time_entries?include=project&only=2",
-                      data: { results: [["time_entries", 2]], time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 5)], projects: [buildProject(id: 10)] }
+                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 5)], projects: [buildProject(id: 10)] }
           respondWith server, "/api/time_entries?include=project%3Btask&only=2",
-                      data: { results: [["time_entries", 2]], time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 5)], tasks: [buildTask(id: 5)], projects: [buildProject(id: 10)] }
+                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 5)], tasks: [buildTask(id: 5)], projects: [buildProject(id: 10)] }
           respondWith server, "/api/time_entries?include=project%3Btask&only=3",
-                      data: { results: [["time_entries", 3]], time_entries: [buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 11)] }
+                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 11)] }
 
           base.data.loadCollection "time_entries", include: ["project"], only: 2
           server.respond()
@@ -404,7 +404,7 @@ describe 'Brainstem Storage Manager', ->
 
         it "doesn't go to the server if it doesn't need to", ->
           respondWith server, "/api/time_entries?include=project%3Btask&only=2%2C3",
-                      data: { results: [["time_entries", 2], ["time_entries", 3]], time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
+                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
           collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
           expect(collection.loaded).toBe false
           server.respond()
@@ -434,7 +434,7 @@ describe 'Brainstem Storage Manager', ->
 
         it "accepts a success function that gets triggered on cache hit", ->
           respondWith server, "/api/time_entries?include=project%3Btask&only=2%2C3",
-                      data: { results: [["time_entries", 2], ["time_entries", 3]], time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
+                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
           base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
           server.respond()
           spy = jasmine.createSpy().andCallFake (collection) ->
@@ -444,9 +444,9 @@ describe 'Brainstem Storage Manager', ->
           collection2 = base.data.loadCollection "time_entries", include: ["project"], only: [2, 3], success: spy
           expect(spy).toHaveBeenCalled()
 
-        it "does not update sort lengths on only queries", ->
+        it "does not cache only queries", ->
           respondWith server, "/api/time_entries?include=project%3Btask&only=2%2C3",
-                      data: { results: [["time_entries", 2], ["time_entries", 3]], time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
+                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
           collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
           expect(Object.keys base.data.getCollectionDetails("time_entries")["cache"]).toEqual []
           server.respond()
@@ -454,9 +454,9 @@ describe 'Brainstem Storage Manager', ->
 
         it "does go to the server on a repeat request if an association is missing", ->
           respondWith server, "/api/time_entries?include=project&only=2",
-                      data: { results: [["time_entries", 2]], time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 6)], projects: [buildProject(id: 10)] }
+                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 6)], projects: [buildProject(id: 10)] }
           respondWith server, "/api/time_entries?include=project%3Btask&only=2",
-                      data: { results: [["time_entries", 2]], time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 6)], tasks: [buildTask(id: 6)], projects: [buildProject(id: 10)] }
+                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 6)], tasks: [buildTask(id: 6)], projects: [buildProject(id: 10)] }
           collection = base.data.loadCollection "time_entries", include: ["project"], only: 2
           expect(collection.loaded).toBe false
           server.respond()
@@ -469,7 +469,7 @@ describe 'Brainstem Storage Manager', ->
 
       beforeEach ->
         item = buildTask()
-        respondWith server, "/api/tasks.json?per_page=20&page=1", data: { results: [["tasks", item.id]], tasks: [item] }
+        respondWith server, "/api/tasks.json?per_page=20&page=1", resultsFrom: "tasks", data: { tasks: [item] }
 
       it "goes to server even if we have matching items in cache", ->
         syncSpy = spyOn(Backbone, 'sync')
