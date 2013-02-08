@@ -6,13 +6,12 @@ class window.Brainstem.Model extends Backbone.Model
     super
     @setLoaded false
 
-  # class method to parse ISO8601 dates into seconds since epoch
+  # Parse ISO8601 attribute strings into date objects
   @parse: (modelObject) ->
     for k,v of modelObject
-      # Date.parse will support ISO 8601 natively in ECMAScript 5, this uses a shim
+      # Date.parse will parse ISO 8601 in ECMAScript 5, but we include a shim for now
       if /\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}/.test(v)
-        # ruby times were seconds, not ms, so we convert to seconds here
-        modelObject[k] = (Date.parse(v) / 1000)
+        modelObject[k] = Date.parse(v)
     return modelObject
 
   # Handle create and update responses with JSON root keys
