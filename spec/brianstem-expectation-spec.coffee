@@ -95,6 +95,11 @@ describe 'Brainstem Expectations', ->
       expect(-> manager.loadCollection("projects", include: ["users"])).toThrow()
       expect(manager.loadCollection("projects").models).toEqual [project1]
 
+    it "should ignore empty arrays", ->
+      manager.stubImmediate "projects", response: (stub) ->
+        stub.results = [project1, project2]
+      expect(manager.loadCollection("projects", include: []).models).toEqual [project1, project2]
+
     it "should allow wildcard params", ->
       manager.stubImmediate "projects", include: '*', response: (stub) ->
         stub.results = [project1, project2]
