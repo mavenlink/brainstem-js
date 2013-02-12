@@ -275,4 +275,5 @@ class window.Brainstem.StorageManager
       if expectation.optionsMatch(name, options)
         expectation.recordRequest(collection, options)
         return
+    Brainstem.Utils.warn "No expectation matched #{name} with #{JSON.stringify options}"
     throw "No expectation matched #{name} with #{JSON.stringify options}"
