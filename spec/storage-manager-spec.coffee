@@ -147,6 +147,12 @@ describe 'Storage Manager', ->
       server.respond()
       expect(spy).toHaveBeenCalled()
 
+    it "ignores count and results", ->
+      server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(count: 2, results: [{ key: "time_entries", id: 2 }], time_entries: [buildTimeEntry(), buildTimeEntry()]) ]
+      collection = base.data.loadCollection "time_entries"
+      server.respond()
+      expect(collection.length).toEqual(2)
+
     describe "fetching of associations", ->
       json = null
 
@@ -507,7 +513,7 @@ describe 'Storage Manager', ->
         collection = base.data.loadCollection "stories", cache: false
         server.respond()
         expect(spy).not.toHaveBeenCalled()
-        
+
       it "still adds results to the cache", ->
         spy = spyOn(base.data.storage('stories'), 'update')
         collection = base.data.loadCollection "stories", cache: false
@@ -519,7 +525,7 @@ describe 'Storage Manager', ->
         spy = spyOn(base.data, '_loadCollectionWithFirstLayer')
         collection = base.data.loadCollection "stories", search: "the meaning of life"
         expect(spy.mostRecentCall.args[0]['cache']).toBe(false)
-      
+
       it "returns the matching items with includes, triggering reset and success", ->
         server.respondWith "GET", "/api/stories.json?per_page=20&page=1&search=go+go+gadget+search", [ 200, {"Content-Type": "application/json"}, JSON.stringify(stories: [buildStory()]) ]
 
