@@ -9,7 +9,7 @@ describe 'Brainstem Expectations', ->
     project2 = buildProject(id: 2)
     task1 = buildTask(id: 1, project_id: project1.id)
 
-  describe "stubbed responses", ->
+  describe "stubbing responses", ->
     it "should update returned collections", ->
       expectation = manager.stub "projects", response: (stub) ->
         stub.results = [project1, project2]
@@ -59,30 +59,30 @@ describe 'Brainstem Expectations', ->
       collection = new Brainstem.Collection()
       manager.loadCollection "projects", collection: collection
       expectation.respond()
-      collection.get(1).get("tasks").should == [task1]
-      collection.get(2).get("tasks").should == []
+      expect(collection.get(1).get("tasks").models).toEqual [task1]
+      expect(collection.get(2).get("tasks").models).toEqual []
 
-    describe "responding immediately", ->
-      it "uses stubImmediate", ->
-        expectation = manager.stubImmediate "projects", includes: ["tasks"], response: (stub) ->
-          stub.results = [project1, project2]
-          stub.associated.tasks = [task1]
-        collection = manager.loadCollection "projects"
-        collection.get(1).get("tasks").should == [task1]
+  describe "responding immediately", ->
+    it "uses stubImmediate", ->
+      expectation = manager.stubImmediate "projects", includes: ["tasks"], response: (stub) ->
+        stub.results = [project1, project2]
+        stub.associated.tasks = [task1]
+      collection = manager.loadCollection "projects"
+      expect(collection.get(1).get("tasks").models).toEqual [task1]
 
-    describe "multiple stubs", ->
-      it "should match the first valid expectation", ->
-        manager.stubImmediate "projects", only: [1], response: (stub) ->
-          stub.results = [project1]
-        manager.stubImmediate "projects", response: (stub) ->
-          stub.results = [project1, project2]
-        manager.stubImmediate "projects", only: [2], response: (stub) ->
-          stub.results = [project2]
-        expect(manager.loadCollection("projects", only: 1).models).toEqual [project1]
-        expect(manager.loadCollection("projects").models).toEqual [project1, project2]
+  describe "multiple stubs", ->
+    it "should match the first valid expectation", ->
+      manager.stubImmediate "projects", only: [1], response: (stub) ->
+        stub.results = [project1]
+      manager.stubImmediate "projects", response: (stub) ->
+        stub.results = [project1, project2]
+      manager.stubImmediate "projects", only: [2], response: (stub) ->
+        stub.results = [project2]
+      expect(manager.loadCollection("projects", only: 1).models).toEqual [project1]
+      expect(manager.loadCollection("projects").models).toEqual [project1, project2]
 
-        # Here's the unexpected case.  This returns two because it matches an earlier, more general, expectation.
-        expect(manager.loadCollection("projects", only: 2).models).toEqual [project1, project2]
+      # Here's the unexpected case.  This returns two because it matches an earlier, more general, expectation.
+      expect(manager.loadCollection("projects", only: 2).models).toEqual [project1, project2]
 
   describe "recording", ->
     it "should record options", ->
@@ -90,3 +90,21 @@ describe 'Brainstem Expectations', ->
         stub.results = [project1, project2]
       manager.loadCollection("projects", filters: ["something:else"])
       expect(expectation.matches[0].filters).toEqual ["something:else"]
+
+  describe "clearing expectations", ->
+    it "expectations can be removed", ->
+      expectation = manager.stub "projects", includes: ["tasks"], response: (stub) ->
+        stub.results = [project1, project2]
+        stub.associated.tasks = [task1]
+
+      collection = manager.loadCollection "projects"
+      expectation.respond()
+      expect(collection.get(1).get("tasks").models).toEqual [task1]
+
+      collection2 = manager.loadCollection "projects"
+      expect(collection2.get(1)).toBeFalsy()
+      expectation.respond()
+      expect(collection2.get(1).get("tasks").models).toEqual [task1]
+
+      expectation.remove()
+      expect(-> manager.loadCollection "projects").toThrow()

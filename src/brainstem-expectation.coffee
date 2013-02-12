@@ -15,6 +15,9 @@ class window.Brainstem.Expectation
     @collections = {}
     @requestQueue = []
 
+  remove: =>
+    @disabled = true
+
   recordRequest: (collection, callOptions) =>
     if @immediate
       @handleRequest collection: collection, callOptions: callOptions
@@ -46,7 +49,7 @@ class window.Brainstem.Expectation
     @manager._success(options.callOptions, options.collection, returnedModels)
 
   optionsMatch: (name, options) =>
-    if @collectionName == name
+    if !@disabled && @collectionName == name
       _(['include', 'only', 'fields', 'order', 'filters', 'perPage', 'page', 'search']).all (optionType) =>
         !@options[optionType]? || options[optionType] == @options[optionType] || Brainstem.Utils.matchesArray(_.flatten([options[optionType]]), _.flatten([@options[optionType]]))
     else
