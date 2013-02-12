@@ -76,7 +76,6 @@ class window.Brainstem.StorageManager
   loadCollection: (name, options) =>
     options = $.extend({}, options, name: name)
     @_checkPageSettings options
-    @_logDataUsage()
     include = @_wrapObjects(@_extractArray "include", options)
     if options.search
       options.cache = false
@@ -85,19 +84,22 @@ class window.Brainstem.StorageManager
     collection = options.collection || @createNewCollection name, [], comparator: comparator
     collection.setLoaded false
     collection.reset([], silent: false) if options.reset
-    collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'fields', 'filters', 'include', 'page', 'perPage', 'order')
+    collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'fields', 'filters', 'include', 'page', 'perPage', 'order', 'search')
 
-    @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
-      expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
-      if expectedAdditionalLoads > 0
-        timesCalled = 0
-        @_handleNextLayer firstLayerCollection, include, =>
-          timesCalled += 1
-          if timesCalled == expectedAdditionalLoads
-            @_success(options, collection, firstLayerCollection)
-      else
-        @_success(options, collection, firstLayerCollection)
-    )))
+    if @expectations?
+      @handleExpectations name, collection, options
+    else
+      @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
+        expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
+        if expectedAdditionalLoads > 0
+          timesCalled = 0
+          @_handleNextLayer firstLayerCollection, include, =>
+            timesCalled += 1
+            if timesCalled == expectedAdditionalLoads
+              @_success(options, collection, firstLayerCollection)
+        else
+          @_success(options, collection, firstLayerCollection)
+      )))
 
     collection
 
@@ -252,11 +254,25 @@ class window.Brainstem.StorageManager
     else
       0
 
-  _logDataUsage: =>
-    dataUsage = @dataUsage()
-    if dataUsage > 500
-      bin = Math.round(dataUsage / 100)
-      @previouslyLoggedBins ||= []
-      unless bin in @previouslyLoggedBins
-        Utils.trackPageView("/dataLoaded/#{bin}")
-        @previouslyLoggedBins.push bin
+  # Expectations and stubbing
+
+  stub: (collectionName, options) =>
+    if @expectations?
+      expectation = new Brainstem.Expectation(collectionName, options, @)
+      @expectations.push expectation
+      expectation
+    else
+      throw "You must call #enableExpectations on your instance of Brainstem.StorageManager before you can set expectations."
+
+  stubImmediate: (collectionName, options) =>
+    @stub collectionName, $.extend({}, options, immediate: true)
+
+  enableExpectations: =>
+    @expectations = []
+
+  handleExpectations: (name, collection, options) =>
+    for expectation in @expectations
+      if expectation.optionsMatch(name, options)
+        expectation.recordRequest(collection, options)
+        return
+    throw "No expectation matched #{name} with #{JSON.stringify options}"

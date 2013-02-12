@@ -1,4 +1,5 @@
 class App.Models.TimeEntry extends Brainstem.Model
+  brainstemKey: "time_entries"
   paramRoot: 'time_entry'
 
   methodUrl: (method) ->

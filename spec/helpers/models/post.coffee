@@ -1,4 +1,5 @@
 class App.Models.Post extends Brainstem.Model
+  brainstemKey: "posts"
   paramRoot: 'post'
 
   @associations:
