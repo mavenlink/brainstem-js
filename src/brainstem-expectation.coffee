@@ -11,9 +11,9 @@ class window.Brainstem.Expectation
     @immediate = options.immediate
     delete options.immediate
     @associated = {}
-    @options.response(@) if @options.response?
     @collections = {}
     @requestQueue = []
+    @options.response(@) if @options.response?
 
   remove: =>
     @disabled = true
@@ -27,6 +27,7 @@ class window.Brainstem.Expectation
   respond: =>
     for request in @requestQueue
       @handleRequest request
+    @requestQueue = []
 
   handleRequest: (options) =>
     @matches.push options.callOptions

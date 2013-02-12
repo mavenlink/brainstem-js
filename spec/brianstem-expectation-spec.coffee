@@ -55,6 +55,7 @@ describe 'Brainstem Expectations', ->
     it "can populate associated objects", ->
       expectation = manager.stub "projects", includes: ["tasks"], response: (stub) ->
         stub.results = [project1, project2]
+        stub.associated.projects = [project1, project2]
         stub.associated.tasks = [task1]
       collection = new Brainstem.Collection()
       manager.loadCollection "projects", collection: collection
