@@ -186,7 +186,6 @@ describe 'Brainstem Storage Manager', ->
         expect(collection.get(1).get('replies').pluck("id")).toEqual [2]
 
       describe "fetching multiple levels of associations", ->
-        # We cannot have default filters that restrict the dataset.  At least not for only queries.
         it "seperately requests each layer of associations", ->
           projectOneTimeEntryTask = buildTask()
           projectOneTimeEntry = buildTimeEntry(title: "without task"); projectOneTimeEntryWithTask = buildTimeEntry(id: projectOneTimeEntry.id, task_id: projectOneTimeEntryTask.id, title: "with task")
@@ -277,7 +276,7 @@ describe 'Brainstem Storage Manager', ->
             te1Ws11 = buildTimeEntry(task_id: null, project_id: 11, id: 3, created_at: now - 100 * 1000, updated_at: now - 4 * 1000)
             te2Ws11 = buildTimeEntry(task_id: null, project_id: 11, id: 4, created_at: now - 200 * 1000, updated_at: now - 12 * 1000)
 
-          it "cuts pages correctly in the client", ->
+          it "goes to the server for pages of data and updates the collection", ->
             respondWith server, "/api/time_entries?order=created_at%3Aasc&per_page=2&page=1", data: { results: resultsArray("time_entries", [te2Ws11, te1Ws11]), time_entries: [te2Ws11, te1Ws11] }
             respondWith server, "/api/time_entries?order=created_at%3Aasc&per_page=2&page=2", data: { results: resultsArray("time_entries", [te1Ws10, te2Ws10]), time_entries: [te1Ws10, te2Ws10] }
             collection = base.data.loadCollection "time_entries", order: "created_at:asc", page: 1, perPage: 2
@@ -286,6 +285,13 @@ describe 'Brainstem Storage Manager', ->
             base.data.loadCollection "time_entries", collection: collection, order: "created_at:asc", page: 2, perPage: 2
             server.respond()
             expect(collection.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id, te1Ws10.id, te2Ws10.id]
+
+          it "does not re-sort the results", ->
+            respondWith server, "/api/time_entries?order=created_at%3Adesc&per_page=2&page=1", data: { results: resultsArray("time_entries", [te2Ws11, te1Ws11]), time_entries: [te1Ws11, te2Ws11] }
+            # it's really created_at:asc
+            collection = base.data.loadCollection "time_entries", order: "created_at:desc", page: 1, perPage: 2
+            server.respond()
+            expect(collection.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id]
 
           it "seperately caches data requested by different sort orders and filters", ->
             server.responses = []

@@ -80,8 +80,7 @@ class window.Brainstem.StorageManager
     if options.search
       options.cache = false
 
-    comparator = @getCollectionDetails(name).klass.getComparatorWithIdFailover(options.order || "updated_at:desc")
-    collection = options.collection || @createNewCollection name, [], comparator: comparator
+    collection = options.collection || @createNewCollection name, []
     collection.setLoaded false
     collection.reset([], silent: false) if options.reset
     collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'fields', 'filters', 'include', 'page', 'perPage', 'order', 'search')
@@ -132,8 +131,7 @@ class window.Brainstem.StorageManager
     cacheKey = "#{order}|#{_(filters).sort().join(",")}|#{options.page}|#{options.perPage}"
 
     cachedCollection = @storage name
-    comparator = @getCollectionDetails(name).klass.getComparatorWithIdFailover(order)
-    collection = @createNewCollection name, [], comparator: comparator
+    collection = @createNewCollection name, []
 
     unless options.cache == false
       if only?
