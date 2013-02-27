@@ -53,22 +53,22 @@ describe 'Brainstem Expectations', ->
       expect(collection.models[1]).toEqual project1
 
     it "can populate associated objects", ->
-      expectation = manager.stub "projects", includes: ["tasks"], response: (stub) ->
+      expectation = manager.stub "projects", include: ["tasks"], response: (stub) ->
         stub.results = [project1, project2]
         stub.associated.projects = [project1, project2]
         stub.associated.tasks = [task1]
       collection = new Brainstem.Collection()
-      manager.loadCollection "projects", collection: collection
+      manager.loadCollection "projects", collection: collection, include: ["tasks"]
       expectation.respond()
       expect(collection.get(1).get("tasks").models).toEqual [task1]
       expect(collection.get(2).get("tasks").models).toEqual []
 
   describe "responding immediately", ->
     it "uses stubImmediate", ->
-      expectation = manager.stubImmediate "projects", includes: ["tasks"], response: (stub) ->
+      expectation = manager.stubImmediate "projects", include: ["tasks"], response: (stub) ->
         stub.results = [project1, project2]
         stub.associated.tasks = [task1]
-      collection = manager.loadCollection "projects"
+      collection = manager.loadCollection "projects", include: ["tasks"]
       expect(collection.get(1).get("tasks").models).toEqual [task1]
 
   describe "multiple stubs", ->
@@ -117,18 +117,34 @@ describe 'Brainstem Expectations', ->
 
   describe "clearing expectations", ->
     it "expectations can be removed", ->
-      expectation = manager.stub "projects", includes: ["tasks"], response: (stub) ->
+      expectation = manager.stub "projects", include: ["tasks"], response: (stub) ->
         stub.results = [project1, project2]
         stub.associated.tasks = [task1]
 
-      collection = manager.loadCollection "projects"
+      collection = manager.loadCollection "projects", include: ["tasks"]
       expectation.respond()
       expect(collection.get(1).get("tasks").models).toEqual [task1]
 
-      collection2 = manager.loadCollection "projects"
+      collection2 = manager.loadCollection "projects", include: ["tasks"]
       expect(collection2.get(1)).toBeFalsy()
       expectation.respond()
       expect(collection2.get(1).get("tasks").models).toEqual [task1]
 
       expectation.remove()
       expect(-> manager.loadCollection "projects").toThrow()
+
+  describe "lastMatch", ->
+    it "retrives the last match object", ->
+      expectation = manager.stubImmediate "projects", include: "*", response: (stub) ->
+        stub.results = []
+
+      manager.loadCollection("projects", include: ["tasks"])
+      manager.loadCollection("projects", include: ["users"])
+
+      expect(expectation.matches.length).toEqual(2)
+      expect(expectation.lastMatch().include).toEqual(["users"])
+
+    it "returns undefined if no matches exist", ->
+      expectation = manager.stub "projects", response: (stub) ->
+        stub.results = []
+      expect(expectation.lastMatch()).toBeUndefined()

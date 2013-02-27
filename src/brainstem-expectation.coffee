@@ -55,3 +55,6 @@ class window.Brainstem.Expectation
         @options[optionType] == "*" || options[optionType] == @options[optionType] || Brainstem.Utils.matchesArray(_.compact(_.flatten([options[optionType]])), _.compact(_.flatten([@options[optionType]])))
     else
       false
+
+  lastMatch: ->
+    @matches[@matches.length - 1]
