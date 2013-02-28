@@ -16,5 +16,5 @@ class window.Brainstem.Utils
       if array1[index] instanceof Array && array2[index] instanceof Array
         return false unless matchesArray(array1[index], array2[index])
       else
-        return false if array1[index] != array2[index]
+        return false if String(array1[index]) != String(array2[index])
     true

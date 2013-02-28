@@ -148,3 +148,20 @@ describe 'Brainstem Expectations', ->
       expectation = manager.stub "projects", response: (stub) ->
         stub.results = []
       expect(expectation.lastMatch()).toBeUndefined()
+
+  describe "optionsMatch", ->
+    it "should ignore wrapping arrays", ->
+      expectation = new Brainstem.Expectation("projects", { include: "workspaces" }, manager)
+      expect(expectation.optionsMatch("projects", { include: "workspaces" })).toBe true
+      expect(expectation.optionsMatch("projects", { include: ["workspaces"] })).toBe true
+
+    it "should treat * as an any match", ->
+      expectation = new Brainstem.Expectation("projects", { include: "*" }, manager)
+      expect(expectation.optionsMatch("projects", { include: "workspaces" })).toBe true
+      expect(expectation.optionsMatch("projects", { include: ["anything"] })).toBe true
+      expect(expectation.optionsMatch("projects", {})).toBe true
+
+    it "should treat strings and numbers the same when appropriate", ->
+      expectation = new Brainstem.Expectation("projects", { only: "1" }, manager)
+      expect(expectation.optionsMatch("projects", {only: 1})).toBe true
+      expect(expectation.optionsMatch("projects", {only: "1"})).toBe true
