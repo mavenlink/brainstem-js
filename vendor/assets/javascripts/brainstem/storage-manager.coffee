@@ -7,8 +7,9 @@ window.Brainstem ?= {}
 # The StorageManager class is used to manage a set of Brainstem.Collections.  It is responsible for loading data and
 # maintaining caches.
 class window.Brainstem.StorageManager
-  constructor: ->
+  constructor: (options = {}) ->
     @collections = {}
+    @setDefaultErrorHandler(options.defaultErrorHandler)
 
   # Add a collection to the StorageManager.  All collections that will be loaded or used in associations must be added.
   #    manager.addCollection "time_entries", App.Collections.TimeEntries
@@ -44,6 +45,9 @@ class window.Brainstem.StorageManager
 
   collectionExists: (name) =>
     !!@collections[name]
+
+  setDefaultErrorHandler: (handler) =>
+    @defaultErrorHandler = handler || (originalModel, resp, options) -> throw originalModel:originalModel, resp: resp, options: options
 
   # Request a model to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
   # when the load, and any dependent loads, are complete.
@@ -149,11 +153,10 @@ class window.Brainstem.StorageManager
             return collection
 
     # If we haven't returned yet, we need to go to the server to load some missing data.
-
     syncOptions =
       data: {}
       parse: true
-      error: Backbone.wrapError(options.error, collection, options)
+      error: Backbone.wrapError(options.error || @defaultErrorHandler, collection, options)
       success: (resp, status, xhr) =>
         # The server response should look something like this:
         #  {

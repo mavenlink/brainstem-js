@@ -28,8 +28,6 @@ Backbone.sync = (method, modelOrCollection, options) ->
       modelOrCollection.trigger 'sync:start'
   }, options)
 
-  params.error = Brainstem.Utils.makeErrorHandler(params.error, params)
-
   if !params.data && modelOrCollection && (method == 'create' || method == 'update')
     params.contentType = 'application/json'
     data = {}

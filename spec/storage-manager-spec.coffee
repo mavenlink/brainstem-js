@@ -550,3 +550,45 @@ describe 'Brainstem Storage Manager', ->
       expect(base.data._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': ['f', 'g': ['h']]]])).toEqual 5
       expect(base.data._countRequiredServerRequests([{'a': ['d': ['h']]}, { 'b':['g'] }, 'c': ['e': ['f', 'i']]])).toEqual 6
 
+  describe "error handling", ->
+    describe "setting a storage manager default error handler", ->
+      it "allows a default error handler to be set on construction", ->
+        spy = jasmine.createSpy()
+        manager = new Brainstem.StorageManager(defaultErrorHandler: spy)
+        server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
+        manager.addCollection 'time_entries', App.Collections.TimeEntries
+        manager.loadCollection('time_entries')
+        server.respond()
+        expect(spy).toHaveBeenCalled()
+
+      it "allows a default error handler to be set later", ->
+        spy = jasmine.createSpy()
+        manager = new Brainstem.StorageManager()
+        manager.setDefaultErrorHandler spy
+        server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
+        manager.addCollection 'time_entries', App.Collections.TimeEntries
+        manager.loadCollection('time_entries')
+        server.respond()
+        expect(spy).toHaveBeenCalled()
+
+    describe "passing in a custom error handler when loading a collection", ->
+      it "gets called when there is an error", ->
+        defaultHandler = jasmine.createSpy('defaultHandler')
+        customHandler = jasmine.createSpy('customHandler')
+        manager = new Brainstem.StorageManager()
+        server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
+        manager.addCollection 'time_entries', App.Collections.TimeEntries
+        manager.loadCollection('time_entries', error: customHandler)
+        server.respond()
+        expect(customHandler).toHaveBeenCalled()
+        expect(defaultHandler).not.toHaveBeenCalled()
+
+    describe "when no storage manager default error handler is given", ->
+      it "throws an exception", ->
+        spyOn(sinon, 'logError').andCallThrough()
+        manager = new Brainstem.StorageManager()
+        server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
+        manager.addCollection 'time_entries', App.Collections.TimeEntries
+        manager.loadCollection('time_entries')
+        server.respond()
+        expect(sinon.logError).toHaveBeenCalled()
