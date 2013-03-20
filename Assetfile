@@ -3,7 +3,7 @@ require 'jasmine-core'
 
 output "build"
 
-input "src" do
+input "vendor/assets/javascripts/brainstem" do
   match "*.coffee" do
     coffee_script
   end
