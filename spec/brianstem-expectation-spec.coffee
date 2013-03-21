@@ -63,6 +63,29 @@ describe 'Brainstem Expectations', ->
       expect(collection.get(1).get("tasks").models).toEqual [task1]
       expect(collection.get(2).get("tasks").models).toEqual []
 
+    describe "triggering errors", ->
+      it "triggers errors when asked to do so", ->
+        errorSpy = jasmine.createSpy()
+        errorOptions = status: 401, errors: ["Invalid OAuth 2 request"]
+
+        expectation = manager.stub "projects", triggerError: errorOptions
+
+        manager.loadCollection "projects", error: errorSpy
+
+        expectation.respond()
+        expect(errorSpy).toHaveBeenCalledWith(errorOptions.status, errorOptions.errors)
+
+      it "does not trigger errors when asked not to", ->
+        errorSpy = jasmine.createSpy()
+        expectation = manager.stub "projects",
+          response: (stub) ->
+            stub.results = [project1, project2]
+
+        manager.loadCollection "projects", error: errorSpy
+
+        expectation.respond()
+        expect(errorSpy).not.toHaveBeenCalled()
+
   describe "responding immediately", ->
     it "uses stubImmediate", ->
       expectation = manager.stubImmediate "projects", include: ["tasks"], response: (stub) ->

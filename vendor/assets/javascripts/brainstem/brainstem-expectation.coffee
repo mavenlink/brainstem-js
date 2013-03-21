@@ -8,6 +8,7 @@ class window.Brainstem.Expectation
     @options = options
     @results = []
     @matches = []
+    @triggerError = options.triggerError
     @immediate = options.immediate
     delete options.immediate
     @associated = {}
@@ -31,6 +32,11 @@ class window.Brainstem.Expectation
 
   handleRequest: (options) =>
     @matches.push options.callOptions
+
+    if @triggerError?
+      (options.callOptions.error || @manager.defaultErrorHandler)(@triggerError.status, @triggerError.errors)
+      Backbone.wrapError(options.callOptions.error || @manager.defaultErrorHandler, options.collection, options.callOptions)()
+      return
 
     for key, values of @associated
       values = [values] unless values instanceof Array
