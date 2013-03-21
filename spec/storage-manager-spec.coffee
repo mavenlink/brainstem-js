@@ -584,11 +584,11 @@ describe 'Brainstem Storage Manager', ->
         expect(defaultHandler).not.toHaveBeenCalled()
 
     describe "when no storage manager default error handler is given", ->
-      it "throws an exception", ->
+      it "does nothing", ->
         spyOn(sinon, 'logError').andCallThrough()
         manager = new Brainstem.StorageManager()
         server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
         manager.addCollection 'time_entries', App.Collections.TimeEntries
         manager.loadCollection('time_entries')
         server.respond()
-        expect(sinon.logError).toHaveBeenCalled()
+        expect(sinon.logError).not.toHaveBeenCalled()

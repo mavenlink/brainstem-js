@@ -9,7 +9,7 @@ window.Brainstem ?= {}
 class window.Brainstem.StorageManager
   constructor: (options = {}) ->
     @collections = {}
-    @setDefaultErrorHandler(options.defaultErrorHandler)
+    @setDefaultErrorHandler(options.defaultErrorHandler) if options.defaultErrorHandler?
 
   # Add a collection to the StorageManager.  All collections that will be loaded or used in associations must be added.
   #    manager.addCollection "time_entries", App.Collections.TimeEntries
@@ -47,7 +47,7 @@ class window.Brainstem.StorageManager
     !!@collections[name]
 
   setDefaultErrorHandler: (handler) =>
-    @defaultErrorHandler = handler || (originalModel, resp, options) -> throw originalModel:originalModel, resp: resp, options: options
+    @defaultErrorHandler = handler # || (originalModel, resp, options) -> throw originalModel:originalModel, resp: resp, options: options
 
   # Request a model to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
   # when the load, and any dependent loads, are complete.
