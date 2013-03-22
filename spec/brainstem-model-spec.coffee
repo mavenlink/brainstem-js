@@ -2,27 +2,60 @@ describe 'Brainstem.Model', ->
   model = null
 
   beforeEach ->
-    model = new Brainstem.Model()
+    model = new App.Models.Task()
 
   describe 'parse', ->
+    response = null
+
     beforeEach ->
-      model.paramRoot = "widget"
+      response = count: 1, results: [id: 1, key: 'tasks'], tasks: [id: 1, title: 'Do Work']
 
     it "extracts object data from JSON with root keys", ->
-      parsed = model.parse({'widgets': [{id: 1}]})
+      parsed = model.parse(response)
       expect(parsed.id).toEqual(1)
 
     it "passes through object data from flat JSON", ->
       parsed = model.parse({id: 1})
       expect(parsed.id).toEqual(1)
 
-    it "parses ISO 8601 dates into date objects / milliseconds", ->
-      parsed = model.parse({created_at: "2013-01-25T11:25:57-08:00"})
-      expect(parsed.created_at).toEqual(1359141957000)
+    it 'should update the storage manager with the new model and its associations', ->
+      response.tasks[0].assignee_ids = [5, 6]
+      response.users = [{id: 5, name: 'Jon'}, {id: 6, name: 'Betty'}]
 
-    it "passes through dates in milliseconds already", ->
-      parsed = model.parse({created_at: 1359142047000})
-      expect(parsed.created_at).toEqual(1359142047000)
+      model.parse(response)
+
+      expect(base.data.storage('tasks').get(1).attributes).toEqual(response.tasks[0])
+      expect(base.data.storage('users').get(5).attributes).toEqual(response.users[0])
+      expect(base.data.storage('users').get(6).attributes).toEqual(response.users[1])
+
+    it 'should return the first object from the result set', ->
+      response.tasks.unshift([id: 2, name: 'Bobby'])
+
+      parsed = model.parse(response)
+      expect(parsed.id).toEqual(1)
+
+    it 'should not blow up on server side validation error', ->
+      response = errors: ["Invalid task state. Valid states are:'notstarted','started',and'completed'."]
+      expect(-> model.parse(response)).not.toThrow()
+
+    describe 'date handling', ->
+      it "parses ISO 8601 dates into date objects / milliseconds", ->
+        parsed = model.parse({created_at: "2013-01-25T11:25:57-08:00"})
+        expect(parsed.created_at).toEqual(1359141957000)
+
+      it "passes through dates in milliseconds already", ->
+        parsed = model.parse({created_at: 1359142047000})
+        expect(parsed.created_at).toEqual(1359142047000)
+
+      it 'parses dates on associated models', ->
+        response.tasks[0].created_at = "2013-01-25T11:25:57-08:00"
+        response.tasks[0].assignee_ids = [5, 6]
+        response.users = [{id: 5, name: 'John', created_at: "2013-02-25T11:25:57-08:00"}, {id: 6, name: 'Betty', created_at: "2013-01-30T11:25:57-08:00"}]
+
+        parsed = model.parse(response)
+        expect(parsed.created_at).toEqual(1359141957000)
+        expect(base.data.storage('users').get(5).get('created_at')).toEqual(1361820357000)
+        expect(base.data.storage('users').get(6).get('created_at')).toEqual(1359573957000)
 
   describe 'setLoaded', ->
     it "should set the values of @loaded", ->
@@ -77,7 +110,6 @@ describe 'Brainstem.Model', ->
 
       it "returns falsy if the association cannot be found", ->
         expect(TestClass.associationDetails("I'mNotAThing")).toBeFalsy()
-
 
     describe 'associationsAreLoaded', ->
       describe "with BelongsTo associations", ->

@@ -16,8 +16,32 @@ class window.Brainstem.Model extends Backbone.Model
 
   # Handle create and update responses with JSON root keys
   parse: (resp, xhr) =>
-    modelObject = resp[this.paramRoot.pluralize()]?[0] || resp
-    super(this.constructor.parse(modelObject), xhr)
+    @updateStorageManager(resp)
+    modelObject = @_parseResultsResponse(resp)
+    super(@constructor.parse(modelObject), xhr)
+
+  updateStorageManager: (resp) ->
+    results = resp['results']
+    return unless results
+
+    for underscoredModelName, models of resp
+      unless underscoredModelName == 'count' || underscoredModelName == 'results'
+        for attributes in models
+          @constructor.parse(attributes)
+          collection = base.data.storage(underscoredModelName)
+          collectionModel = collection.get(attributes['id'])
+          if collectionModel
+            collectionModel.set(attributes)
+          else
+            collection.add(attributes)
+
+  _parseResultsResponse: (resp) ->
+    return resp unless resp['results']
+
+    key = resp['results'][0].key
+    id = resp['results'][0].id
+    _.find(resp[key], (mobj) -> mobj.id == id)
+
 
   # Retreive details about a named association.  This is a class method.
   #     Model.associationDetails("project") # => {}
