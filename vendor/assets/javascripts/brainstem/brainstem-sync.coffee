@@ -41,6 +41,8 @@ Backbone.sync = (method, modelOrCollection, options) ->
       data[modelOrCollection.paramRoot] = json
     else
       data = json
+
+    data.include = options.include
     params.data = JSON.stringify(data)
 
   $.ajax params
