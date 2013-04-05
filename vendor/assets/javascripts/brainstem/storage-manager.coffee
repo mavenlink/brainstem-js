@@ -46,8 +46,9 @@ class window.Brainstem.StorageManager
   collectionExists: (name) =>
     !!@collections[name]
 
+  # This error handler will be used whenever an ajax request fails.
   setDefaultErrorHandler: (handler) =>
-    @defaultErrorHandler = handler # || (originalModel, resp, options) -> throw originalModel:originalModel, resp: resp, options: options
+    @defaultErrorHandler = handler || (originalModel, resp, options) -> throw originalModel: originalModel, fragment: Backbone.history.getFragment(), resp: resp, options: options
 
   # Request a model to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
   # when the load, and any dependent loads, are complete.
@@ -156,7 +157,7 @@ class window.Brainstem.StorageManager
     syncOptions =
       data: {}
       parse: true
-      error: Backbone.wrapError(options.error || @defaultErrorHandler, collection, options)
+      error: @_makeSyncErrorHandler(options, collection)
       success: (resp, status, xhr) =>
         # The server response should look something like this:
         #  {
@@ -195,6 +196,9 @@ class window.Brainstem.StorageManager
     Backbone.sync.call collection, 'read', collection, syncOptions
 
     collection
+
+  _makeSyncErrorHandler: (options, collection) =>
+    (jqXHR, textStatus, errorThrown) => Backbone.wrapError(options.error || @defaultErrorHandler, collection, options)(collection, jqXHR)
 
   _success: (options, collection, data) =>
     if data

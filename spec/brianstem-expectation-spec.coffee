@@ -66,20 +66,26 @@ describe 'Brainstem Expectations', ->
     describe "triggering errors", ->
       it "triggers errors when asked to do so", ->
         errorSpy = jasmine.createSpy()
-        errorOptions = status: 401, errors: ["Invalid OAuth 2 request"]
 
-        expectation = manager.stub "projects", triggerError: errorOptions
+        collection = new Brainstem.Collection()
+
+        resp =
+          readyState: 4
+          status: 401
+          responseText: ""
+
+        expectation = manager.stub "projects", collection: collection, triggerError: resp
 
         manager.loadCollection "projects", error: errorSpy
 
         expectation.respond()
-        expect(errorSpy).toHaveBeenCalledWith(errorOptions.status, errorOptions.errors)
+        expect(errorSpy).toHaveBeenCalled()
+        expect(errorSpy.mostRecentCall.args[0] instanceof Brainstem.Collection).toBe true
+        expect(errorSpy.mostRecentCall.args[1]).toEqual resp
 
       it "does not trigger errors when asked not to", ->
         errorSpy = jasmine.createSpy()
-        expectation = manager.stub "projects",
-          response: (stub) ->
-            stub.results = [project1, project2]
+        expectation = manager.stub "projects", response: (exp) -> exp.results = [project1, project2]
 
         manager.loadCollection "projects", error: errorSpy
 

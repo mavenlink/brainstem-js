@@ -34,8 +34,7 @@ class window.Brainstem.Expectation
     @matches.push options.callOptions
 
     if @triggerError?
-      (options.callOptions.error || @manager.defaultErrorHandler)(@triggerError.status, @triggerError.errors)
-      Backbone.wrapError(options.callOptions.error || @manager.defaultErrorHandler, options.collection, options.callOptions)()
+      @manager._makeSyncErrorHandler(options.callOptions, options.collection)(@triggerError, @triggerError.textStatus, @triggerError.errorThrown)
       return
 
     for key, values of @associated
