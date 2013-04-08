@@ -34,8 +34,7 @@ class window.Brainstem.Expectation
     @matches.push options.callOptions
 
     if @triggerError?
-      @manager._makeSyncErrorHandler(options.callOptions, options.collection)(@triggerError, @triggerError.textStatus, @triggerError.errorThrown)
-      return
+      return @manager.errorInterceptor(options.callOptions.error, options.collection, options.callOptions, @triggerError)
 
     for key, values of @associated
       values = [values] unless values instanceof Array

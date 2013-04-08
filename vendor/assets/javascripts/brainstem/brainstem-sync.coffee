@@ -28,6 +28,8 @@ Backbone.sync = (method, modelOrCollection, options) ->
       modelOrCollection.trigger 'sync:start'
   }, options)
 
+  params.error = (jqXHR, textStatus, errorThrown) -> base.data.errorInterceptor(options.error, modelOrCollection, options, jqXHR, params)
+
   if !params.data && modelOrCollection && (method == 'create' || method == 'update')
     params.contentType = 'application/json'
     data = {}
