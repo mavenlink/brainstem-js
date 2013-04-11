@@ -55,20 +55,18 @@
   <script src="helpers.js" type="text/javascript" charset="utf-8"></script>
   <script type="text/javascript" charset="utf-8">
     minispade.require('builders');
-    minispade.require('helpers');
     minispade.require('jquery-matchers');
     minispade.require('spec-helper');
   </script>
 
   <script src="brainstem.js" type="text/javascript" charset="utf-8"></script>
   <script type="text/javascript" charset="utf-8">
-    minispade.require('helpers/utils');
-    minispade.require('helpers/validations');
+    minispade.require('utils');
     minispade.require('loading-mixin');
-    minispade.require('mavenlink-model');
-    minispade.require('mavenlink-collection');
+    minispade.require('brainstem-model');
+    minispade.require('brainstem-collection');
     minispade.require('storage-manager');
-    minispade.require('backbone-rails-mavensync');
+    minispade.require('brainstem-sync');
     minispade.requireAll(/models\/.*/);
     minispade.requireAll(/.*/);
   </script>

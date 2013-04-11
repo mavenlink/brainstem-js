@@ -1,6 +1,6 @@
 #= require ./loading-mixin
 
-class Mavenlink.Collection extends Backbone.Collection
+class window.Brainstem.Collection extends Backbone.Collection
   constructor: ->
     super
     @setLoaded false
@@ -16,7 +16,7 @@ class Mavenlink.Collection extends Backbone.Collection
         else
           @add backboneModel
       else
-        Utils.warn "Unable to update collection with invalid model", model
+        Brainstem.Utils.warn "Unable to update collection with invalid model", model
 
   ids: => _.keys(@_byId)
 
@@ -27,7 +27,7 @@ class Mavenlink.Collection extends Backbone.Collection
     base.data.loadCollection @lastFetchOptions.name, _.extend({}, @lastFetchOptions, options, page: @lastFetchOptions.page + 1, collection: this, success: success)
 
   reload: (options) =>
-    base.clearCaches()
+    base.data.reset()
     @reset [], silent: true
     @setLoaded false
     base.data.loadCollection @lastFetchOptions.name, _.extend({}, @lastFetchOptions, options, page: 1, collection: this)
@@ -37,24 +37,6 @@ class Mavenlink.Collection extends Backbone.Collection
 
   toServerJSON: (method) =>
     @toJSON()
-
-  # Return a function that applies the given filter(s).
-  @getFilterer: (filters) ->
-    filters ||= []
-    filters = [filters] unless filters instanceof Array
-    defaults = _(@defaultFilters || []).chain().map((f) -> f.split(":")).inject(((memo, [field, value]) -> memo[field] = value; memo), {}).value()
-    filters = _(filters).chain().map((f) -> f.split(":")).inject(((memo, [field, value]) -> memo[field] = value; memo), {}).defaults(defaults).value()
-    filterFunctions = (@filters(field, value) for field, value of filters)
-    return (model) ->
-      for filter in filterFunctions
-        return false unless filter(model)
-      true
-
-  @filters: (field, value) ->
-    if field == "search"
-      (model) -> model.matchesSearch(value)
-    else
-      (model) -> String(model.get(field)) == value
 
   @getComparatorWithIdFailover: (order) ->
     [field, direction] = order.split(":")
@@ -70,4 +52,4 @@ class Mavenlink.Collection extends Backbone.Collection
   @getComparator: (field) ->
     return (a, b) -> a.get(field) - b.get(field)
 
-_.extend(Mavenlink.Collection.prototype, Mavenlink.LoadingMixin);
+_.extend(Brainstem.Collection.prototype, Brainstem.LoadingMixin);

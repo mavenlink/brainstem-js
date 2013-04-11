@@ -1,7 +1,7 @@
 #= require ./loading-mixin
 
 # Extend Backbone.Model to include associations.
-class Mavenlink.Model extends Backbone.Model
+class window.Brainstem.Model extends Backbone.Model
   constructor: ->
     super
     @setLoaded false
@@ -16,12 +16,36 @@ class Mavenlink.Model extends Backbone.Model
 
   # Handle create and update responses with JSON root keys
   parse: (resp, xhr) =>
-    modelObject = resp[this.paramRoot.pluralize()]?[0] || resp
-    super(this.constructor.parse(modelObject), xhr)
+    @updateStorageManager(resp)
+    modelObject = @_parseResultsResponse(resp)
+    super(@constructor.parse(modelObject), xhr)
+
+  updateStorageManager: (resp) ->
+    results = resp['results']
+    return unless results
+
+    for underscoredModelName, models of resp
+      unless underscoredModelName == 'count' || underscoredModelName == 'results'
+        for attributes in models
+          @constructor.parse(attributes)
+          collection = base.data.storage(underscoredModelName)
+          collectionModel = collection.get(attributes['id'])
+          if collectionModel
+            collectionModel.set(attributes)
+          else
+            collection.add(attributes)
+
+  _parseResultsResponse: (resp) ->
+    return resp unless resp['results']
+
+    key = resp['results'][0].key
+    id = resp['results'][0].id
+    _.find(resp[key], (mobj) -> mobj.id == id)
+
 
   # Retreive details about a named association.  This is a class method.
-  #     Model.associationDetails("workspace") # => {}
-  #     timeEntry.constructor.associationDetails("workspace") # => {}
+  #     Model.associationDetails("project") # => {}
+  #     timeEntry.constructor.associationDetails("project") # => {}
   @associationDetails: (association) ->
     @associationDetailsCache ||= {}
     if @associations && @associations[association]
@@ -41,7 +65,7 @@ class Mavenlink.Model extends Backbone.Model
 
   # This method determines if all of the provided associations have been loaded for this model.  If no associations are
   # provided, all associations are assumed.
-  #   model.associationsAreLoaded(["workspace", "story"]) # => true|false
+  #   model.associationsAreLoaded(["project", "task"]) # => true|false
   #   model.associationsAreLoaded() # => true|false
   associationsAreLoaded: (associations) =>
     associations ||= _.keys(@constructor.associations)
@@ -57,9 +81,9 @@ class Mavenlink.Model extends Backbone.Model
   get: (field, options = {}) =>
     if details = @constructor.associationDetails(field)
       if details.type == "BelongsTo"
-        id = @get(details.key) # workspace_id
+        id = @get(details.key) # project_id
         if id?
-          base.data.storage(details.collectionName).get(id) || (Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}"))
+          base.data.storage(details.collectionName).get(id) || (Brainstem.Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}"))
       else
         ids = @get(details.key) # time_entry_ids
         models = []
@@ -70,7 +94,7 @@ class Mavenlink.Model extends Backbone.Model
             models.push(model)
             notFoundIds.push(id) unless model
           if notFoundIds.length
-            Utils.throwError("Unable to find #{field} with ids #{notFoundIds.join(", ")} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
+            Brainstem.Utils.throwError("Unable to find #{field} with ids #{notFoundIds.join(", ")} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
         if options.order
           comparator = base.data.getCollectionDetails(details.collectionName).klass.getComparatorWithIdFailover(options.order)
           collectionOptions = { comparator: comparator }
@@ -83,13 +107,8 @@ class Mavenlink.Model extends Backbone.Model
   className: =>
     @paramRoot
 
-  matchesSearch: (string) =>
-    for text in [@get('title'), @get('description')]
-      if text && text.toLowerCase().replace(/[,:]/g, '').indexOf(string.toLowerCase().replace(/[,:]/g, '')) > -1
-        return true
-
   defaultJSONBlacklist: ->
-    ['id', 'created_at', 'updated_at']
+    []
 
   createJSONBlacklist: ->
     []
@@ -112,4 +131,4 @@ class Mavenlink.Model extends Backbone.Model
 
     json
 
-_.extend(Mavenlink.Model.prototype, Mavenlink.LoadingMixin);
+_.extend(Brainstem.Model.prototype, Brainstem.LoadingMixin);
