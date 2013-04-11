@@ -1,12 +1,12 @@
 Backbone.sync = (method, modelOrCollection, options) ->
   getUrl = (model, method) ->
     if model.methodUrl && _.isFunction model.methodUrl
-      model.methodUrl(method || 'read') || (Utils.throwError("A 'url' property or function must be specified"))
+      model.methodUrl(method || 'read') || (Brainstem.Utils.throwError("A 'url' property or function must be specified"))
     else
       if model.url && _.isFunction model.url
         model.url()
       else
-        model.url || (Utils.throwError("A 'url' property or function must be specified"))
+        model.url || (Brainstem.Utils.throwError("A 'url' property or function must be specified"))
 
   methodMap =
     create: 'POST'
@@ -17,7 +17,6 @@ Backbone.sync = (method, modelOrCollection, options) ->
   type = methodMap[method]
 
   params = _.extend({
-    contentType: 'application/json'
     type:         type
     dataType:     'json'
     url:          options.url || getUrl modelOrCollection, method
@@ -29,9 +28,10 @@ Backbone.sync = (method, modelOrCollection, options) ->
       modelOrCollection.trigger 'sync:start'
   }, options)
 
-  params.error = base.makeErrorHandler(params.error, params)
+  params.error = (jqXHR, textStatus, errorThrown) -> base.data.errorInterceptor(options.error, modelOrCollection, options, jqXHR, params)
 
   if !params.data && modelOrCollection && (method == 'create' || method == 'update')
+    params.contentType = 'application/json'
     data = {}
 
     if modelOrCollection.toServerJSON?
@@ -43,6 +43,8 @@ Backbone.sync = (method, modelOrCollection, options) ->
       data[modelOrCollection.paramRoot] = json
     else
       data = json
+
+    data.include = options.include
     params.data = JSON.stringify(data)
 
   $.ajax params

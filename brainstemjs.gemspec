@@ -6,9 +6,9 @@ require 'brainstem/js/version'
 Gem::Specification.new do |gem|
   gem.name          = "brainstem-js"
   gem.version       = Brainstem::Js::VERSION
-  gem.authors       = ["André Arko", "Reid Gillette"]
+  gem.authors       = ["Andrew Cantino", "André Arko", "Mavenlink"]
   gem.email         = ["dev@mavenlink.com"]
-  gem.description   = %q{The Brainstem storage manager JS library}
+  gem.description   = %q{The Brainstem JS library}
   gem.summary       = %q{Brainstem's JS components}
   gem.homepage      = "http://github.com/mavenlink/brainstem-js"
 

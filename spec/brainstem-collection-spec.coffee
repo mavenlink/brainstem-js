@@ -1,8 +1,8 @@
-describe 'Mavenlink.Collection', ->
+describe 'Brainstem.Collection', ->
   collection = updateArray = null
 
   beforeEach ->
-    collection = new Mavenlink.Collection([{id: 2, title: "1"}, {id: 3, title: "2"}, {title: "3"}])
+    collection = new Brainstem.Collection([{id: 2, title: "1"}, {id: 3, title: "2"}, {title: "3"}])
     updateArray = [{id: 2, title: "1 new"}, {id: 4, title: "this is new"}]
 
   describe 'update', ->
@@ -13,7 +13,7 @@ describe 'Mavenlink.Collection', ->
       expect(collection.get(4).get('title')).toEqual "this is new"
 
     it "works with a collection", ->
-      newCollection = new Mavenlink.Collection(updateArray)
+      newCollection = new Brainstem.Collection(updateArray)
       collection.update newCollection
       expect(collection.get(2).get('title')).toEqual "1 new"
       expect(collection.get(3).get('title')).toEqual "2"
@@ -29,16 +29,17 @@ describe 'Mavenlink.Collection', ->
 
   describe "loadNextPage", ->
     it "loads the next page of data for a collection that has previously been loaded in the storage manager, returns the collection and whether it thinks there is another page or not", ->
-      server.respondWith "GET", "/api/time_entries?per_page=2&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(), buildTimeEntry()]) ]
-      server.respondWith "GET", "/api/time_entries?per_page=2&page=2", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry(), buildTimeEntry()]) ]
-      server.respondWith "GET", "/api/time_entries?per_page=2&page=3", [ 200, {"Content-Type": "application/json"}, JSON.stringify(time_entries: [buildTimeEntry()]) ]
+      respondWith server, "/api/time_entries?per_page=2&page=1", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
+      respondWith server, "/api/time_entries?per_page=2&page=2", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
+      respondWith server, "/api/time_entries?per_page=2&page=3", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry()] }
       collection = base.data.loadCollection "time_entries", perPage: 2
+      expect(collection.length).toEqual 0
       server.respond()
+      expect(collection.length).toEqual 2
       expect(collection.lastFetchOptions.page).toEqual 1
 
       spy = jasmine.createSpy()
       collection.loadNextPage success: spy
-      expect(collection.length).toEqual 2
       server.respond()
       expect(spy).toHaveBeenCalledWith(collection, true)
       expect(collection.lastFetchOptions.page).toEqual 2
@@ -54,14 +55,14 @@ describe 'Mavenlink.Collection', ->
 
   describe "reload", ->
     it "reloads the collection with the original params", ->
-      server.respondWith "GET", "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=5&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(posts: [buildPost(message: "old post", reply_ids: [])]) ]
+      respondWith server, "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "old post", reply_ids: [])] }
       collection = base.data.loadCollection "posts", include: ["replies"], filters: "parents_only:true", perPage: 5
       server.respond()
       expect(collection.lastFetchOptions.page).toEqual 1
       expect(collection.lastFetchOptions.perPage).toEqual 5
       expect(collection.lastFetchOptions.include).toEqual ["replies"]
       server.responses = []
-      server.respondWith "GET", "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=5&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(posts: [buildPost(message: "new post", reply_ids: [])]) ]
+      respondWith server, "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "new post", reply_ids: [])] }
       expect(collection.models[0].get("message")).toEqual "old post"
       resetCounter = jasmine.createSpy("resetCounter")
       loadedCounter = jasmine.createSpy("loadedCounter")
@@ -125,46 +126,20 @@ describe 'Mavenlink.Collection', ->
 
   describe "ordering and filtering", ->
     beforeEach ->
-      collection = new Mavenlink.Collection([
-        new Mavenlink.Model(id: 2, title: "Alpha", updated_at: 2,  cool: false),
-        new Mavenlink.Model(id: 3, title: "Beta",  updated_at: 10, cool: true),
-        new Mavenlink.Model(id: 4, title: "Gamma", updated_at: 5,  cool: false),
-        new Mavenlink.Model(id: 6, title: "Gamma", updated_at: 5,  cool: false),
-        new Mavenlink.Model(id: 5, title: "Gamma", updated_at: 4,  cool: true)
+      collection = new Brainstem.Collection([
+        new Brainstem.Model(id: 2, title: "Alpha", updated_at: 2,  cool: false),
+        new Brainstem.Model(id: 3, title: "Beta",  updated_at: 10, cool: true),
+        new Brainstem.Model(id: 4, title: "Gamma", updated_at: 5,  cool: false),
+        new Brainstem.Model(id: 6, title: "Gamma", updated_at: 5,  cool: false),
+        new Brainstem.Model(id: 5, title: "Gamma", updated_at: 4,  cool: true)
       ])
 
     describe "@getComparatorWithIdFailover", ->
       it "returns a comparator that works for numerical ordering of unix timestamps, failing over to id when they're the same", ->
-        newCollection = new Mavenlink.Collection collection.models, comparator: Mavenlink.Collection.getComparatorWithIdFailover("updated_at:desc")
+        newCollection = new Brainstem.Collection collection.models, comparator: Brainstem.Collection.getComparatorWithIdFailover("updated_at:desc")
         newCollection.sort()
         expect(newCollection.pluck("id")).toEqual [3, 6, 4, 5, 2]
 
-        newCollection = new Mavenlink.Collection collection.models, comparator: Mavenlink.Collection.getComparatorWithIdFailover("updated_at:asc")
+        newCollection = new Brainstem.Collection collection.models, comparator: Brainstem.Collection.getComparatorWithIdFailover("updated_at:asc")
         newCollection.sort()
         expect(newCollection.pluck("id")).toEqual [2, 5, 4, 6, 3]
-
-    describe "@getFilterer", ->
-      it "returns a filter that can handle filtering any attribute by an exact value", ->
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer("updated_at:10"))).pluck("id")).toEqual [3]
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer("title:Gamma"))).pluck("id")).toEqual [4, 6, 5]
-
-      it "works with booleans", ->
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer("cool:true"))).pluck("id")).toEqual [3, 5]
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer("cool:false"))).pluck("id")).toEqual [2, 4, 6]
-
-      it "can accept an array of filters and compose them", ->
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer(["updated_at:10", "title:foo"]))).pluck("id")).toEqual []
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer(["title:Gamma", "updated_at:4"]))).pluck("id")).toEqual [5]
-
-      it "can accept a search param and calls matchesSearch on the model", ->
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer(["updated_at:5", "search:Ga"]))).pluck("id")).toEqual [4, 6]
-        expect(_(collection.filter(Mavenlink.Collection.getFilterer(["updated_at:5", "search:Gat"]))).pluck("id")).toEqual []
-
-      it "handles default filters", ->
-        class WorkspacesWithDefault extends Mavenlink.Collection
-          @defaultFilters: ["title:Gamma"]
-
-        expect(_(collection.filter(WorkspacesWithDefault.getFilterer())).pluck("id")).toEqual [4, 6, 5]
-        expect(_(collection.filter(WorkspacesWithDefault.getFilterer([]))).pluck("id")).toEqual [4, 6, 5]
-        expect(_(collection.filter(WorkspacesWithDefault.getFilterer("cool:true"))).pluck("id")).toEqual [5]
-        expect(_(collection.filter(WorkspacesWithDefault.getFilterer("title:Alpha"))).pluck("id")).toEqual [2]

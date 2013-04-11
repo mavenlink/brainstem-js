@@ -1,14 +1,15 @@
-window.App ?= {}
+window.Brainstem ?= {}
 
-# Todo: Record access timestamps on all Mavenlink.Models by overloading #get and #set.  Keep a sorted list (Heap?) of model references.
+# Todo: Record access timestamps on all Brainstem.Models by overloading #get and #set.  Keep a sorted list (Heap?) of model references.
 #    clean up the oldest ones if memory is low
 #    allow passing a recency parameter to the StorageManager
 
-# The StorageManager class is used to manage a set of Mavenlink.Collections.  It is responsible for loading data and
+# The StorageManager class is used to manage a set of Brainstem.Collections.  It is responsible for loading data and
 # maintaining caches.
-class window.App.StorageManager
-  constructor: ->
+class window.Brainstem.StorageManager
+  constructor: (options = {}) ->
     @collections = {}
+    @setErrorInterceptor(options.errorInterceptor)
 
   # Add a collection to the StorageManager.  All collections that will be loaded or used in associations must be added.
   #    manager.addCollection "time_entries", App.Collections.TimeEntries
@@ -17,7 +18,7 @@ class window.App.StorageManager
       klass: collectionClass
       modelKlass: collectionClass.prototype.model
       storage: new collectionClass()
-      sortLengths: {}
+      cache: {}
 
   # Access the cache for a particular collection.
   #    manager.storage("time_entries").get(12).get("title")
@@ -33,7 +34,7 @@ class window.App.StorageManager
   reset: =>
     for name, attributes of @collections
       attributes.storage.reset []
-      attributes.sortLengths = {}
+      attributes.cache = {}
 
   # Access details of a collection.  An error will be thrown if the collection cannot be found.
   getCollectionDetails: (name) =>
@@ -45,11 +46,14 @@ class window.App.StorageManager
   collectionExists: (name) =>
     !!@collections[name]
 
+  setErrorInterceptor: (interceptor) =>
+    @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(modelOrCollection, jqXHR)
+
   # Request a model to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
   # when the load, and any dependent loads, are complete.
   #     model = manager.loadModel "time_entry"
   #     model = manager.loadModel "time_entry", fields: ["title", "notes"]
-  #     model = manager.loadModel "time_entry", include: ["workspace", "story"]
+  #     model = manager.loadModel "time_entry", include: ["project", "task"]
   loadModel: (name, id, options) =>
     options = _.clone(options || {})
     oldSuccess = options.success
@@ -69,46 +73,47 @@ class window.App.StorageManager
   #     collection = manager.loadCollection "time_entries"
   #     collection = manager.loadCollection "time_entries", only: [2, 6]
   #     collection = manager.loadCollection "time_entries", fields: ["title", "notes"]
-  #     collection = manager.loadCollection "time_entries", include: ["workspace", "story"]
-  #     collection = manager.loadCollection "time_entries", include: ["workspace:title,description", "story:due_date"]
-  #     collection = manager.loadCollection "stories",      include: ["assets", { "assignees": "account" }, { "sub_stories": ["assignees", "assets"] }]
-  #     collection = manager.loadCollection "time_entries", filters: ["workspace_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
+  #     collection = manager.loadCollection "time_entries", include: ["project", "task"]
+  #     collection = manager.loadCollection "time_entries", include: ["project:title,description", "task:due_date"]
+  #     collection = manager.loadCollection "tasks",      include: ["assets", { "assignees": "account" }, { "sub_tasks": ["assignees", "assets"] }]
+  #     collection = manager.loadCollection "time_entries", filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
   loadCollection: (name, options) =>
     options = $.extend({}, options, name: name)
     @_checkPageSettings options
-    @_logDataUsage()
     include = @_wrapObjects(@_extractArray "include", options)
     if options.search
       options.cache = false
 
-    comparator = @getCollectionDetails(name).klass.getComparatorWithIdFailover(options.order || "updated_at:desc")
-    collection = options.collection || @createNewCollection name, [], comparator: comparator
+    collection = options.collection || @createNewCollection name, []
     collection.setLoaded false
     collection.reset([], silent: false) if options.reset
-    collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'fields', 'filters', 'include', 'page', 'perPage', 'order')
+    collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'fields', 'filters', 'include', 'page', 'perPage', 'order', 'search')
 
-    @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
-      expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
-      if expectedAdditionalLoads > 0
-        timesCalled = 0
-        @_handleNextLayer firstLayerCollection, include, =>
-          timesCalled += 1
-          if timesCalled == expectedAdditionalLoads
-            @_success(options, collection, firstLayerCollection)
-      else
-        @_success(options, collection, firstLayerCollection)
-    )))
+    if @expectations?
+      @handleExpectations name, collection, options
+    else
+      @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
+        expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
+        if expectedAdditionalLoads > 0
+          timesCalled = 0
+          @_handleNextLayer firstLayerCollection, include, =>
+            timesCalled += 1
+            if timesCalled == expectedAdditionalLoads
+              @_success(options, collection, firstLayerCollection)
+        else
+          @_success(options, collection, firstLayerCollection)
+      )))
 
     collection
 
   _handleNextLayer: (collection, include, callback) =>
-    # Collection is a fully populated collection of stories whose first layer of associations are loaded.
-    # include is a hierarchical list of associations on those stories:
-    #   [{ 'time_entries': ['workspace': [], 'story': [{ 'assignees': []}]] }, { 'workspace': [] }]
+    # Collection is a fully populated collection of tasks whose first layer of associations are loaded.
+    # include is a hierarchical list of associations on those tasks:
+    #   [{ 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }, { 'project': [] }]
 
-    _(include).each (hash) => # { 'time_entries': ['workspace': [], 'story': [{ 'assignees': []}]] }
+    _(include).each (hash) => # { 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }
       association = _.keys(hash)[0] # time_entries
-      nextLevelInclude = hash[association] # ['workspace': [], 'story': [{ 'assignees': []}]]
+      nextLevelInclude = hash[association] # ['project': [], 'task': [{ 'assignees': []}]]
       if nextLevelInclude.length
         association_ids = _(collection.models).chain().
         map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
@@ -127,11 +132,10 @@ class window.App.StorageManager
     fields  = @_extractArray "fields",  options
     filters = @_extractArray "filters", options
     order = options.order || "updated_at:desc"
-    cacheKey = order + "|" + _(filters).sort().join(",")
+    cacheKey = "#{order}|#{_(filters).sort().join(",")}|#{options.page}|#{options.perPage}"
 
     cachedCollection = @storage name
-    comparator = @getCollectionDetails(name).klass.getComparatorWithIdFailover(order)
-    collection = @createNewCollection name, [], comparator: comparator
+    collection = @createNewCollection name, []
 
     unless options.cache == false
       if only?
@@ -142,45 +146,41 @@ class window.App.StorageManager
           return collection
       else
         # Check if we have, at some point, requested enough records with this this order and filter(s).
-        if (@getCollectionDetails(name).sortLengths[cacheKey] || 0) >= options.perPage * options.page
-          subset = @orderFilterAndSlice(cachedCollection, comparator, collection, filters, options.page, options.perPage)
+        if @getCollectionDetails(name).cache[cacheKey]
+          subset = _(@getCollectionDetails(name).cache[cacheKey]).map (result) -> base.data.storage(result.key).get(result.id)
           if (_.all(subset, (model) => model.associationsAreLoaded(include)))
             @_success options, collection, subset
             return collection
 
-    if options.page - (@getCollectionDetails(name).sortLengths[cacheKey] / options.perPage) > 1
-      Utils.throwError("You cannot request a page of data greater than #{@getCollectionDetails(name).sortLengths[cacheKey] / options.perPage} for this collection.  Please request only sequential pages.")
-
     # If we haven't returned yet, we need to go to the server to load some missing data.
-
     syncOptions =
       data: {}
       parse: true
-      error: Backbone.wrapError(options.error, collection, options)
+      error: options.error
       success: (resp, status, xhr) =>
         # The server response should look something like this:
         #  {
-        #    time_entries: [{ id: 2, title: "te1", workspace_id: 6, story_id: [10, 11] }]
-        #    workspaces: [{id: 6, title: "some workspace", time_entry_ids: [2] }]
-        #    stories: [{id: 10, title: "some story" }, {id: 11, title: "some other story" }]
+        #    count: 200,
+        #    results: [{ key: "tasks", id: 10 }, { key: "tasks", id: 11 }],
+        #    time_entries: [{ id: 2, title: "te1", project_id: 6, task_id: [10, 11] }]
+        #    projects: [{id: 6, title: "some project", time_entry_ids: [2] }]
+        #    tasks: [{id: 10, title: "some task" }, {id: 11, title: "some other task" }]
         #  }
         # Loop over all returned data types and update our local storage to represent any new data.
-        primaryCollectionModels = null
 
+        results = resp['results']
         for underscoredModelName, models of resp
           unless underscoredModelName == 'count' || underscoredModelName == 'results'
             @storage(underscoredModelName).update models
-            if underscoredModelName == name
-              primaryCollectionModels = models
 
-        if options.cache == false && !only?
-          only = _(primaryCollectionModels).pluck("id")
+        unless options.cache == false || only?
+          @getCollectionDetails(name).cache[cacheKey] = results
 
         if only?
           @_success options, collection, _.map(only, (id) -> cachedCollection.get(id))
         else
-          @getCollectionDetails(name).sortLengths[cacheKey] = options.page * options.perPage
-          @_success options, collection, @orderFilterAndSlice(cachedCollection, comparator, collection, filters, options.page, options.perPage)
+          @_success options, collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
+
 
     syncOptions.data.include = include.join(";") if include.length
     syncOptions.data.only = _.difference(only, alreadyLoadedIds).join(",") if only?
@@ -214,7 +214,7 @@ class window.App.StorageManager
     options.page = 1 if options.page < 1
 
   collectionError: (name) =>
-    Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")
+    Brainstem.Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")
 
   createNewCollection: (collectionName, models = [], options = {}) =>
     loaded = options.loaded
@@ -225,13 +225,6 @@ class window.App.StorageManager
 
   createNewModel: (modelName, options) =>
     new (@getCollectionDetails(modelName.pluralize()).modelKlass)(options || {})
-
-  orderFilterAndSlice: (collection, comparator, filterCollection, filters, page, perPage) =>
-    collection = collection.models if collection.models?
-    subset = _(collection).sort(comparator)
-    subset = _(subset).filter(filterCollection.constructor.getFilterer(filters))
-    sliced = subset.slice((page - 1) * perPage, page * perPage)
-    return sliced
 
   _extractArray: (option, options) =>
     result = options[option]
@@ -262,11 +255,26 @@ class window.App.StorageManager
     else
       0
 
-  _logDataUsage: =>
-    dataUsage = @dataUsage()
-    if dataUsage > 500
-      bin = Math.round(dataUsage / 100)
-      @previouslyLoggedBins ||= []
-      unless bin in @previouslyLoggedBins
-        Utils.trackPageView("/dataLoaded/#{bin}")
-        @previouslyLoggedBins.push bin
+  # Expectations and stubbing
+
+  stub: (collectionName, options) =>
+    if @expectations?
+      expectation = new Brainstem.Expectation(collectionName, options, @)
+      @expectations.push expectation
+      expectation
+    else
+      throw "You must call #enableExpectations on your instance of Brainstem.StorageManager before you can set expectations."
+
+  stubImmediate: (collectionName, options) =>
+    @stub collectionName, $.extend({}, options, immediate: true)
+
+  enableExpectations: =>
+    @expectations = []
+
+  handleExpectations: (name, collection, options) =>
+    for expectation in @expectations
+      if expectation.optionsMatch(name, options)
+        expectation.recordRequest(collection, options)
+        return
+    Brainstem.Utils.warn "No expectation matched #{name} with #{JSON.stringify options}"
+    throw "No expectation matched #{name} with #{JSON.stringify options}"
