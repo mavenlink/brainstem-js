@@ -152,6 +152,12 @@ describe 'Brainstem Storage Manager', ->
       server.respond()
       expect(spy).toHaveBeenCalled()
 
+    it "ignores count and honors results", ->
+      server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 200, {"Content-Type": "application/json"}, JSON.stringify(count: 2, results: [{ key: "time_entries", id: 2 }], time_entries: [buildTimeEntry(), buildTimeEntry()]) ]
+      collection = base.data.loadCollection "time_entries"
+      server.respond()
+      expect(collection.length).toEqual(1)
+
     describe "fetching of associations", ->
       json = null
 
@@ -493,7 +499,7 @@ describe 'Brainstem Storage Manager', ->
         spy = spyOn(base.data, '_loadCollectionWithFirstLayer')
         collection = base.data.loadCollection "tasks", search: "the meaning of life"
         expect(spy.mostRecentCall.args[0]['cache']).toBe(false)
-      
+
       it "returns the matching items with includes, triggering reset and success", ->
         task = buildTask()
         respondWith server, "/api/tasks.json?per_page=20&page=1&search=go+go+gadget+search",
