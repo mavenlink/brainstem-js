@@ -1,50 +1,76 @@
-Backbone.sync = (method, modelOrCollection, options) ->
-  getUrl = (model, method) ->
-    if model.methodUrl && _.isFunction model.methodUrl
-      model.methodUrl(method || 'read') || (Brainstem.Utils.throwError("A 'url' property or function must be specified"))
-    else
-      if model.url && _.isFunction model.url
-        model.url()
-      else
-        model.url || (Brainstem.Utils.throwError("A 'url' property or function must be specified"))
-
+Backbone.sync = (method, model, options) ->
   methodMap =
     create: 'POST'
     update: 'PUT'
+    patch:  'PATCH'
     delete: 'DELETE'
-    read  : 'GET'
+    read:   'GET'
 
-  type = methodMap[method]
+  type = methodMap[method];
 
-  params = _.extend({
-    type:         type
-    dataType:     'json'
-    url:          options.url || getUrl modelOrCollection, method
-    processData: type == 'GET'
-    complete: (jqXHR, textStatus) ->
-      modelOrCollection.trigger 'sync:end'
-      options.complete(jqXHR, textStatus) if options.complete?
-    beforeSend: (xhr) ->
-      modelOrCollection.trigger 'sync:start'
-  }, options)
+  # Default options, unless specified.
+  _.defaults(options || (options = {}), {
+    emulateHTTP: Backbone.emulateHTTP,
+    emulateJSON: Backbone.emulateJSON
+  })
 
-  params.error = (jqXHR, textStatus, errorThrown) -> base.data.errorInterceptor(options.error, modelOrCollection, options, jqXHR, params)
+  # Default JSON-request options.
+  params = { type: type, dataType: 'json' }
 
-  if !params.data && modelOrCollection && (method == 'create' || method == 'update')
+  # Ensure that we have a URL.
+  if (!options.url)
+    params.url = _.result(model, 'url') || urlError()
+
+  # Ensure that we have the appropriate request data.
+  if !options.data? && model && (method == 'create' || method == 'update' || method == 'patch')
     params.contentType = 'application/json'
-    data = {}
+    data = options.attrs || {}
 
-    if modelOrCollection.toServerJSON?
-      json = modelOrCollection.toServerJSON(method)
+    if model.toServerJSON?
+      json = model.toServerJSON(method, options)
     else
-      json = modelOrCollection.toJSON()
+      json = model.toJSON(options)
 
-    if modelOrCollection.paramRoot
-      data[modelOrCollection.paramRoot] = json
+    if model.paramRoot
+      data[model.paramRoot] = json
     else
       data = json
 
     data.include = options.include
+    data.filters = options.filters
     params.data = JSON.stringify(data)
 
-  $.ajax params
+  # For older servers, emulate JSON by encoding the request into an HTML-form.
+  if options.emulateJSON
+    params.contentType = 'application/x-www-form-urlencoded'
+    params.data = if params.data then {model: params.data} else {}
+
+  # For older servers, emulate HTTP by mimicking the HTTP method with `_method`
+  # And an `X-HTTP-Method-Override` header.
+  if options.emulateHTTP && (type == 'PUT' || type == 'DELETE' || type == 'PATCH')
+    params.type = 'POST'
+    if options.emulateJSON
+      params.data._method = type
+    beforeSend = options.beforeSend
+    options.beforeSend = (xhr) ->
+      xhr.setRequestHeader 'X-HTTP-Method-Override', type
+      if beforeSend
+        beforeSend.apply this, arguments
+
+  # Don't process data on a non-GET request.
+  if params.type != 'GET' && !options.emulateJSON
+    params.processData = false
+
+  # If we're sending a `PATCH` request, and we're in an old Internet Explorer
+  # that still has ActiveX enabled by default, override jQuery to use that
+  # for XHR instead. Remove this line when jQuery supports `PATCH` on IE8.
+  if params.type == 'PATCH' && window.ActiveXObject && !(window.external && window.external.msActiveXFilteringEnabled)
+    params.xhr = -> new ActiveXObject("Microsoft.XMLHTTP")
+
+  errorHandler = options.error
+  options.error = (jqXHR, textStatus, errorThrown) -> base?.data?.errorInterceptor?(errorHandler, model, options, jqXHR, params)
+
+  # Make the request, allowing the user to override any Ajax options.
+  xhr = options.xhr = Backbone.ajax(_.extend(params, options))
+  model.trigger 'request', model, xhr, options
+  xhr

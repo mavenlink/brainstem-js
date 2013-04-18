@@ -116,8 +116,8 @@ class window.Brainstem.Model extends Backbone.Model
   updateJSONBlacklist: ->
     []
 
-  toServerJSON: (method) =>
-    json = @toJSON()
+  toServerJSON: (method, options) =>
+    json = @toJSON(options)
     blacklist = @defaultJSONBlacklist()
 
     switch method

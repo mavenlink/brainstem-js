@@ -11,7 +11,12 @@ describe "Brainstem.Sync", ->
       model.save()
       expect(modelSpy).toHaveBeenCalled()
 
-    it "should pass options.inlcudes through the JSON", ->
+    it "should pass options.includes through the JSON", ->
       model = buildTimeEntry()
       model.save({}, include: 'creator')
       expect(ajaxSpy.mostRecentCall.args[0].data).toMatch(/"include":"creator"/)
+
+    it "should setup param roots when models have a paramRoot set", ->
+      model = buildTimeEntry()
+      model.save({})
+      expect(ajaxSpy.mostRecentCall.args[0].data).toMatch(/"time_entry":{/)
