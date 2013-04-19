@@ -169,9 +169,16 @@ class window.Brainstem.StorageManager
         # Loop over all returned data types and update our local storage to represent any new data.
 
         results = resp['results']
-        for underscoredModelName, models of resp
-          unless underscoredModelName == 'count' || underscoredModelName == 'results'
-            @storage(underscoredModelName).update models
+        keys = _.reject(_.keys(resp), (key) -> key == 'count' || key == 'results')
+        if _.isEmpty(results)
+          Brainstem.Utils.throwError("Received an empty response when trying to load #{name}")
+        else
+          primaryModelKey = results[0]['key']
+          keys.splice(keys.indexOf(primaryModelKey), 1)
+          keys.push(primaryModelKey)
+
+        for underscoredModelName in keys
+          @storage(underscoredModelName).update resp[underscoredModelName]
 
         unless options.cache == false || only?
           @getCollectionDetails(name).cache[cacheKey] = results
