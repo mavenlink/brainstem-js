@@ -170,12 +170,9 @@ class window.Brainstem.StorageManager
 
         results = resp['results']
         keys = _.reject(_.keys(resp), (key) -> key == 'count' || key == 'results')
-        if _.isEmpty(results)
-          Brainstem.Utils.throwError("Received an empty response when trying to load #{name}")
-        else
-          primaryModelKey = results[0]['key']
-          keys.splice(keys.indexOf(primaryModelKey), 1)
-          keys.push(primaryModelKey)
+        unless _.isEmpty(results)
+          keys.splice(keys.indexOf(name), 1) if keys.indexOf(name) != -1
+          keys.push(name)
 
         for underscoredModelName in keys
           @storage(underscoredModelName).update resp[underscoredModelName]

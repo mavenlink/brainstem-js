@@ -43,9 +43,12 @@ class window.Brainstem.Model extends Backbone.Model
   _parseResultsResponse: (resp) ->
     return resp unless resp['results']
 
-    key = resp['results'][0].key
-    id = resp['results'][0].id
-    _.find(resp[key], (mobj) -> mobj.id == id)
+    if resp['results'].length
+      key = resp['results'][0].key
+      id = resp['results'][0].id
+      _.find(resp[key], (mobj) -> mobj.id == id)
+    else
+      {}
 
 
   # Retreive details about a named association.  This is a class method.

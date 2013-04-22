@@ -64,21 +64,12 @@ describe 'Brainstem Storage Manager', ->
       expect(model.get("replies").pluck("id")).toEqual [2, 3]
 
     it "updates associations before the primary model", ->
-      primarySpy = spyOn(base.data.storage('time_entries'), 'update')
-      associatedSpy = spyOn(base.data.storage('tasks'), 'update')
-
-      primarySpy.andCallFake(-> expect(associatedSpy).toHaveBeenCalled())
-      associatedSpy.andCallFake(-> expect(primarySpy).not.toHaveBeenCalled())
-
+      events = []
+      base.data.storage('time_entries').on "add", -> events.push "time_entries"
+      base.data.storage('tasks').on "add", -> events.push "tasks"
       base.data.loadModel "time_entry", 1, include: ["project", "task"]
       server.respond()
-
-    it "works with an empty response", ->
-      exceptionSpy = spyOn(Brainstem.Utils, 'throwError').andCallThrough()
-      respondWith server, "/api/time_entries?only=2", resultsFrom: "time_entries", data: {}
-      base.data.loadModel "time_entry", 2
-      server.respond()
-      expect(exceptionSpy).toHaveBeenCalledWith("Received an empty response when trying to load time_entries")
+      expect(events).toEqual ["tasks", "time_entries"]
 
     it "triggers changes", ->
       model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
@@ -174,6 +165,13 @@ describe 'Brainstem Storage Manager', ->
       collection = base.data.loadCollection "time_entries"
       server.respond()
       expect(collection.length).toEqual(1)
+
+    it "works with an empty response", ->
+      exceptionSpy = spyOn(sinon, 'logError').andCallThrough()
+      respondWith server, "/api/time_entries?per_page=20&page=1", resultsFrom: "time_entries", data: { time_entries: [] }
+      base.data.loadCollection "time_entries"
+      server.respond()
+      expect(exceptionSpy).not.toHaveBeenCalled()
 
     describe "fetching of associations", ->
       json = null
