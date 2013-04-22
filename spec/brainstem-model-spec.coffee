@@ -28,6 +28,22 @@ describe 'Brainstem.Model', ->
       expect(base.data.storage('users').get(5).attributes).toEqual(response.users[0])
       expect(base.data.storage('users').get(6).attributes).toEqual(response.users[1])
 
+    it 'should work with an empty response', ->
+      expect( -> model.parse(tasks: [], results: [], count: 0)).not.toThrow()
+
+    describe 'updateStorageManager', ->
+      it 'should update the associations before the new model', ->
+        response.tasks[0].assignee_ids = [5]
+        response.users = [{id: 5, name: 'Jon'}]
+
+        spy = spyOn(base.data, 'storage').andCallThrough()
+        model.updateStorageManager(response)
+        expect(spy.calls[0].args[0]).toEqual('users')
+        expect(spy.calls[1].args[0]).toEqual('tasks')
+
+      it 'should work with an empty response', ->
+        expect( -> model.updateStorageManager(count: 0, results: [])).not.toThrow()
+
     it 'should return the first object from the result set', ->
       response.tasks.unshift([id: 2, name: 'Bobby'])
 
