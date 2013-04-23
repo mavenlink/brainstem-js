@@ -63,6 +63,14 @@ describe 'Brainstem Storage Manager', ->
       expect(model.id).toEqual 1
       expect(model.get("replies").pluck("id")).toEqual [2, 3]
 
+    it "updates associations before the primary model", ->
+      events = []
+      base.data.storage('time_entries').on "add", -> events.push "time_entries"
+      base.data.storage('tasks').on "add", -> events.push "tasks"
+      base.data.loadModel "time_entry", 1, include: ["project", "task"]
+      server.respond()
+      expect(events).toEqual ["tasks", "time_entries"]
+
     it "triggers changes", ->
       model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
       spy = jasmine.createSpy().andCallFake ->
@@ -157,6 +165,13 @@ describe 'Brainstem Storage Manager', ->
       collection = base.data.loadCollection "time_entries"
       server.respond()
       expect(collection.length).toEqual(1)
+
+    it "works with an empty response", ->
+      exceptionSpy = spyOn(sinon, 'logError').andCallThrough()
+      respondWith server, "/api/time_entries?per_page=20&page=1", resultsFrom: "time_entries", data: { time_entries: [] }
+      base.data.loadCollection "time_entries"
+      server.respond()
+      expect(exceptionSpy).not.toHaveBeenCalled()
 
     describe "fetching of associations", ->
       json = null

@@ -22,25 +22,33 @@ class window.Brainstem.Model extends Backbone.Model
 
   updateStorageManager: (resp) ->
     results = resp['results']
-    return unless results
+    return if _.isEmpty(results)
 
-    for underscoredModelName, models of resp
-      unless underscoredModelName == 'count' || underscoredModelName == 'results'
-        for attributes in models
-          @constructor.parse(attributes)
-          collection = base.data.storage(underscoredModelName)
-          collectionModel = collection.get(attributes['id'])
-          if collectionModel
-            collectionModel.set(attributes)
-          else
-            collection.add(attributes)
+    keys = _.reject(_.keys(resp), (key) -> key == 'count' || key == 'results')
+    primaryModelKey = results[0]['key']
+    keys.splice(keys.indexOf(primaryModelKey), 1)
+    keys.push(primaryModelKey)
+
+    for underscoredModelName in keys
+      models = resp[underscoredModelName]
+      for attributes in models
+        @constructor.parse(attributes)
+        collection = base.data.storage(underscoredModelName)
+        collectionModel = collection.get(attributes['id'])
+        if collectionModel
+          collectionModel.set(attributes)
+        else
+          collection.add(attributes)
 
   _parseResultsResponse: (resp) ->
     return resp unless resp['results']
 
-    key = resp['results'][0].key
-    id = resp['results'][0].id
-    _.find(resp[key], (mobj) -> mobj.id == id)
+    if resp['results'].length
+      key = resp['results'][0].key
+      id = resp['results'][0].id
+      _.find(resp[key], (mobj) -> mobj.id == id)
+    else
+      {}
 
 
   # Retreive details about a named association.  This is a class method.

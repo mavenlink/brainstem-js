@@ -169,9 +169,13 @@ class window.Brainstem.StorageManager
         # Loop over all returned data types and update our local storage to represent any new data.
 
         results = resp['results']
-        for underscoredModelName, models of resp
-          unless underscoredModelName == 'count' || underscoredModelName == 'results'
-            @storage(underscoredModelName).update models
+        keys = _.reject(_.keys(resp), (key) -> key == 'count' || key == 'results')
+        unless _.isEmpty(results)
+          keys.splice(keys.indexOf(name), 1) if keys.indexOf(name) != -1
+          keys.push(name)
+
+        for underscoredModelName in keys
+          @storage(underscoredModelName).update resp[underscoredModelName]
 
         unless options.cache == false || only?
           @getCollectionDetails(name).cache[cacheKey] = results
