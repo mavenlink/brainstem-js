@@ -56,7 +56,7 @@ class window.Brainstem.Expectation
   optionsMatch: (name, options) =>
     @manager._checkPageSettings options
     if !@disabled && @collectionName == name
-      _(['include', 'only', 'fields', 'order', 'filters', 'perPage', 'page', 'search']).all (optionType) =>
+      _(['include', 'only', 'order', 'filters', 'perPage', 'page', 'search']).all (optionType) =>
         @options[optionType] == "*" || Brainstem.Utils.matchesArray(_.compact(_.flatten([options[optionType]])), _.compact(_.flatten([@options[optionType]])))
     else
       false

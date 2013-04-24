@@ -41,7 +41,7 @@ describe 'Brainstem Storage Manager', ->
       projects = [buildProject(id: 15)]
       timeEntries = [buildTimeEntry(id: 1, task_id: 2, project_id: 15, title: "a time entry")]
       respondWith server, "/api/time_entries?only=1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
-      respondWith server, "/api/time_entries?include=project%3Btask&only=1", resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
+      respondWith server, "/api/time_entries?include=project%2Ctask&only=1", resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
 
     it "loads a single model from the server, including associations", ->
       model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
@@ -181,7 +181,7 @@ describe 'Brainstem Storage Manager', ->
         projects = [buildProject(id: 15), buildProject(id: 10)]
         timeEntries = [buildTimeEntry(task_id: 2, project_id: 15, id: 1), buildTimeEntry(task_id: null, project_id: 10, id: 2)]
 
-        respondWith server, /\/api\/time_entries\?include=project%3Btask&per_page=\d+&page=\d+/, resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
+        respondWith server, /\/api\/time_entries\?include=project%2Ctask&per_page=\d+&page=\d+/, resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
         respondWith server, /\/api\/time_entries\?include=project&per_page=\d+&page=\d+/, resultsFrom: "time_entries", data: { time_entries: timeEntries, projects: projects }
 
       it "loads collections that should be included", ->
@@ -219,7 +219,7 @@ describe 'Brainstem Storage Manager', ->
           taskTwoSub = buildTask(project_id: projectTwo.id, parent_id: 11); taskTwoSubWithAssignees = buildTask(id: taskTwoSub.id, assignee_ids: [taskTwoAssignee.id], parent_id: 11)
           taskOne = buildTask(id: 10, project_id: projectOne.id, assignee_ids: [taskOneAssignee.id], sub_task_ids: [taskOneSub])
           taskTwo = buildTask(id: 11, project_id: projectTwo.id, assignee_ids: [taskTwoAssignee.id], sub_task_ids: [taskTwoSub])
-          respondWith server, "/api/tasks.json?include=assignees%3Bproject%3Bsub_tasks&filters=parents_only%3Atrue&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne, taskTwo]), tasks: [taskOne, taskTwo, taskOneSub, taskTwoSub], users: [taskOneAssignee, taskTwoAssignee], projects: [projectOne, projectTwo] }
+          respondWith server, "/api/tasks.json?include=assignees%2Cproject%2Csub_tasks&filters=parents_only%3Atrue&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne, taskTwo]), tasks: [taskOne, taskTwo, taskOneSub, taskTwoSub], users: [taskOneAssignee, taskTwoAssignee], projects: [projectOne, projectTwo] }
           respondWith server, "/api/tasks.json?include=assignees&only=#{taskOneSub.id}%2C#{taskTwoSub.id}", data: { results: resultsArray("tasks", [taskOneSub, taskTwoSub]), tasks: [taskOneSubWithAssignees, taskTwoSubWithAssignees], users: [taskOneSubAssignee, taskTwoAssignee] }
           respondWith server, "/api/projects?include=time_entries&only=#{projectOne.id}%2C#{projectTwo.id}", data: { results: resultsArray("projects", [projectOne, projectTwo]), projects: [projectOneWithTimeEntries, projectTwoWithTimeEntries], time_entries: [projectOneTimeEntry] }
           respondWith server, "/api/time_entries?include=task&only=#{projectOneTimeEntry.id}", data: { results: resultsArray("time_entries", [projectOneTimeEntry]), time_entries: [projectOneTimeEntryWithTask], tasks: [projectOneTimeEntryTask] }
@@ -316,15 +316,15 @@ describe 'Brainstem Storage Manager', ->
 
           it "seperately caches data requested by different sort orders and filters", ->
             server.responses = []
-            respondWith server, "/api/time_entries?include=project%3Btask&order=updated_at%3Adesc&filters=project_id%3A10&per_page=2&page=1",
+            respondWith server, "/api/time_entries?include=project%2Ctask&order=updated_at%3Adesc&filters=project_id%3A10&per_page=2&page=1",
                         data: { results: resultsArray("time_entries", [te2Ws10, te1Ws10]), time_entries: [te2Ws10, te1Ws10], tasks: [], projects: [ws10] }
-            respondWith server, "/api/time_entries?include=project%3Btask&order=updated_at%3Adesc&filters=project_id%3A11&per_page=2&page=1",
+            respondWith server, "/api/time_entries?include=project%2Ctask&order=updated_at%3Adesc&filters=project_id%3A11&per_page=2&page=1",
                         data: { results: resultsArray("time_entries", [te1Ws11, te2Ws11]), time_entries: [te1Ws11, te2Ws11], tasks: [], projects: [ws11] }
-            respondWith server, "/api/time_entries?include=project%3Btask&order=created_at%3Aasc&filters=project_id%3A11&per_page=2&page=1",
+            respondWith server, "/api/time_entries?include=project%2Ctask&order=created_at%3Aasc&filters=project_id%3A11&per_page=2&page=1",
                         data: { results: resultsArray("time_entries", [te2Ws11, te1Ws11]), time_entries: [te2Ws11, te1Ws11], tasks: [], projects: [ws11] }
-            respondWith server, "/api/time_entries?include=project%3Btask&order=created_at%3Aasc&per_page=4&page=1",
+            respondWith server, "/api/time_entries?include=project%2Ctask&order=created_at%3Aasc&per_page=4&page=1",
                         data: { results: resultsArray("time_entries", [te2Ws11, te1Ws11, te1Ws10, te2Ws10]), time_entries: [te2Ws11, te1Ws11, te1Ws10, te2Ws10], tasks: [], projects: [ws10, ws11] }
-            respondWith server, "/api/time_entries?include=project%3Btask&per_page=4&page=1",
+            respondWith server, "/api/time_entries?include=project%2Ctask&per_page=4&page=1",
                         data: { results: resultsArray("time_entries", [te1Ws11, te2Ws10, te1Ws10, te2Ws11]), time_entries: [te1Ws11, te2Ws10, te1Ws10, te2Ws11], tasks: [], projects: [ws10, ws11] }
             # Make a server request
             collection1 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "updated_at:desc", filters: ["project_id:10"], page: 1, perPage: 2
@@ -374,7 +374,7 @@ describe 'Brainstem Storage Manager', ->
     describe "handling of only", ->
       describe "when getting data from the server", ->
         it "returns the requested ids with includes, triggering reset and success", ->
-          respondWith server, "/api/time_entries?include=project%3Btask&only=2",
+          respondWith server, "/api/time_entries?include=project%2Ctask&only=2",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(task_id: null, project_id: 10, id: 2)], tasks: [], projects: [buildProject(id: 10)] }
           spy2 = jasmine.createSpy().andCallFake (collection) ->
             expect(collection.loaded).toBe true
@@ -392,9 +392,9 @@ describe 'Brainstem Storage Manager', ->
           expect(spy2).toHaveBeenCalled()
 
         it "only requests ids that we don't already have", ->
-          respondWith server, "/api/time_entries?include=project%3Btask&only=2",
+          respondWith server, "/api/time_entries?include=project%2Ctask&only=2",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(task_id: null, project_id: 10, id: 2)], tasks: [], projects: [buildProject(id: 10)] }
-          respondWith server, "/api/time_entries?include=project%3Btask&only=3",
+          respondWith server, "/api/time_entries?include=project%2Ctask&only=3",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(task_id: null, project_id: 11, id: 3)], tasks: [], projects: [buildProject(id: 11)] }
 
           collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: 2
@@ -413,9 +413,9 @@ describe 'Brainstem Storage Manager', ->
         it "does request ids from the server again when they don't have all associations loaded yet", ->
           respondWith server, "/api/time_entries?include=project&only=2",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 5)], projects: [buildProject(id: 10)] }
-          respondWith server, "/api/time_entries?include=project%3Btask&only=2",
+          respondWith server, "/api/time_entries?include=project%2Ctask&only=2",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 5)], tasks: [buildTask(id: 5)], projects: [buildProject(id: 10)] }
-          respondWith server, "/api/time_entries?include=project%3Btask&only=3",
+          respondWith server, "/api/time_entries?include=project%2Ctask&only=3",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 11)] }
 
           base.data.loadCollection "time_entries", include: ["project"], only: 2
@@ -430,7 +430,7 @@ describe 'Brainstem Storage Manager', ->
           expect(collection2.length).toEqual 2
 
         it "doesn't go to the server if it doesn't need to", ->
-          respondWith server, "/api/time_entries?include=project%3Btask&only=2%2C3",
+          respondWith server, "/api/time_entries?include=project%2Ctask&only=2%2C3",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
           collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
           expect(collection.loaded).toBe false
@@ -460,7 +460,7 @@ describe 'Brainstem Storage Manager', ->
           expect(collection.length).toEqual 2
 
         it "accepts a success function that gets triggered on cache hit", ->
-          respondWith server, "/api/time_entries?include=project%3Btask&only=2%2C3",
+          respondWith server, "/api/time_entries?include=project%2Ctask&only=2%2C3",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
           base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
           server.respond()
@@ -472,7 +472,7 @@ describe 'Brainstem Storage Manager', ->
           expect(spy).toHaveBeenCalled()
 
         it "does not cache only queries", ->
-          respondWith server, "/api/time_entries?include=project%3Btask&only=2%2C3",
+          respondWith server, "/api/time_entries?include=project%2Ctask&only=2%2C3",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
           collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
           expect(Object.keys base.data.getCollectionDetails("time_entries")["cache"]).toEqual []
@@ -482,7 +482,7 @@ describe 'Brainstem Storage Manager', ->
         it "does go to the server on a repeat request if an association is missing", ->
           respondWith server, "/api/time_entries?include=project&only=2",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 6)], projects: [buildProject(id: 10)] }
-          respondWith server, "/api/time_entries?include=project%3Btask&only=2",
+          respondWith server, "/api/time_entries?include=project%2Ctask&only=2",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 6)], tasks: [buildTask(id: 6)], projects: [buildProject(id: 10)] }
           collection = base.data.loadCollection "time_entries", include: ["project"], only: 2
           expect(collection.loaded).toBe false

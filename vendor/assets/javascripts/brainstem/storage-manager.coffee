@@ -87,7 +87,7 @@ class window.Brainstem.StorageManager
     collection = options.collection || @createNewCollection name, []
     collection.setLoaded false
     collection.reset([], silent: false) if options.reset
-    collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'fields', 'filters', 'include', 'page', 'perPage', 'order', 'search')
+    collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'filters', 'include', 'page', 'perPage', 'order', 'search')
 
     if @expectations?
       @handleExpectations name, collection, options
@@ -129,7 +129,6 @@ class window.Brainstem.StorageManager
     only = if options.only then _.map((@_extractArray "only", options), (id) -> String(id)) else null
     search = options.search
     include = _(options.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
-    fields  = @_extractArray "fields",  options
     filters = @_extractArray "filters", options
     order = options.order || "updated_at:desc"
     cacheKey = "#{order}|#{_(filters).sort().join(",")}|#{options.page}|#{options.perPage}"
@@ -186,9 +185,8 @@ class window.Brainstem.StorageManager
           @_success options, collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
 
 
-    syncOptions.data.include = include.join(";") if include.length
+    syncOptions.data.include = include.join(",") if include.length
     syncOptions.data.only = _.difference(only, alreadyLoadedIds).join(",") if only?
-    syncOptions.data.fields = fields.join(",") if fields.length
     syncOptions.data.order = options.order if options.order?
     syncOptions.data.filters = filters.join(",") if filters.length
     syncOptions.data.per_page = options.perPage unless only?

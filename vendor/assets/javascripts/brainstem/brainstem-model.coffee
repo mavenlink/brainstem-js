@@ -78,7 +78,6 @@ class window.Brainstem.Model extends Backbone.Model
   associationsAreLoaded: (associations) =>
     associations ||= _.keys(@constructor.associations)
     _.all associations, (association) =>
-      [association, fields] = association.split(":")
       details = @constructor.associationDetails(association)
       if details.type == "BelongsTo"
         @attributes.hasOwnProperty(details.key) && (@attributes[details.key] == null || base.data.storage(details.collectionName).get(@attributes[details.key]))

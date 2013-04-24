@@ -114,8 +114,8 @@ describe 'Brainstem.Model', ->
         testClass = new TestClass()
         expect(TestClass.associationDetails('my_users')).toEqual key: "my_user_ids", type: "HasMany",    collectionName: "storage_system_collection_name"
         expect(TestClass.associationDetails('my_user')).toEqual  key: "my_user_id",  type: "BelongsTo",  collectionName: "users"
-        expect(TestClass.associationDetails('user')).toEqual    key: "user_id",     type: "BelongsTo",  collectionName: "users"
-        expect(TestClass.associationDetails('users')).toEqual   key: "user_ids",    type: "HasMany",    collectionName: "users"
+        expect(TestClass.associationDetails('user')).toEqual     key: "user_id",     type: "BelongsTo",  collectionName: "users"
+        expect(TestClass.associationDetails('users')).toEqual    key: "user_ids",    type: "HasMany",    collectionName: "users"
 
         expect(testClass.constructor.associationDetails('users')).toEqual   key: "user_ids",    type: "HasMany",    collectionName: "users"
 
@@ -129,14 +129,14 @@ describe 'Brainstem.Model', ->
 
     describe 'associationsAreLoaded', ->
       describe "with BelongsTo associations", ->
-        it "should return true when all provided associations are loaded for the model (ignoring fields for now)", ->
+        it "should return true when all provided associations are loaded for the model", ->
           timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2)
-          expect(timeEntry.associationsAreLoaded(["project:title", "task"])).toBeFalsy()
+          expect(timeEntry.associationsAreLoaded(["project", "task"])).toBeFalsy()
           buildAndCacheProject( id: 10, title: "a project!")
           expect(timeEntry.associationsAreLoaded(["project", "task"])).toBeFalsy()
-          expect(timeEntry.associationsAreLoaded(["project:title"])).toBeTruthy()
+          expect(timeEntry.associationsAreLoaded(["project"])).toBeTruthy()
           buildAndCacheTask(id: 2, title: "a task!")
-          expect(timeEntry.associationsAreLoaded(["project:title", "task"])).toBeTruthy()
+          expect(timeEntry.associationsAreLoaded(["project", "task"])).toBeTruthy()
           expect(timeEntry.associationsAreLoaded(["project"])).toBeTruthy()
           expect(timeEntry.associationsAreLoaded(["task"])).toBeTruthy()
 
@@ -162,7 +162,7 @@ describe 'Brainstem.Model', ->
       describe "with HasMany associations", ->
         it "should return true when all provided associations are loaded", ->
           project = new App.Models.Project(id: 5, time_entry_ids: [10, 11], task_ids: [2, 3])
-          expect(project.associationsAreLoaded(["time_entries:title", "tasks"])).toBeFalsy()
+          expect(project.associationsAreLoaded(["time_entries", "tasks"])).toBeFalsy()
           buildAndCacheTimeEntry(id: 10)
           expect(project.associationsAreLoaded(["time_entries"])).toBeFalsy()
           buildAndCacheTimeEntry(id: 11)
