@@ -18,8 +18,6 @@ class window.Brainstem.Collection extends Backbone.Collection
       else
         Brainstem.Utils.warn "Unable to update collection with invalid model", model
 
-  ids: => _.keys(@_byId)
-
   loadNextPage: (options) =>
     oldLength = @length
     success = (collection) =>

@@ -1,6 +1,7 @@
 class App.Models.Post extends Brainstem.Model
   brainstemKey: "posts"
   paramRoot: 'post'
+  url: '/api/posts'
 
   @associations:
     replies:            ["posts"]

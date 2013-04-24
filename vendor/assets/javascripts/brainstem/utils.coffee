@@ -15,3 +15,8 @@ class window.Brainstem.Utils
       else
         return false if String(array1[index]) != String(array2[index])
     true
+
+  @extractArray: (option, options) =>
+    result = options[option]
+    result = [result] unless result instanceof Array
+    _.compact(result)

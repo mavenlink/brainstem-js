@@ -115,7 +115,7 @@ class window.Brainstem.Model extends Backbone.Model
     @paramRoot
 
   defaultJSONBlacklist: ->
-    []
+    ['id', 'created_at', 'updated_at']
 
   createJSONBlacklist: ->
     []

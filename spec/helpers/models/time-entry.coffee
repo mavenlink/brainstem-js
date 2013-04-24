@@ -1,12 +1,7 @@
 class App.Models.TimeEntry extends Brainstem.Model
   brainstemKey: "time_entries"
   paramRoot: 'time_entry'
-
-  methodUrl: (method) ->
-    switch method
-      when "delete" then "/api/time_entries"
-      when "create" then "/api/time_entries"
-      else "/api/time_entries/#{@id}"
+  url: '/api/time_entries'
 
   @associations:
     project: "projects"

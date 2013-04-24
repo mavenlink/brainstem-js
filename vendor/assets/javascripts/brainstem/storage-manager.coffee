@@ -80,7 +80,7 @@ class window.Brainstem.StorageManager
   loadCollection: (name, options) =>
     options = $.extend({}, options, name: name)
     @_checkPageSettings options
-    include = @_wrapObjects(@_extractArray "include", options)
+    include = @_wrapObjects(Brainstem.Utils.extractArray "include", options)
     if options.search
       options.cache = false
 
@@ -126,10 +126,10 @@ class window.Brainstem.StorageManager
   _loadCollectionWithFirstLayer: (options) =>
     options = $.extend({}, options)
     name = options.name
-    only = if options.only then _.map((@_extractArray "only", options), (id) -> String(id)) else null
+    only = if options.only then _.map((Brainstem.Utils.extractArray "only", options), (id) -> String(id)) else null
     search = options.search
     include = _(options.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
-    filters = @_extractArray "filters", options
+    filters = Brainstem.Utils.extractArray "filters", options
     order = options.order || "updated_at:desc"
     cacheKey = "#{order}|#{_(filters).sort().join(",")}|#{options.page}|#{options.perPage}"
 
@@ -227,11 +227,6 @@ class window.Brainstem.StorageManager
 
   createNewModel: (modelName, options) =>
     new (@getCollectionDetails(modelName.pluralize()).modelKlass)(options || {})
-
-  _extractArray: (option, options) =>
-    result = options[option]
-    result = [result] unless result instanceof Array
-    _.compact(result)
 
   _wrapObjects: (array) =>
     output = []
