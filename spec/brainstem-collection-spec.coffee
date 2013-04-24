@@ -87,10 +87,6 @@ describe 'Brainstem.Collection', ->
       collection.getWithAssocation(10)
       expect(collection.get).toHaveBeenCalledWith(10)
 
-  describe 'ids', ->
-    it "should return an array of ids", ->
-      expect(collection.ids()).toEqual(['2', '3'])
-
   describe 'setLoaded', ->
     it "should set the values of @loaded", ->
       collection.setLoaded true

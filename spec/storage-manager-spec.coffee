@@ -582,7 +582,7 @@ describe 'Brainstem Storage Manager', ->
         spy = jasmine.createSpy()
         base.data.setErrorInterceptor (handler, modelOrCollection, options, jqXHR) -> spy(modelOrCollection, jqXHR)
         server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
-        base.data.loadCollection('time_entries')
+        base.data.loadCollection 'time_entries'
         server.respond()
         expect(spy).toHaveBeenCalled()
 
@@ -602,6 +602,6 @@ describe 'Brainstem Storage Manager', ->
       it "does nothing on unhandled errors", ->
         spyOn(sinon, 'logError').andCallThrough()
         server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
-        base.data.loadCollection('time_entries')
+        base.data.loadCollection 'time_entries'
         server.respond()
         expect(sinon.logError).not.toHaveBeenCalled()
