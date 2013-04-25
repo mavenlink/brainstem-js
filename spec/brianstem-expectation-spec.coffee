@@ -194,3 +194,16 @@ describe 'Brainstem Expectations', ->
       expectation = new Brainstem.Expectation("projects", { only: "1" }, manager)
       expect(expectation.optionsMatch("projects", {only: 1})).toBe true
       expect(expectation.optionsMatch("projects", {only: "1"})).toBe true
+
+    it "should treat null, empty array, and empty object the same", ->
+      expectation = new Brainstem.Expectation("projects", { filters: {} }, manager)
+      expect(expectation.optionsMatch("projects", { filters: null })).toBe true
+      expect(expectation.optionsMatch("projects", { filters: {} })).toBe true
+      expect(expectation.optionsMatch("projects", { })).toBe true
+      expect(expectation.optionsMatch("projects", { filters: { foo: "bar" } })).toBe false
+
+      expectation = new Brainstem.Expectation("projects", {}, manager)
+      expect(expectation.optionsMatch("projects", { filters: null })).toBe true
+      expect(expectation.optionsMatch("projects", { filters: {} })).toBe true
+      expect(expectation.optionsMatch("projects", { })).toBe true
+      expect(expectation.optionsMatch("projects", { filters: { foo: "bar" } })).toBe false
