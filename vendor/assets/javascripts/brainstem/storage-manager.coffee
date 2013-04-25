@@ -129,9 +129,9 @@ class window.Brainstem.StorageManager
     only = if options.only then _.map((Brainstem.Utils.extractArray "only", options), (id) -> String(id)) else null
     search = options.search
     include = _(options.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
-    filters = Brainstem.Utils.extractArray "filters", options
+    filters = options.filters || {}
     order = options.order || "updated_at:desc"
-    cacheKey = "#{order}|#{_(filters).sort().join(",")}|#{options.page}|#{options.perPage}"
+    cacheKey = "#{order}|#{_.chain(filters).pairs().map(([k, v]) -> "#{k}:#{v}" ).value().join(",")}|#{options.page}|#{options.perPage}"
 
     cachedCollection = @storage name
     collection = @createNewCollection name, []
@@ -188,11 +188,10 @@ class window.Brainstem.StorageManager
     syncOptions.data.include = include.join(",") if include.length
     syncOptions.data.only = _.difference(only, alreadyLoadedIds).join(",") if only?
     syncOptions.data.order = options.order if options.order?
-    syncOptions.data.filters = filters.join(",") if filters.length
+    _.extend(syncOptions.data, _(filters).omit('include', 'only', 'order', 'per_page', 'page', 'search')) if _(filters).keys().length
     syncOptions.data.per_page = options.perPage unless only?
     syncOptions.data.page = options.page unless only?
-    if search
-      syncOptions.data.search = search
+    syncOptions.data.search = search if search
 
     Backbone.sync.call collection, 'read', collection, syncOptions
 
@@ -273,5 +272,4 @@ class window.Brainstem.StorageManager
       if expectation.optionsMatch(name, options)
         expectation.recordRequest(collection, options)
         return
-    Brainstem.Utils.warn "No expectation matched #{name} with #{JSON.stringify options}"
     throw "No expectation matched #{name} with #{JSON.stringify options}"

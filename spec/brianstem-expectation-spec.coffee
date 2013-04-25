@@ -115,13 +115,13 @@ describe 'Brainstem Expectations', ->
     it "should fail if it cannot find a specific match", ->
       manager.stubImmediate "projects", response: (stub) ->
         stub.results = [project1]
-      manager.stubImmediate "projects", include: ["tasks"], filters: ["something:else"], response: (stub) ->
+      manager.stubImmediate "projects", include: ["tasks"], filters: { something: "else" }, response: (stub) ->
         stub.results = [project1, project2]
         stub.associated.tasks = [task1]
-      expect(manager.loadCollection("projects", include: ["tasks"], filters: ["something:else"]).models).toEqual [project1, project2]
-      expect(-> manager.loadCollection("projects", include: ["tasks"], filters: ["something:wrong"])).toThrow()
-      expect(-> manager.loadCollection("projects", include: ["users"], filters: ["something:else"])).toThrow()
-      expect(-> manager.loadCollection("projects", filters: ["something:else"])).toThrow()
+      expect(manager.loadCollection("projects", include: ["tasks"], filters: { something: "else" }).models).toEqual [project1, project2]
+      expect(-> manager.loadCollection("projects", include: ["tasks"], filters: { something: "wrong" })).toThrow()
+      expect(-> manager.loadCollection("projects", include: ["users"], filters: { something: "else" })).toThrow()
+      expect(-> manager.loadCollection("projects", filters: { something: "else" })).toThrow()
       expect(-> manager.loadCollection("projects", include: ["users"])).toThrow()
       expect(manager.loadCollection("projects").models).toEqual [project1]
 
@@ -139,10 +139,10 @@ describe 'Brainstem Expectations', ->
 
   describe "recording", ->
     it "should record options", ->
-      expectation = manager.stubImmediate "projects", filters: ["something:else"], response: (stub) ->
+      expectation = manager.stubImmediate "projects", filters: { something: "else" }, response: (stub) ->
         stub.results = [project1, project2]
-      manager.loadCollection("projects", filters: ["something:else"])
-      expect(expectation.matches[0].filters).toEqual ["something:else"]
+      manager.loadCollection("projects", filters: { something: "else" })
+      expect(expectation.matches[0].filters).toEqual { something: "else" }
 
   describe "clearing expectations", ->
     it "expectations can be removed", ->

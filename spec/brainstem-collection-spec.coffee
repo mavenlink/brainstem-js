@@ -55,14 +55,14 @@ describe 'Brainstem.Collection', ->
 
   describe "reload", ->
     it "reloads the collection with the original params", ->
-      respondWith server, "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "old post", reply_ids: [])] }
-      collection = base.data.loadCollection "posts", include: ["replies"], filters: "parents_only:true", perPage: 5
+      respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "old post", reply_ids: [])] }
+      collection = base.data.loadCollection "posts", include: ["replies"], filters: { parents_only: "true" }, perPage: 5
       server.respond()
       expect(collection.lastFetchOptions.page).toEqual 1
       expect(collection.lastFetchOptions.perPage).toEqual 5
       expect(collection.lastFetchOptions.include).toEqual ["replies"]
       server.responses = []
-      respondWith server, "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "new post", reply_ids: [])] }
+      respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "new post", reply_ids: [])] }
       expect(collection.models[0].get("message")).toEqual "old post"
       resetCounter = jasmine.createSpy("resetCounter")
       loadedCounter = jasmine.createSpy("loadedCounter")

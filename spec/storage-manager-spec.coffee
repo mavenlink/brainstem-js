@@ -115,9 +115,9 @@ describe 'Brainstem Storage Manager', ->
       expect(spy).toHaveBeenCalledWith(collection)
 
     it "saves it's options onto the returned collection", ->
-      collection = base.data.loadCollection "time_entries", order: "baz:desc", filters: "bar:2"
+      collection = base.data.loadCollection "time_entries", order: "baz:desc", filters: { bar: 2 }
       expect(collection.lastFetchOptions.order).toEqual "baz:desc"
-      expect(collection.lastFetchOptions.filters).toEqual "bar:2"
+      expect(collection.lastFetchOptions.filters).toEqual { bar: 2 }
       expect(collection.lastFetchOptions.collection).toBeFalsy()
 
     describe "passing an optional collection", ->
@@ -148,6 +148,12 @@ describe 'Brainstem Storage Manager', ->
         server.respond()
         expect(collection.loaded).toBe true
         expect(collection.length).toEqual 1
+
+    it "accepts filters", ->
+      posts = [buildPost(project_id: 15, id: 1), buildPost(project_id: 15, id: 2)]
+      respondWith server, "/api/posts?filter1=true&filter2=false&filter3=true&filter4=false&filter5=2&filter6=baz&per_page=20&page=1", data: { results: [{ key: "posts", id: 1}], posts: posts }
+      collection = base.data.loadCollection "posts", filters: { filter1: true, filter2: false, filter3: "true", filter4: "false", filter5: 2, filter6: "baz" }
+      server.respond()
 
     it "triggers reset", ->
       timeEntry = buildTimeEntry()
@@ -198,10 +204,10 @@ describe 'Brainstem Storage Manager', ->
         expect(collection.loaded).toBe true
         expect(spy).toHaveBeenCalled()
 
-      it "applies filters when loading collections from the server (so that associations of the same type as the primary can be handled- posts with replies; tasks with subtasks, etc.)", ->
+      it "applies uses the results array from the server (so that associations of the same type as the primary can be handled- posts with replies; tasks with subtasks, etc.)", ->
         posts = [buildPost(project_id: 15, id: 1, reply_ids: [2]), buildPost(project_id: 15, id: 2, subject_id: 1, reply: true)]
-        respondWith server, "/api/posts?include=replies&filters=parents_only%3Atrue&per_page=20&page=1", data: { results: [{ key: "posts", id: 1}], posts: posts }
-        collection = base.data.loadCollection "posts", include: ["replies"], filters: "parents_only:true"
+        respondWith server, "/api/posts?include=replies&parents_only=true&per_page=20&page=1", data: { results: [{ key: "posts", id: 1}], posts: posts }
+        collection = base.data.loadCollection "posts", include: ["replies"], filters: { parents_only: "true" }
         server.respond()
         expect(collection.pluck("id")).toEqual [1]
         expect(collection.get(1).get('replies').pluck("id")).toEqual [2]
@@ -219,7 +225,7 @@ describe 'Brainstem Storage Manager', ->
           taskTwoSub = buildTask(project_id: projectTwo.id, parent_id: 11); taskTwoSubWithAssignees = buildTask(id: taskTwoSub.id, assignee_ids: [taskTwoAssignee.id], parent_id: 11)
           taskOne = buildTask(id: 10, project_id: projectOne.id, assignee_ids: [taskOneAssignee.id], sub_task_ids: [taskOneSub])
           taskTwo = buildTask(id: 11, project_id: projectTwo.id, assignee_ids: [taskTwoAssignee.id], sub_task_ids: [taskTwoSub])
-          respondWith server, "/api/tasks.json?include=assignees%2Cproject%2Csub_tasks&filters=parents_only%3Atrue&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne, taskTwo]), tasks: [taskOne, taskTwo, taskOneSub, taskTwoSub], users: [taskOneAssignee, taskTwoAssignee], projects: [projectOne, projectTwo] }
+          respondWith server, "/api/tasks.json?include=assignees%2Cproject%2Csub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne, taskTwo]), tasks: [taskOne, taskTwo, taskOneSub, taskTwoSub], users: [taskOneAssignee, taskTwoAssignee], projects: [projectOne, projectTwo] }
           respondWith server, "/api/tasks.json?include=assignees&only=#{taskOneSub.id}%2C#{taskTwoSub.id}", data: { results: resultsArray("tasks", [taskOneSub, taskTwoSub]), tasks: [taskOneSubWithAssignees, taskTwoSubWithAssignees], users: [taskOneSubAssignee, taskTwoAssignee] }
           respondWith server, "/api/projects?include=time_entries&only=#{projectOne.id}%2C#{projectTwo.id}", data: { results: resultsArray("projects", [projectOne, projectTwo]), projects: [projectOneWithTimeEntries, projectTwoWithTimeEntries], time_entries: [projectOneTimeEntry] }
           respondWith server, "/api/time_entries?include=task&only=#{projectOneTimeEntry.id}", data: { results: resultsArray("time_entries", [projectOneTimeEntry]), time_entries: [projectOneTimeEntryWithTask], tasks: [projectOneTimeEntryTask] }
@@ -238,7 +244,7 @@ describe 'Brainstem Storage Manager', ->
             callCount += 1
 
           success = jasmine.createSpy().andCallFake checkStructure
-          collection = base.data.loadCollection "tasks", filters: "parents_only:true", success: success, include: [
+          collection = base.data.loadCollection "tasks", filters: { parents_only: "true" }, success: success, include: [
                                                                       "assignees",
                                                                       "project": ["time_entries": "task"],
                                                                       "sub_tasks": ["assignees"]
@@ -316,60 +322,59 @@ describe 'Brainstem Storage Manager', ->
 
           it "seperately caches data requested by different sort orders and filters", ->
             server.responses = []
-            respondWith server, "/api/time_entries?include=project%2Ctask&order=updated_at%3Adesc&filters=project_id%3A10&per_page=2&page=1",
+            respondWith server, "/api/time_entries?include=project%2Ctask&order=updated_at%3Adesc&project_id=10&per_page=2&page=1",
                         data: { results: resultsArray("time_entries", [te2Ws10, te1Ws10]), time_entries: [te2Ws10, te1Ws10], tasks: [], projects: [ws10] }
-            respondWith server, "/api/time_entries?include=project%2Ctask&order=updated_at%3Adesc&filters=project_id%3A11&per_page=2&page=1",
+            respondWith server, "/api/time_entries?include=project%2Ctask&order=updated_at%3Adesc&project_id=11&per_page=2&page=1",
                         data: { results: resultsArray("time_entries", [te1Ws11, te2Ws11]), time_entries: [te1Ws11, te2Ws11], tasks: [], projects: [ws11] }
-            respondWith server, "/api/time_entries?include=project%2Ctask&order=created_at%3Aasc&filters=project_id%3A11&per_page=2&page=1",
+            respondWith server, "/api/time_entries?include=project%2Ctask&order=created_at%3Aasc&project_id=11&per_page=2&page=1",
                         data: { results: resultsArray("time_entries", [te2Ws11, te1Ws11]), time_entries: [te2Ws11, te1Ws11], tasks: [], projects: [ws11] }
             respondWith server, "/api/time_entries?include=project%2Ctask&order=created_at%3Aasc&per_page=4&page=1",
                         data: { results: resultsArray("time_entries", [te2Ws11, te1Ws11, te1Ws10, te2Ws10]), time_entries: [te2Ws11, te1Ws11, te1Ws10, te2Ws10], tasks: [], projects: [ws10, ws11] }
             respondWith server, "/api/time_entries?include=project%2Ctask&per_page=4&page=1",
                         data: { results: resultsArray("time_entries", [te1Ws11, te2Ws10, te1Ws10, te2Ws11]), time_entries: [te1Ws11, te2Ws10, te1Ws10, te2Ws11], tasks: [], projects: [ws10, ws11] }
             # Make a server request
-            collection1 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "updated_at:desc", filters: ["project_id:10"], page: 1, perPage: 2
+            collection1 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "updated_at:desc", filters: { project_id: 10 }, page: 1, perPage: 2
             expect(collection1.loaded).toBe false
             server.respond()
             expect(collection1.loaded).toBe true
             expect(collection1.pluck("id")).toEqual [te2Ws10.id, te1Ws10.id] # Show that it came back in the explicit order setup above
 #            # Make another request, this time handled by the cache.
-            collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "updated_at:desc", filters: ["project_id:10"], page: 1, perPage: 2
+            collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "updated_at:desc", filters: { project_id: 10 }, page: 1, perPage: 2
             expect(collection2.loaded).toBe true
-#            expect(collection2.pluck("id")).toEqual [te2Ws10.id, te1Ws10.id] # Show that it also came back in the correct order.
-#
-#            # Do it again, this time with a different filter.
-#            collection3 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "updated_at:desc", filters: ["project_id:11"], page: 1, perPage: 2
-#            expect(collection3.loaded).toBe false
-#            server.respond()
-#            expect(collection3.loaded).toBe true
-#            expect(collection3.pluck("id")).toEqual [te1Ws11.id, te2Ws11.id]
-#            collection4 = base.data.loadCollection "time_entries", include: ["project"], order: "updated_at:desc", filters: ["project_id:11"], page: 1, perPage: 2
-#            expect(collection4.loaded).toBe true
-#            expect(collection4.pluck("id")).toEqual [te1Ws11.id, te2Ws11.id]
-#
-#            # Do it again, this time with a different order.
-#            collection5 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "created_at:asc", filters: ["project_id:11"], page: 1, perPage: 2
-#            expect(collection5.loaded).toBe false
-#            server.respond()
-#            expect(collection5.loaded).toBe true
-#            expect(collection5.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id]
-#            collection6 = base.data.loadCollection "time_entries", include: ["task"], order: "created_at:asc", filters: ["project_id:11"], page: 1, perPage: 2
-#            expect(collection6.loaded).toBe true
-#            expect(collection6.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id]
-#
-#            # Do it again, this time without a filter.
-#            collection7 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "created_at:asc", page: 1, perPage: 4
-#            expect(collection7.loaded).toBe false
-#            server.respond()
-#            expect(collection7.loaded).toBe true
-#            expect(collection7.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id, te1Ws10.id, te2Ws10.id]
-#
-#            # Do it again, this time without an order, so it should use the default (updated_at:desc).
-#            collection9 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 4
-#            expect(collection9.loaded).toBe false
-#            server.respond()
-#            expect(collection9.loaded).toBe true
-#            expect(collection9.pluck("id")).toEqual [te1Ws11.id, te2Ws10.id, te1Ws10.id, te2Ws11.id]
+
+            # Do it again, this time with a different filter.
+            collection3 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "updated_at:desc", filters: { project_id: 11 }, page: 1, perPage: 2
+            expect(collection3.loaded).toBe false
+            server.respond()
+            expect(collection3.loaded).toBe true
+            expect(collection3.pluck("id")).toEqual [te1Ws11.id, te2Ws11.id]
+            collection4 = base.data.loadCollection "time_entries", include: ["project"], order: "updated_at:desc", filters: { project_id: 11 }, page: 1, perPage: 2
+            expect(collection4.loaded).toBe true
+            expect(collection4.pluck("id")).toEqual [te1Ws11.id, te2Ws11.id]
+
+            # Do it again, this time with a different order.
+            collection5 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "created_at:asc", filters: { project_id: 11 } , page: 1, perPage: 2
+            expect(collection5.loaded).toBe false
+            server.respond()
+            expect(collection5.loaded).toBe true
+            expect(collection5.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id]
+            collection6 = base.data.loadCollection "time_entries", include: ["task"], order: "created_at:asc", filters: { project_id: 11 }, page: 1, perPage: 2
+            expect(collection6.loaded).toBe true
+            expect(collection6.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id]
+
+            # Do it again, this time without a filter.
+            collection7 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "created_at:asc", page: 1, perPage: 4
+            expect(collection7.loaded).toBe false
+            server.respond()
+            expect(collection7.loaded).toBe true
+            expect(collection7.pluck("id")).toEqual [te2Ws11.id, te1Ws11.id, te1Ws10.id, te2Ws10.id]
+
+            # Do it again, this time without an order, so it should use the default (updated_at:desc).
+            collection9 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 4
+            expect(collection9.loaded).toBe false
+            server.respond()
+            expect(collection9.loaded).toBe true
+            expect(collection9.pluck("id")).toEqual [te1Ws11.id, te2Ws10.id, te1Ws10.id, te2Ws11.id]
 
     describe "handling of only", ->
       describe "when getting data from the server", ->
