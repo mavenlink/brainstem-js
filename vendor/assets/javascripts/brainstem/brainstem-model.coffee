@@ -31,10 +31,10 @@ class window.Brainstem.Model extends Backbone.Model
 
     for underscoredModelName in keys
       models = resp[underscoredModelName]
-      for attributes in models
+      for id, attributes of models
         @constructor.parse(attributes)
         collection = base.data.storage(underscoredModelName)
-        collectionModel = collection.get(attributes['id'])
+        collectionModel = collection.get(id)
         if collectionModel
           collectionModel.set(attributes)
         else
@@ -46,7 +46,7 @@ class window.Brainstem.Model extends Backbone.Model
     if resp['results'].length
       key = resp['results'][0].key
       id = resp['results'][0].id
-      _.find(resp[key], (mobj) -> mobj.id == id)
+      resp[key][id]
     else
       {}
 

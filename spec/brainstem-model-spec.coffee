@@ -8,7 +8,7 @@ describe 'Brainstem.Model', ->
     response = null
 
     beforeEach ->
-      response = count: 1, results: [id: 1, key: 'tasks'], tasks: [id: 1, title: 'Do Work']
+      response = count: 1, results: [id: 1, key: 'tasks'], tasks: { 1: { id: 1, title: 'Do Work' } }
 
     it "extracts object data from JSON with root keys", ->
       parsed = model.parse(response)
@@ -19,22 +19,22 @@ describe 'Brainstem.Model', ->
       expect(parsed.id).toEqual(1)
 
     it 'should update the storage manager with the new model and its associations', ->
-      response.tasks[0].assignee_ids = [5, 6]
-      response.users = [{id: 5, name: 'Jon'}, {id: 6, name: 'Betty'}]
+      response.tasks[1].assignee_ids = [5, 6]
+      response.users = { 5: {id: 5, name: 'Jon'}, 6: {id: 6, name: 'Betty'} }
 
       model.parse(response)
 
-      expect(base.data.storage('tasks').get(1).attributes).toEqual(response.tasks[0])
-      expect(base.data.storage('users').get(5).attributes).toEqual(response.users[0])
-      expect(base.data.storage('users').get(6).attributes).toEqual(response.users[1])
+      expect(base.data.storage('tasks').get(1).attributes).toEqual(response.tasks[1])
+      expect(base.data.storage('users').get(5).attributes).toEqual(response.users[5])
+      expect(base.data.storage('users').get(6).attributes).toEqual(response.users[6])
 
     it 'should work with an empty response', ->
-      expect( -> model.parse(tasks: [], results: [], count: 0)).not.toThrow()
+      expect( -> model.parse(tasks: {}, results: [], count: 0)).not.toThrow()
 
     describe 'updateStorageManager', ->
       it 'should update the associations before the new model', ->
-        response.tasks[0].assignee_ids = [5]
-        response.users = [{id: 5, name: 'Jon'}]
+        response.tasks[1].assignee_ids = [5]
+        response.users = { 5: {id: 5, name: 'Jon'} }
 
         spy = spyOn(base.data, 'storage').andCallThrough()
         model.updateStorageManager(response)
@@ -45,10 +45,11 @@ describe 'Brainstem.Model', ->
         expect( -> model.updateStorageManager(count: 0, results: [])).not.toThrow()
 
     it 'should return the first object from the result set', ->
-      response.tasks.unshift([id: 2, name: 'Bobby'])
-
+      response.tasks[2] = (id: 2, title: 'foo')
+      response.results.unshift(id: 2, key: 'tasks')
       parsed = model.parse(response)
-      expect(parsed.id).toEqual(1)
+      expect(parsed.id).toEqual 2
+      expect(parsed.title).toEqual 'foo'
 
     it 'should not blow up on server side validation error', ->
       response = errors: ["Invalid task state. Valid states are:'notstarted','started',and'completed'."]
@@ -64,9 +65,9 @@ describe 'Brainstem.Model', ->
         expect(parsed.created_at).toEqual(1359142047000)
 
       it 'parses dates on associated models', ->
-        response.tasks[0].created_at = "2013-01-25T11:25:57-08:00"
-        response.tasks[0].assignee_ids = [5, 6]
-        response.users = [{id: 5, name: 'John', created_at: "2013-02-25T11:25:57-08:00"}, {id: 6, name: 'Betty', created_at: "2013-01-30T11:25:57-08:00"}]
+        response.tasks[1].created_at = "2013-01-25T11:25:57-08:00"
+        response.tasks[1].assignee_ids = [5, 6]
+        response.users = { 5: {id: 5, name: 'John', created_at: "2013-02-25T11:25:57-08:00"}, 6: {id: 6, name: 'Betty', created_at: "2013-01-30T11:25:57-08:00"} }
 
         parsed = model.parse(response)
         expect(parsed.created_at).toEqual(1359141957000)

@@ -174,7 +174,7 @@ class window.Brainstem.StorageManager
           keys.push(name)
 
         for underscoredModelName in keys
-          @storage(underscoredModelName).update resp[underscoredModelName]
+          @storage(underscoredModelName).update _(resp[underscoredModelName]).values()
 
         unless options.cache == false || only?
           @getCollectionDetails(name).cache[cacheKey] = results
