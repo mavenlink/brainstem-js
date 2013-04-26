@@ -9,22 +9,42 @@ spec.defineBuilders = ->
         do ->
           seq_name = name + "_" + key
           BackboneFactory.define_sequence(seq_name, value)
-          class_defaults[key] = -> BackboneFactory.next(seq_name)
+          class_defaults[key] = ->
+            next = BackboneFactory.next(seq_name)
+            if isIdAttr(seq_name) then arrayPreservedToString(next) else next
       else
-        class_defaults[key] = value
+        class_defaults[key] = if isIdAttr(key) then arrayPreservedToString(value) else value
 
     factory = BackboneFactory.define(name, klass, -> return class_defaults)
     builder = (opts) ->
-      BackboneFactory.create(name, $.extend({}, class_defaults, opts))
+      BackboneFactory.create(name, $.extend({}, class_defaults, idsToStrings(opts)))
 
     creator = (opts) ->
-      obj = builder(opts)
+      obj = builder(idsToStrings(opts))
       storageName = name.underscore().pluralize()
       window.base.data.storage(storageName).add obj if window.base.data.collectionExists(storageName)
       obj
 
     eval("window.#{"build_#{name.underscore()}".camelize(true)} = builder")
     eval("window.#{"build_and_cache_#{name.underscore()}".camelize(true)} = creator")
+
+  isIdAttr = (attrName) ->
+    attrName == 'id' || attrName.match(/_id$/) || (attrName.match(/_ids$/))
+
+  arrayPreservedToString = (value) ->
+    if _.isArray(value)
+      _.map(value, (v) -> arrayPreservedToString(v))
+    else if value? && !$.isPlainObject(value)
+      String(value)
+    else
+      value
+
+  idsToStrings = (builderOpts) ->
+    for key, value of builderOpts
+      if isIdAttr(key)
+        builderOpts[key] = arrayPreservedToString(value)
+
+    builderOpts
 
   window.defineBuilder "user", App.Models.User, {
     id: (n) -> return n
