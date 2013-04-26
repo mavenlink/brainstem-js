@@ -129,7 +129,7 @@ class window.Brainstem.StorageManager
     only = if options.only then _.map((Brainstem.Utils.extractArray "only", options), (id) -> String(id)) else null
     search = options.search
     include = _(options.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
-    filters = Brainstem.Utils.extractArray "filters", options
+    filters = options.filters || {}
     order = options.order || "updated_at:desc"
     cacheKey = "#{order}|#{_.chain(filters).pairs().map(([k, v]) -> "#{k}:#{v}" ).value().join(",")}|#{options.page}|#{options.perPage}"
 
