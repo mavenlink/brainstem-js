@@ -31,10 +31,10 @@ class window.Brainstem.Model extends Backbone.Model
 
     for underscoredModelName in keys
       models = resp[underscoredModelName]
-      for attributes in models
+      for id, attributes of models
         @constructor.parse(attributes)
         collection = base.data.storage(underscoredModelName)
-        collectionModel = collection.get(attributes['id'])
+        collectionModel = collection.get(id)
         if collectionModel
           collectionModel.set(attributes)
         else
@@ -46,7 +46,7 @@ class window.Brainstem.Model extends Backbone.Model
     if resp['results'].length
       key = resp['results'][0].key
       id = resp['results'][0].id
-      _.find(resp[key], (mobj) -> mobj.id == id)
+      resp[key][id]
     else
       {}
 
@@ -78,7 +78,6 @@ class window.Brainstem.Model extends Backbone.Model
   associationsAreLoaded: (associations) =>
     associations ||= _.keys(@constructor.associations)
     _.all associations, (association) =>
-      [association, fields] = association.split(":")
       details = @constructor.associationDetails(association)
       if details.type == "BelongsTo"
         @attributes.hasOwnProperty(details.key) && (@attributes[details.key] == null || base.data.storage(details.collectionName).get(@attributes[details.key]))
@@ -124,8 +123,8 @@ class window.Brainstem.Model extends Backbone.Model
   updateJSONBlacklist: ->
     []
 
-  toServerJSON: (method) =>
-    json = @toJSON()
+  toServerJSON: (method, options) =>
+    json = @toJSON(options)
     blacklist = @defaultJSONBlacklist()
 
     switch method
