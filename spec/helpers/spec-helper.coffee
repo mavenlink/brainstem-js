@@ -5,6 +5,12 @@ window.App.Collections ?= {}
 window.resultsArray = (key, models) ->
   _(models).map (model) -> { key: key, id: model.get("id") }
 
+window.resultsObject = (models) ->
+  results = {}
+  for model in models
+    results[model.id] = model
+  results
+
 window.convertTopLevelKeysToObjects = (data) ->
   for key in _(data).keys()
     continue if key in ["count", "results"]

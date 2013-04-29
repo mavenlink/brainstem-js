@@ -48,10 +48,10 @@ describe 'Brainstem Storage Manager', ->
       expect(model.loaded).toBe false
       server.respond()
       expect(model.loaded).toBe true
-      expect(model.id).toEqual 1
+      expect(model.id).toEqual "1"
       expect(model.get("title")).toEqual "a time entry"
       expect(model.get('task').get('title')).toEqual "a task"
-      expect(model.get('project').id).toEqual 15
+      expect(model.get('project').id).toEqual "15"
 
     it "works even when the server returned associations of the same type", ->
       posts = [buildPost(id: 2, reply: true), buildPost(id: 3, reply: true), buildPost(id: 1, reply: false, reply_ids: [2, 3])]
@@ -60,8 +60,8 @@ describe 'Brainstem Storage Manager', ->
       expect(model.loaded).toBe false
       server.respond()
       expect(model.loaded).toBe true
-      expect(model.id).toEqual 1
-      expect(model.get("replies").pluck("id")).toEqual [2, 3]
+      expect(model.id).toEqual "1"
+      expect(model.get("replies").pluck("id")).toEqual ["2", "3"]
 
     it "updates associations before the primary model", ->
       events = []
@@ -77,7 +77,7 @@ describe 'Brainstem Storage Manager', ->
         expect(model.loaded).toBe true
         expect(model.get("title")).toEqual "a time entry"
         expect(model.get('task').get('title')).toEqual "a task"
-        expect(model.get('project').id).toEqual 15
+        expect(model.get('project').id).toEqual "15"
       model.bind "change", spy
       expect(spy).not.toHaveBeenCalled()
       server.respond()
@@ -196,8 +196,8 @@ describe 'Brainstem Storage Manager', ->
           expect(collection.loaded).toBe true
           expect(collection.get(1).get('task').get('title')).toEqual "a task"
           expect(collection.get(2).get('task')).toBeFalsy()
-          expect(collection.get(1).get('project').id).toEqual 15
-          expect(collection.get(2).get('project').id).toEqual 10
+          expect(collection.get(1).get('project').id).toEqual "15"
+          expect(collection.get(2).get('project').id).toEqual "10"
         collection.bind "reset", spy
         expect(collection.loaded).toBe false
         server.respond()
@@ -209,8 +209,8 @@ describe 'Brainstem Storage Manager', ->
         respondWith server, "/api/posts?include=replies&parents_only=true&per_page=20&page=1", data: { results: [{ key: "posts", id: 1}], posts: posts }
         collection = base.data.loadCollection "posts", include: ["replies"], filters: { parents_only: "true" }
         server.respond()
-        expect(collection.pluck("id")).toEqual [1]
-        expect(collection.get(1).get('replies').pluck("id")).toEqual [2]
+        expect(collection.pluck("id")).toEqual ["1"]
+        expect(collection.get(1).get('replies').pluck("id")).toEqual ["2"]
 
       describe "fetching multiple levels of associations", ->
         it "seperately requests each layer of associations", ->
@@ -223,12 +223,13 @@ describe 'Brainstem Storage Manager', ->
           taskOneSubAssignee = buildUser()
           taskOneSub = buildTask(project_id: projectOne.id, parent_id: 10); taskOneSubWithAssignees = buildTask(id: taskOneSub.id, assignee_ids: [taskOneSubAssignee.id], parent_id: 10)
           taskTwoSub = buildTask(project_id: projectTwo.id, parent_id: 11); taskTwoSubWithAssignees = buildTask(id: taskTwoSub.id, assignee_ids: [taskTwoAssignee.id], parent_id: 11)
-          taskOne = buildTask(id: 10, project_id: projectOne.id, assignee_ids: [taskOneAssignee.id], sub_task_ids: [taskOneSub])
-          taskTwo = buildTask(id: 11, project_id: projectTwo.id, assignee_ids: [taskTwoAssignee.id], sub_task_ids: [taskTwoSub])
-          respondWith server, "/api/tasks.json?include=assignees%2Cproject%2Csub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne, taskTwo]), tasks: [taskOne, taskTwo, taskOneSub, taskTwoSub], users: [taskOneAssignee, taskTwoAssignee], projects: [projectOne, projectTwo] }
-          respondWith server, "/api/tasks.json?include=assignees&only=#{taskOneSub.id}%2C#{taskTwoSub.id}", data: { results: resultsArray("tasks", [taskOneSub, taskTwoSub]), tasks: [taskOneSubWithAssignees, taskTwoSubWithAssignees], users: [taskOneSubAssignee, taskTwoAssignee] }
-          respondWith server, "/api/projects?include=time_entries&only=#{projectOne.id}%2C#{projectTwo.id}", data: { results: resultsArray("projects", [projectOne, projectTwo]), projects: [projectOneWithTimeEntries, projectTwoWithTimeEntries], time_entries: [projectOneTimeEntry] }
-          respondWith server, "/api/time_entries?include=task&only=#{projectOneTimeEntry.id}", data: { results: resultsArray("time_entries", [projectOneTimeEntry]), time_entries: [projectOneTimeEntryWithTask], tasks: [projectOneTimeEntryTask] }
+          taskOne = buildTask(id: 10, project_id: projectOne.id, assignee_ids: [taskOneAssignee.id], sub_task_ids: [taskOneSub.id])
+          taskTwo = buildTask(id: 11, project_id: projectTwo.id, assignee_ids: [taskTwoAssignee.id], sub_task_ids: [taskTwoSub.id])
+          respondWith server, "/api/tasks.json?include=assignees%2Cproject%2Csub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne, taskTwo]), tasks: resultsObject([taskOne, taskTwo, taskOneSub, taskTwoSub]), users: resultsObject([taskOneAssignee, taskTwoAssignee]), projects: resultsObject([projectOne, projectTwo]) }
+          respondWith server, "/api/tasks.json?include=assignees&only=#{taskOneSub.id}%2C#{taskTwoSub.id}", data: { results: resultsArray("tasks", [taskOneSub, taskTwoSub]), tasks: resultsObject([taskOneSubWithAssignees, taskTwoSubWithAssignees]), users: resultsObject([taskOneSubAssignee, taskTwoAssignee]) }
+          respondWith server, "/api/projects?include=time_entries&only=#{projectOne.id}%2C#{projectTwo.id}", data: { results: resultsArray("projects", [projectOne, projectTwo]), projects: resultsObject([projectOneWithTimeEntries, projectTwoWithTimeEntries]), time_entries: resultsObject([projectOneTimeEntry]) }
+          respondWith server, "/api/time_entries?include=task&only=#{projectOneTimeEntry.id}", data: { results: resultsArray("time_entries", [projectOneTimeEntry]), time_entries: resultsObject([projectOneTimeEntryWithTask]), tasks: resultsObject([projectOneTimeEntryTask]) }
+
           callCount = 0
           checkStructure = (collection) ->
             expect(collection.pluck("id").sort()).toEqual [taskOne.id, taskTwo.id]
@@ -262,16 +263,16 @@ describe 'Brainstem Storage Manager', ->
             collection1 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 2
             server.respond()
             expect(collection1.loaded).toBe true
-            expect(collection1.get(1).get('project').id).toEqual 15
-            expect(collection1.get(2).get('project').id).toEqual 10
+            expect(collection1.get(1).get('project').id).toEqual "15"
+            expect(collection1.get(2).get('project').id).toEqual "10"
             spy = jasmine.createSpy()
             collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 2, success: spy
             expect(spy).toHaveBeenCalled()
             expect(collection2.loaded).toBe true
             expect(collection2.get(1).get('task').get('title')).toEqual "a task"
             expect(collection2.get(2).get('task')).toBeFalsy()
-            expect(collection2.get(1).get('project').id).toEqual 15
-            expect(collection2.get(2).get('project').id).toEqual 10
+            expect(collection2.get(1).get('project').id).toEqual "15"
+            expect(collection2.get(2).get('project').id).toEqual "10"
 
           it "does go to the server when more records are requested than it has previously requested, and remembers previously requested pages", ->
             collection1 = base.data.loadCollection "time_entries", include: ["project", "task"], page: 1, perPage: 2
@@ -338,7 +339,7 @@ describe 'Brainstem Storage Manager', ->
             server.respond()
             expect(collection1.loaded).toBe true
             expect(collection1.pluck("id")).toEqual [te2Ws10.id, te1Ws10.id] # Show that it came back in the explicit order setup above
-#            # Make another request, this time handled by the cache.
+            # Make another request, this time handled by the cache.
             collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], order: "updated_at:desc", filters: { project_id: 10 }, page: 1, perPage: 2
             expect(collection2.loaded).toBe true
 
@@ -387,7 +388,7 @@ describe 'Brainstem Storage Manager', ->
           spy = jasmine.createSpy().andCallFake ->
             expect(collection.loaded).toBe true
             expect(collection.get(2).get('task')).toBeFalsy()
-            expect(collection.get(2).get('project').id).toEqual 10
+            expect(collection.get(2).get('project').id).toEqual "10"
             expect(collection.length).toEqual 1
           collection.bind "reset", spy
           expect(collection.loaded).toBe false
@@ -406,14 +407,14 @@ describe 'Brainstem Storage Manager', ->
           expect(collection.loaded).toBe false
           server.respond()
           expect(collection.loaded).toBe true
-          expect(collection.get(2).get('project').id).toEqual 10
-          collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
+          expect(collection.get(2).get('project').id).toEqual "10"
+          collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], only: ["2", "3"]
           expect(collection2.loaded).toBe false
           server.respond()
           expect(collection2.loaded).toBe true
           expect(collection2.length).toEqual 2
-          expect(collection2.get(2).get('project').id).toEqual 10
-          expect(collection2.get(3).get('project').id).toEqual 11
+          expect(collection2.get(2).get('project').id).toEqual "10"
+          expect(collection2.get(3).get('project').id).toEqual "11"
 
         it "does request ids from the server again when they don't have all associations loaded yet", ->
           respondWith server, "/api/time_entries?include=project&only=2",
@@ -431,7 +432,7 @@ describe 'Brainstem Storage Manager', ->
           expect(collection2.loaded).toBe false
           server.respond()
           expect(collection2.loaded).toBe true
-          expect(collection2.get(2).get('task').id).toEqual 5
+          expect(collection2.get(2).get('task').id).toEqual "5"
           expect(collection2.length).toEqual 2
 
         it "doesn't go to the server if it doesn't need to", ->
@@ -441,15 +442,15 @@ describe 'Brainstem Storage Manager', ->
           expect(collection.loaded).toBe false
           server.respond()
           expect(collection.loaded).toBe true
-          expect(collection.get(2).get('project').id).toEqual 10
-          expect(collection.get(3).get('project').id).toEqual 11
+          expect(collection.get(2).get('project').id).toEqual "10"
+          expect(collection.get(3).get('project').id).toEqual "11"
           expect(collection.length).toEqual 2
           spy = jasmine.createSpy()
           collection2 = base.data.loadCollection "time_entries", include: ["project"], only: [2, 3], success: spy
           expect(spy).toHaveBeenCalled()
           expect(collection2.loaded).toBe true
-          expect(collection2.get(2).get('project').id).toEqual 10
-          expect(collection2.get(3).get('project').id).toEqual 11
+          expect(collection2.get(2).get('project').id).toEqual "10"
+          expect(collection2.get(3).get('project').id).toEqual "11"
           expect(collection2.length).toEqual 2
 
         it "returns an empty collection when passed in an empty array", ->
@@ -471,8 +472,8 @@ describe 'Brainstem Storage Manager', ->
           server.respond()
           spy = jasmine.createSpy().andCallFake (collection) ->
             expect(collection.loaded).toBe true
-            expect(collection.get(2).get('project').id).toEqual 10
-            expect(collection.get(3).get('project').id).toEqual 11
+            expect(collection.get(2).get('project').id).toEqual "10"
+            expect(collection.get(3).get('project').id).toEqual "11"
           collection2 = base.data.loadCollection "time_entries", include: ["project"], only: [2, 3], success: spy
           expect(spy).toHaveBeenCalled()
 
