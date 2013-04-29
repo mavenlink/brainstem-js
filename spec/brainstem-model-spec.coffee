@@ -237,9 +237,9 @@ describe 'Brainstem.Model', ->
           expect(subTasks.at(2).get('position')).toEqual(3)
 
           subTasks = task.get("sub_tasks", order: "updated_at:desc")
-          expect(subTasks.at(0).get('id')).toEqual(77)
-          expect(subTasks.at(1).get('id')).toEqual(103)
-          expect(subTasks.at(2).get('id')).toEqual(99)
+          expect(subTasks.at(0).get('id')).toEqual("77")
+          expect(subTasks.at(1).get('id')).toEqual("103")
+          expect(subTasks.at(2).get('id')).toEqual("99")
 
   describe "toServerJSON", ->
     it "calls toJSON", ->
