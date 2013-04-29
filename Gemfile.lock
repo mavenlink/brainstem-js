@@ -20,7 +20,7 @@ GIT
 PATH
   remote: .
   specs:
-    brainstem-js (0.1)
+    brainstem-js (0.2.1)
 
 GEM
   remote: https://rubygems.org/

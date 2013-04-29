@@ -1,3 +1,6 @@
+#!/usr/bin/env rake
+require "bundler/gem_tasks"
+
 task :clean do
   sh "rakep clean"
 end

@@ -6,10 +6,10 @@ require 'brainstem/js/version'
 Gem::Specification.new do |gem|
   gem.name          = "brainstem-js"
   gem.version       = Brainstem::Js::VERSION
-  gem.authors       = ["Andrew Cantino", "André Arko", "Mavenlink"]
-  gem.email         = ["dev@mavenlink.com"]
-  gem.description   = %q{The Brainstem JS library}
-  gem.summary       = %q{Brainstem's JS components}
+  gem.authors       = ["Mavenlink"]
+  gem.email         = ["opensource@mavenlink.com"]
+  gem.description   = %q{The Brainstem API adapter library for Backbone.js}
+  gem.summary       = %q{Easily connect Backbone.js with Brainstem APIs.  Get relational models in Backbone.}
   gem.homepage      = "http://github.com/mavenlink/brainstem-js"
 
   gem.files         = `git ls-files`.split($/)
