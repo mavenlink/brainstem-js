@@ -69,7 +69,7 @@ Backbone.sync = (method, model, options) ->
 
   if base?.data?.errorInterceptor?
     errorHandler = options.error
-    options.error = (jqXHR, textStatus, errorThrown) -> base?.data?.errorInterceptor?(errorHandler, model, options, jqXHR, params)
+    options.error = (jqXHR, textStatus, errorThrown) -> base.data.errorInterceptor(errorHandler, model, options, jqXHR, params)
 
   # Make the request, allowing the user to override any Ajax options.
   xhr = options.xhr = Backbone.ajax(_.extend(params, options))
