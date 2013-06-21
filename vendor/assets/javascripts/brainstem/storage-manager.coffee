@@ -47,7 +47,7 @@ class window.Brainstem.StorageManager
     !!@collections[name]
 
   setErrorInterceptor: (interceptor) =>
-    @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(modelOrCollection, jqXHR)
+    @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(jqXHR)
 
   # Request a model to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
   # when the load, and any dependent loads, are complete.
