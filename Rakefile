@@ -9,6 +9,7 @@ task :build do
   sh "rakep build"
 end
 
+desc 'Run jasmine specs with phantomjs'
 task :spec => :build do
   begin
     exec *%w(phantomjs build/headless.js build/headless.html)
@@ -18,6 +19,7 @@ task :spec => :build do
   end
 end
 
+desc 'Start WEBrick server to run jasmine specs in browser'
 task :server => :clean do
   exec "rakep server"
 end
