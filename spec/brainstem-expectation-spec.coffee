@@ -80,8 +80,7 @@ describe 'Brainstem Expectations', ->
 
         expectation.respond()
         expect(errorSpy).toHaveBeenCalled()
-        expect(errorSpy.mostRecentCall.args[0] instanceof Brainstem.Collection).toBe true
-        expect(errorSpy.mostRecentCall.args[1]).toEqual resp
+        expect(errorSpy.mostRecentCall.args[0]).toEqual resp
 
       it "does not trigger errors when asked not to", ->
         errorSpy = jasmine.createSpy()
