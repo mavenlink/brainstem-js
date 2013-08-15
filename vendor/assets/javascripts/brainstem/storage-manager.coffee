@@ -192,10 +192,12 @@ class window.Brainstem.StorageManager
     _.extend(syncOptions.data, _(filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(filters).keys().length
 
     unless only?
-      syncOptions.data.per_page = options.perPage
-      syncOptions.data.page = options.page
-      syncOptions.data.limit = options.limit
-      syncOptions.data.offset = options.offset
+      if options.limit? && options.offset?
+        syncOptions.data.limit = options.limit
+        syncOptions.data.offset = options.offset
+      else
+        syncOptions.data.per_page = options.perPage
+        syncOptions.data.page = options.page
 
     syncOptions.data.search = search if search
     Backbone.sync.call collection, 'read', collection, syncOptions
@@ -215,15 +217,21 @@ class window.Brainstem.StorageManager
 
   _checkPageSettings: (options) =>
     if options.limit? && options.limit != '' && options.offset? && options.offset != ''
-      options.limit = Math.max(parseInt(options.limit), 1)
-      options.offset = Math.max(parseInt(options.offset), 0)
-      options.perPage = options.page = ''
+      options.perPage = options.page = undefined
+    else
+      options.limit = options.offset = undefined
+
+    @_setDefaultPageSettings(options)
+
+  _setDefaultPageSettings: (options) =>
+    if options.limit? && options.offset?
+      options.limit = 1 if options.limit < 1
+      options.offset = 0 if options.offset < 0
     else
       options.perPage = options.perPage || 20
       options.perPage = 1 if options.perPage < 1
       options.page = options.page || 1
       options.page = 1 if options.page < 1
-      options.limit = options.offset = ''
 
   collectionError: (name) =>
     Brainstem.Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")
