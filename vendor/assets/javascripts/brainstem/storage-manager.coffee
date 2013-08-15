@@ -87,7 +87,7 @@ class window.Brainstem.StorageManager
     collection = options.collection || @createNewCollection name, []
     collection.setLoaded false
     collection.reset([], silent: false) if options.reset
-    collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'filters', 'include', 'page', 'perPage', 'order', 'search')
+    collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'filters', 'include', 'page', 'perPage', 'limit', 'offset', 'order', 'search')
 
     if @expectations?
       @handleExpectations name, collection, options
@@ -131,7 +131,8 @@ class window.Brainstem.StorageManager
     include = _(options.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
     filters = options.filters || {}
     order = options.order || "updated_at:desc"
-    cacheKey = "#{order}|#{_.chain(filters).pairs().map(([k, v]) -> "#{k}:#{v}" ).value().join(",")}|#{options.page}|#{options.perPage}"
+    filterKeys = _.map(filters, (v, k) -> "#{k}:#{v}").join(',')
+    cacheKey = [order, filterKeys, options.page, options.perPage, options.limit, options.offset].join('|')
 
     cachedCollection = @storage name
     collection = @createNewCollection name, []
@@ -188,11 +189,15 @@ class window.Brainstem.StorageManager
     syncOptions.data.include = include.join(",") if include.length
     syncOptions.data.only = _.difference(only, alreadyLoadedIds).join(",") if only?
     syncOptions.data.order = options.order if options.order?
-    _.extend(syncOptions.data, _(filters).omit('include', 'only', 'order', 'per_page', 'page', 'search')) if _(filters).keys().length
-    syncOptions.data.per_page = options.perPage unless only?
-    syncOptions.data.page = options.page unless only?
-    syncOptions.data.search = search if search
+    _.extend(syncOptions.data, _(filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(filters).keys().length
 
+    unless only?
+      syncOptions.data.per_page = options.perPage
+      syncOptions.data.page = options.page
+      syncOptions.data.limit = options.limit
+      syncOptions.data.offset = options.offset
+
+    syncOptions.data.search = search if search
     Backbone.sync.call collection, 'read', collection, syncOptions
 
     collection
@@ -209,10 +214,16 @@ class window.Brainstem.StorageManager
     options.success(collection) if options.success?
 
   _checkPageSettings: (options) =>
-    options.perPage = options.perPage || 20
-    options.perPage = 1 if options.perPage < 1
-    options.page = options.page || 1
-    options.page = 1 if options.page < 1
+    if options.limit? && options.limit != '' && options.offset? && options.offset != ''
+      options.limit = Math.max(parseInt(options.limit), 1)
+      options.offset = Math.max(parseInt(options.offset), 0)
+      options.perPage = options.page = ''
+    else
+      options.perPage = options.perPage || 20
+      options.perPage = 1 if options.perPage < 1
+      options.page = options.page || 1
+      options.page = 1 if options.page < 1
+      options.limit = options.offset = ''
 
   collectionError: (name) =>
     Brainstem.Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")

@@ -29,9 +29,9 @@ describe 'Brainstem.Collection', ->
 
   describe "loadNextPage", ->
     it "loads the next page of data for a collection that has previously been loaded in the storage manager, returns the collection and whether it thinks there is another page or not", ->
-      respondWith server, "/api/time_entries?per_page=2&page=1", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
-      respondWith server, "/api/time_entries?per_page=2&page=2", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
-      respondWith server, "/api/time_entries?per_page=2&page=3", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry()] }
+      respondWith server, "/api/time_entries?per_page=2&page=1&limit=&offset=", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
+      respondWith server, "/api/time_entries?per_page=2&page=2&limit=&offset=", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
+      respondWith server, "/api/time_entries?per_page=2&page=3&limit=&offset=", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry()] }
       collection = base.data.loadCollection "time_entries", perPage: 2
       expect(collection.length).toEqual 0
       server.respond()
@@ -53,16 +53,41 @@ describe 'Brainstem.Collection', ->
       expect(collection.lastFetchOptions.page).toEqual 3
       expect(collection.length).toEqual 5
 
+    it "fetches based on the last limit and offset if they were the pagination options used", ->
+      respondWith server, "/api/time_entries?per_page=&page=&limit=2&offset=0", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
+      respondWith server, "/api/time_entries?per_page=&page=&limit=2&offset=2", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
+      respondWith server, "/api/time_entries?per_page=&page=&limit=2&offset=4", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry()] }
+      collection = base.data.loadCollection "time_entries", limit: 2, offset: 0
+      expect(collection.length).toEqual 0
+      server.respond()
+      expect(collection.length).toEqual 2
+      expect(collection.lastFetchOptions.offset).toEqual 0
+
+      spy = jasmine.createSpy()
+      collection.loadNextPage success: spy
+      server.respond()
+      expect(spy).toHaveBeenCalledWith(collection, true)
+      expect(collection.lastFetchOptions.offset).toEqual 2
+      expect(collection.length).toEqual 4
+
+      spy = jasmine.createSpy()
+      collection.loadNextPage success: spy
+      expect(collection.length).toEqual 4
+      server.respond()
+      expect(spy).toHaveBeenCalledWith(collection, false)
+      expect(collection.lastFetchOptions.offset).toEqual 4
+      expect(collection.length).toEqual 5
+
   describe "reload", ->
     it "reloads the collection with the original params", ->
-      respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "old post", reply_ids: [])] }
+      respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1&limit=&offset=", resultsFrom: "posts", data: { posts: [buildPost(message: "old post", reply_ids: [])] }
       collection = base.data.loadCollection "posts", include: ["replies"], filters: { parents_only: "true" }, perPage: 5
       server.respond()
       expect(collection.lastFetchOptions.page).toEqual 1
       expect(collection.lastFetchOptions.perPage).toEqual 5
       expect(collection.lastFetchOptions.include).toEqual ["replies"]
       server.responses = []
-      respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "new post", reply_ids: [])] }
+      respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1&limit=&offset=", resultsFrom: "posts", data: { posts: [buildPost(message: "new post", reply_ids: [])] }
       expect(collection.models[0].get("message")).toEqual "old post"
       resetCounter = jasmine.createSpy("resetCounter")
       loadedCounter = jasmine.createSpy("loadedCounter")
