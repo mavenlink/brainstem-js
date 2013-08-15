@@ -20,9 +20,19 @@ class window.Brainstem.Collection extends Backbone.Collection
 
   loadNextPage: (options) =>
     oldLength = @length
+    pageSize = 0
+    paginationOptions = {}
+
+    if @lastFetchOptions.perPage
+      paginationOptions.page = @lastFetchOptions.page + 1
+      pageSize = @lastFetchOptions.perPage
+    else
+      paginationOptions.offset = @lastFetchOptions.offset + @lastFetchOptions.limit
+      pageSize = @lastFetchOptions.limit
+
     success = (collection) =>
-      options.success(collection, collection.length == oldLength + @lastFetchOptions.perPage) if options.success?
-    base.data.loadCollection @lastFetchOptions.name, _.extend({}, @lastFetchOptions, options, page: @lastFetchOptions.page + 1, collection: this, success: success)
+      options.success(collection, collection.length == oldLength + pageSize) if options.success?
+    base.data.loadCollection @lastFetchOptions.name, _.extend({}, @lastFetchOptions, options, paginationOptions, collection: this, success: success)
 
   reload: (options) =>
     base.data.reset()
