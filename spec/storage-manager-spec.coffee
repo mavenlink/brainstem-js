@@ -43,6 +43,15 @@ describe 'Brainstem Storage Manager', ->
       respondWith server, "/api/time_entries?only=1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
       respondWith server, "/api/time_entries?include=project%2Ctask&only=1", resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
 
+    it "uses a passed in model if present", ->
+      existingModel = buildTimeEntry(id: 55)
+
+      newModel = base.data.loadModel "time_entry", existingModel.id, model: existingModel, include: ["project", "task"]
+      expect(newModel.cid).toEqual(existingModel.cid)
+
+      newModel = base.data.loadModel "time_entry", existingModel.id, include: ["project", "task"]
+      expect(newModel.cid).not.toEqual(existingModel.cid)
+
     it "loads a single model from the server, including associations", ->
       model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
       expect(model.loaded).toBe false
@@ -91,7 +100,7 @@ describe 'Brainstem Storage Manager', ->
       server.respond()
       expect(spy).toHaveBeenCalled()
 
-    it "can disbale caching", ->
+    it "can disable caching", ->
       spy = spyOn(base.data, 'loadCollection')
       model = base.data.loadModel "time_entry", 1, cache: false
       expect(spy.mostRecentCall.args[1]['cache']).toBe(false)
