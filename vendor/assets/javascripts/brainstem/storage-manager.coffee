@@ -58,7 +58,10 @@ class window.Brainstem.StorageManager
     options = _.clone(options || {})
     oldSuccess = options.success
     collectionName = name.pluralize()
-    model = new (@getCollectionDetails(collectionName).modelKlass)()
+    
+    model = options.model || new (@getCollectionDetails(collectionName).modelKlass)()
+    model.setLoaded false, trigger: false
+
     @loadCollection collectionName, _.extend options,
       only: id
       success: (collection) ->
