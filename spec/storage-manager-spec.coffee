@@ -47,10 +47,10 @@ describe 'Brainstem Storage Manager', ->
       existingModel = buildTimeEntry(id: 55)
 
       newModel = base.data.loadModel "time_entry", existingModel.id, model: existingModel, include: ["project", "task"]
-      expect(newModel.cid).toEqual(existingModel.cid)
+      expect(newModel).toEqual(existingModel)
 
       newModel = base.data.loadModel "time_entry", existingModel.id, include: ["project", "task"]
-      expect(newModel.cid).not.toEqual(existingModel.cid)
+      expect(newModel).not.toEqual(existingModel)
 
     it "loads a single model from the server, including associations", ->
       model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
