@@ -595,6 +595,22 @@ describe 'Brainstem Storage Manager', ->
         collection = base.data.loadCollection "tasks", search: ""
         server.respond()
 
+    describe 'return values', ->
+      it 'adds the jQuery XHR object to the return values if returnValues is passed in', ->
+        baseXhr = $.ajax()
+        returnValues = {}
+
+        base.data.loadCollection "tasks", search: "the meaning of life", returnValues: returnValues
+        expect(returnValues.jqXhr).not.toBeUndefined()
+
+        # if it has most of the functions of a jQuery XHR object then it's probably a jQuery XHR object
+        jqXhrKeys = ['setRequestHeader', 'getAllResponseHeaders', 'getResponseHeader', 'overrideMimeType', 'abort']
+
+        for functionName in jqXhrKeys
+          funct = returnValues.jqXhr[functionName]
+          expect(funct).not.toBeUndefined()
+          expect(funct.toString()).toEqual(baseXhr[functionName].toString())
+
   describe "createNewCollection", ->
     it "makes a new collection of the appropriate type", ->
       expect(base.data.createNewCollection("tasks", [buildTask(), buildTask()]) instanceof App.Collections.Tasks).toBe true

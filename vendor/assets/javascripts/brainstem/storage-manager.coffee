@@ -203,7 +203,10 @@ class window.Brainstem.StorageManager
         syncOptions.data.page = options.page
 
     syncOptions.data.search = search if search
-    Backbone.sync.call collection, 'read', collection, syncOptions
+    jqXhr = Backbone.sync.call collection, 'read', collection, syncOptions
+
+    if options.returnValues
+      options.returnValues.jqXhr = jqXhr
 
     collection
 
