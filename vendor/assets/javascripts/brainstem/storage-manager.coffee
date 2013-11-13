@@ -65,6 +65,7 @@ class window.Brainstem.StorageManager
     @loadCollection collectionName, _.extend options,
       only: id
       success: (collection) ->
+        return options.error?(model, id) unless collection.get(id)?
         model.setLoaded true, trigger: false
         model.set collection.get(id).attributes
         model.setLoaded true

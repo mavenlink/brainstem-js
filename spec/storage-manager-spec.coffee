@@ -105,6 +105,16 @@ describe 'Brainstem Storage Manager', ->
       model = base.data.loadModel "time_entry", 1, cache: false
       expect(spy.mostRecentCall.args[1]['cache']).toBe(false)
 
+    it "invokes the error callback when the result set is empty", ->
+      successSpy = jasmine.createSpy('successSpy')
+      errorSpy = jasmine.createSpy('errorSpy')
+      respondWith server, "/api/time_entries?only=1337", data: { results: [] }
+      base.data.loadModel "time_entry", 1337, success: successSpy, error: errorSpy
+
+      server.respond()
+      expect(successSpy).not.toHaveBeenCalled()
+      expect(errorSpy).toHaveBeenCalled()
+
   describe 'loadCollection', ->
     it "loads a collection of models", ->
       timeEntries = [buildTimeEntry(), buildTimeEntry()]
