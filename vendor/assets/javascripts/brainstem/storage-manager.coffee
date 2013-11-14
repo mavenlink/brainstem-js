@@ -100,7 +100,7 @@ class window.Brainstem.StorageManager
         expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
         if expectedAdditionalLoads > 0
           timesCalled = 0
-          @_handleNextLayer collection: firstLayerCollection, include: include, success: =>
+          @_handleNextLayer collection: firstLayerCollection, include: include, error: options.error, success: =>
             timesCalled += 1
             if timesCalled == expectedAdditionalLoads
               @_success(options, collection, firstLayerCollection)
@@ -123,8 +123,8 @@ class window.Brainstem.StorageManager
         map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
         flatten().uniq().compact().pluck("id").sort().value()
         newCollectionName = options.collection.model.associationDetails(association).collectionName
-        @_loadCollectionWithFirstLayer name: newCollectionName, only: association_ids, include: nextLevelInclude, success: (loadedAssociationCollection) =>
-          @_handleNextLayer(collection: loadedAssociationCollection, include: nextLevelInclude, success: options.success)
+        @_loadCollectionWithFirstLayer name: newCollectionName, only: association_ids, include: nextLevelInclude, error: options.error, success: (loadedAssociationCollection) =>
+          @_handleNextLayer(collection: loadedAssociationCollection, include: nextLevelInclude, error: options.error, success: options.success)
           options.success()
 
   _loadCollectionWithFirstLayer: (options) =>

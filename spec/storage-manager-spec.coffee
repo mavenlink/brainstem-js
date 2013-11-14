@@ -674,6 +674,22 @@ describe 'Brainstem Storage Manager', ->
         server.respond()
         expect(customHandler).toHaveBeenCalled()
 
+      it "should also get called any amount of layers deep", ->
+        errorHandler = jasmine.createSpy('errorHandler')
+        successHandler = jasmine.createSpy('successHandler')
+        taskOne = buildTask(id: 10, sub_task_ids: [12])
+        taskOneSub = buildTask(id: 12, parent_id: 10, sub_task_ids: [13], project_id: taskOne.get('workspace_id'))
+        respondWith server, "/api/tasks.json?include=sub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne]), tasks: resultsObject([taskOne, taskOneSub]) }
+        server.respondWith "GET", "/api/tasks.json?include=sub_tasks&only=12", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
+        base.data.loadCollection("tasks", filters: { parents_only: "true" }, include: [ "sub_tasks": ["sub_tasks"] ], success: successHandler, error: errorHandler)
+
+        expect(successHandler).not.toHaveBeenCalled()
+        expect(errorHandler).not.toHaveBeenCalled()
+        server.respond()
+        expect(successHandler).not.toHaveBeenCalled()
+        expect(errorHandler).toHaveBeenCalled()
+        expect(errorHandler.callCount).toEqual(1)
+
     describe "when no storage manager error interceptor is given", ->
       it "has a default error interceptor", ->
         manager = new Brainstem.StorageManager()
