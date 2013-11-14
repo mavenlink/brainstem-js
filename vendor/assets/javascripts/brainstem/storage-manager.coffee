@@ -100,7 +100,7 @@ class window.Brainstem.StorageManager
         expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
         if expectedAdditionalLoads > 0
           timesCalled = 0
-          @_handleNextLayer firstLayerCollection, include, =>
+          @_handleNextLayer collection: firstLayerCollection, include: include, success: =>
             timesCalled += 1
             if timesCalled == expectedAdditionalLoads
               @_success(options, collection, firstLayerCollection)
@@ -110,22 +110,22 @@ class window.Brainstem.StorageManager
 
     collection
 
-  _handleNextLayer: (collection, include, callback) =>
+  _handleNextLayer: (options) =>
     # Collection is a fully populated collection of tasks whose first layer of associations are loaded.
     # include is a hierarchical list of associations on those tasks:
     #   [{ 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }, { 'project': [] }]
 
-    _(include).each (hash) => # { 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }
+    _(options.include).each (hash) => # { 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }
       association = _.keys(hash)[0] # time_entries
       nextLevelInclude = hash[association] # ['project': [], 'task': [{ 'assignees': []}]]
       if nextLevelInclude.length
-        association_ids = _(collection.models).chain().
+        association_ids = _(options.collection.models).chain().
         map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
         flatten().uniq().compact().pluck("id").sort().value()
-        newCollectionName = collection.model.associationDetails(association).collectionName
+        newCollectionName = options.collection.model.associationDetails(association).collectionName
         @_loadCollectionWithFirstLayer name: newCollectionName, only: association_ids, include: nextLevelInclude, success: (loadedAssociationCollection) =>
-          @_handleNextLayer(loadedAssociationCollection, nextLevelInclude, callback)
-          callback()
+          @_handleNextLayer(collection: loadedAssociationCollection, include: nextLevelInclude, success: options.success)
+          options.success()
 
   _loadCollectionWithFirstLayer: (options) =>
     options = $.extend({}, options)
