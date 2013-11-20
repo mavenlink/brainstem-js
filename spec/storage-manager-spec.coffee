@@ -52,6 +52,22 @@ describe 'Brainstem Storage Manager', ->
       newModel = base.data.loadModel "time_entry", existingModel.id, include: ["project", "task"]
       expect(newModel).not.toEqual(existingModel)
 
+    it "creates a new model with the supplied id", ->
+      newModel = base.data.loadModel "time_entry", "333"
+      expect(newModel.id).toEqual "333"
+
+    it "calls loadCollection with the model", ->
+      spyOn(base.data, 'loadCollection')
+      newModel = base.data.loadModel "time_entry", "333"
+
+      expect(base.data.loadCollection).toHaveBeenCalled()
+      expect(base.data.loadCollection.mostRecentCall.args[1].model).toEqual newModel
+
+    it "calls Backbone.sync with the model", ->
+      spyOn(Backbone, 'sync')
+      newModel = base.data.loadModel "time_entry", "333"
+      expect(Backbone.sync).toHaveBeenCalledWith 'read', newModel, jasmine.any(Object)
+
     it "loads a single model from the server, including associations", ->
       model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
       expect(model.loaded).toBe false

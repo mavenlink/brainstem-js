@@ -59,11 +59,12 @@ class window.Brainstem.StorageManager
     oldSuccess = options.success
     collectionName = name.pluralize()
     
-    model = options.model || new (@getCollectionDetails(collectionName).modelKlass)()
+    model = options.model || new (@getCollectionDetails(collectionName).modelKlass)(id: id)
     model.setLoaded false, trigger: false
 
     @loadCollection collectionName, _.extend options,
       only: id
+      model: model
       success: (collection) ->
         return options.error?(model, id) unless collection.get(id)?
         model.setLoaded true, trigger: false
@@ -204,7 +205,11 @@ class window.Brainstem.StorageManager
         syncOptions.data.page = options.page
 
     syncOptions.data.search = search if search
-    jqXhr = Backbone.sync.call collection, 'read', collection, syncOptions
+
+    modelOrCollection = collection
+    modelOrCollection = options.model if options.only && options.model
+    
+    jqXhr = Backbone.sync.call collection, 'read', modelOrCollection, syncOptions
 
     if options.returnValues
       options.returnValues.jqXhr = jqXhr
