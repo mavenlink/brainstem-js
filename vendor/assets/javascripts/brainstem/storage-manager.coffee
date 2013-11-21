@@ -66,7 +66,6 @@ class window.Brainstem.StorageManager
       only: id
       model: model
       success: (collection) ->
-        return options.error?(model, id) unless collection.get(id)?
         model.setLoaded true, trigger: false
         model.set collection.get(id).attributes
         model.setLoaded true
