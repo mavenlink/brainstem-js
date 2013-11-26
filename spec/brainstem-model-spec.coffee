@@ -28,6 +28,14 @@ describe 'Brainstem.Model', ->
       expect(base.data.storage('users').get(5).attributes).toEqual(response.users[5])
       expect(base.data.storage('users').get(6).attributes).toEqual(response.users[6])
 
+    it 'should add the parsing model to the storage manager instead of making a new one', ->
+      response.tasks[1].title = 'Hello'
+      expect(base.data.storage('tasks').get(1)).toBeUndefined()
+
+      model.parse(response)
+      expect(base.data.storage('tasks').get(1)).toEqual(model)
+      expect(base.data.storage('tasks').get(1).get('title')).toEqual('Hello')
+
     it 'should work with an empty response', ->
       expect( -> model.parse(tasks: {}, results: [], count: 0)).not.toThrow()
 
