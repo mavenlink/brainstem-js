@@ -57,23 +57,6 @@ class window.Brainstem.StorageManager
   loadCollection: =>
     @dataLoader.loadCollection.apply(@dataLoader, arguments)
 
-  _handleNextLayer: (options) =>
-    # Collection is a fully populated collection of tasks whose first layer of associations are loaded.
-    # include is a hierarchical list of associations on those tasks:
-    #   [{ 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }, { 'project': [] }]
-
-    _(options.include).each (hash) => # { 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }
-      association = _.keys(hash)[0] # time_entries
-      nextLevelInclude = hash[association] # ['project': [], 'task': [{ 'assignees': []}]]
-      if nextLevelInclude.length
-        association_ids = _(options.collection.models).chain().
-        map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
-        flatten().uniq().compact().pluck("id").sort().value()
-        newCollectionName = options.collection.model.associationDetails(association).collectionName
-        @_loadCollectionWithFirstLayer name: newCollectionName, only: association_ids, include: nextLevelInclude, error: options.error, success: (loadedAssociationCollection) =>
-          @_handleNextLayer(collection: loadedAssociationCollection, include: nextLevelInclude, error: options.error, success: options.success)
-          options.success()
-
   _loadCollectionWithFirstLayer: (options) =>
     options = $.extend({}, options)
     name = options.name
