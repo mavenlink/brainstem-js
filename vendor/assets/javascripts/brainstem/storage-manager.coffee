@@ -70,30 +70,6 @@ class window.Brainstem.StorageManager
   createNewModel: (modelName, options) =>
     new (@getCollectionDetails(modelName.pluralize()).modelKlass)(options || {})
 
-  _wrapObjects: (array) =>
-    output = []
-    _(array).each (elem) =>
-      if elem.constructor == Object
-        for key, value of elem
-          o = {}
-          o[key] = @_wrapObjects(if value instanceof Array then value else [value])
-          output.push o
-      else
-        o = {}
-        o[elem] = []
-        output.push o
-    output
-
-  _countRequiredServerRequests: (array, wrapped = false) =>
-    if array?.length
-      array = @_wrapObjects(array) unless wrapped
-      sum = 1
-      _(array).each (elem) =>
-        sum += @_countRequiredServerRequests(_(elem).values()[0], true)
-      sum
-    else
-      0
-
   # Expectations and stubbing
 
   stub: (collectionName, options) =>

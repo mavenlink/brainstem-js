@@ -649,23 +649,23 @@ describe 'Brainstem Storage Manager', ->
 
   describe "_wrapObjects", ->
     it "wraps elements in an array with objects unless they are already objects", ->
-      expect(base.data._wrapObjects([])).toEqual []
-      expect(base.data._wrapObjects(['a', 'b'])).toEqual [{a: []}, {b: []}]
-      expect(base.data._wrapObjects(['a', 'b': []])).toEqual [{a: []}, {b: []}]
-      expect(base.data._wrapObjects(['a', 'b': 'c'])).toEqual [{a: []}, {b: [{c: []}]}]
-      expect(base.data._wrapObjects([{'a':[], b: 'c', d: 'e' }])).toEqual [{a: []}, {b: [{c: []}]}, {d: [{e: []}]}]
-      expect(base.data._wrapObjects(['a', { b: 'c', d: 'e' }])).toEqual [{a: []}, {b: [{c: []}]}, {d: [{e: []}]}]
-      expect(base.data._wrapObjects([{'a': []}, {'b': ['c', d: []]}])).toEqual [{a: []}, {b: [{c: []}, {d: []}]}]
+      expect(base.data.dataLoader._wrapObjects([])).toEqual []
+      expect(base.data.dataLoader._wrapObjects(['a', 'b'])).toEqual [{a: []}, {b: []}]
+      expect(base.data.dataLoader._wrapObjects(['a', 'b': []])).toEqual [{a: []}, {b: []}]
+      expect(base.data.dataLoader._wrapObjects(['a', 'b': 'c'])).toEqual [{a: []}, {b: [{c: []}]}]
+      expect(base.data.dataLoader._wrapObjects([{'a':[], b: 'c', d: 'e' }])).toEqual [{a: []}, {b: [{c: []}]}, {d: [{e: []}]}]
+      expect(base.data.dataLoader._wrapObjects(['a', { b: 'c', d: 'e' }])).toEqual [{a: []}, {b: [{c: []}]}, {d: [{e: []}]}]
+      expect(base.data.dataLoader._wrapObjects([{'a': []}, {'b': ['c', d: []]}])).toEqual [{a: []}, {b: [{c: []}, {d: []}]}]
 
   describe "_countRequiredServerRequests", ->
     it "should count the number of loads needed to get the date", ->
-      expect(base.data._countRequiredServerRequests(['a'])).toEqual 1
-      expect(base.data._countRequiredServerRequests(['a', 'b', 'c': []])).toEqual 1
-      expect(base.data._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e']])).toEqual 3
-      expect(base.data._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': []]])).toEqual 3
-      expect(base.data._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': ['f']]])).toEqual 4
-      expect(base.data._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': ['f', 'g': ['h']]]])).toEqual 5
-      expect(base.data._countRequiredServerRequests([{'a': ['d': ['h']]}, { 'b':['g'] }, 'c': ['e': ['f', 'i']]])).toEqual 6
+      expect(base.data.dataLoader._countRequiredServerRequests(['a'])).toEqual 1
+      expect(base.data.dataLoader._countRequiredServerRequests(['a', 'b', 'c': []])).toEqual 1
+      expect(base.data.dataLoader._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e']])).toEqual 3
+      expect(base.data.dataLoader._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': []]])).toEqual 3
+      expect(base.data.dataLoader._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': ['f']]])).toEqual 4
+      expect(base.data.dataLoader._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': ['f', 'g': ['h']]]])).toEqual 5
+      expect(base.data.dataLoader._countRequiredServerRequests([{'a': ['d': ['h']]}, { 'b':['g'] }, 'c': ['e': ['f', 'i']]])).toEqual 6
 
   describe "error handling", ->
     describe "setting a storage manager default error handler", ->

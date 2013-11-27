@@ -39,7 +39,7 @@ class Brainstem.DataLoader
   loadCollection: (name, options) =>
     options = $.extend({}, options, name: name)
     @_checkPageSettings options
-    include = @storageManager._wrapObjects(Brainstem.Utils.extractArray "include", options)
+    include = @_wrapObjects(Brainstem.Utils.extractArray "include", options)
     if options.search
       options.cache = false
 
@@ -52,7 +52,7 @@ class Brainstem.DataLoader
       @storageManager.handleExpectations name, collection, options
     else
       @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
-        expectedAdditionalLoads = @storageManager._countRequiredServerRequests(include) - 1
+        expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
         if expectedAdditionalLoads > 0
           timesCalled = 0
           @_handleNextLayer collection: firstLayerCollection, include: include, error: options.error, success: =>
@@ -200,3 +200,27 @@ class Brainstem.DataLoader
       options.perPage = 1 if options.perPage < 1
       options.page = options.page || 1
       options.page = 1 if options.page < 1
+
+  _wrapObjects: (array) =>
+    output = []
+    _(array).each (elem) =>
+      if elem.constructor == Object
+        for key, value of elem
+          o = {}
+          o[key] = @_wrapObjects(if value instanceof Array then value else [value])
+          output.push o
+      else
+        o = {}
+        o[elem] = []
+        output.push o
+    output
+
+  _countRequiredServerRequests: (array, wrapped = false) =>
+    if array?.length
+      array = @_wrapObjects(array) unless wrapped
+      sum = 1
+      _(array).each (elem) =>
+        sum += @_countRequiredServerRequests(_(elem).values()[0], true)
+      sum
+    else
+      0
