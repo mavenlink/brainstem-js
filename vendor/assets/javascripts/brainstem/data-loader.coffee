@@ -16,7 +16,6 @@ class Brainstem.CollectionLoader
 
     # Generate collection references
     @cachedCollection = @storageManager.storage @loadOptions.name
-    @internalCollection = @storageManager.createNewCollection @loadOptions.name, []
     @externalCollection = @loadOptions.collection
 
   _checkCache: ->
@@ -45,10 +44,10 @@ class Brainstem.CollectionLoader
       return collection
 
     # If we haven't returned yet, we need to go to the server to load some missing data.
-    modelOrCollection = @internalCollection
+    modelOrCollection = @externalCollection
     modelOrCollection = @loadOptions.model if @loadOptions.only && @loadOptions.model
     
-    jqXhr = Backbone.sync.call @internalCollection, 'read', modelOrCollection, @_buildSyncOptions()
+    jqXhr = Backbone.sync.call @externalCollection, 'read', modelOrCollection, @_buildSyncOptions()
 
     if @loadOptions.returnValues
       @loadOptions.returnValues.jqXhr = jqXhr
@@ -119,8 +118,7 @@ class Brainstem.CollectionLoader
     collection.setLoaded true    
 
   _success: (options, data) ->
-    @_updateCollection(@internalCollection, data)
-    @_updateCollection(@externalCollection, @internalCollection)
+    @_updateCollection(@externalCollection, data)
     options.success(@externalCollection) if options.success?
 
 ####################################
