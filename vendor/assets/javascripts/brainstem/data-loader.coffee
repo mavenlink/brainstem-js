@@ -11,6 +11,7 @@ class Brainstem.CollectionLoader
     @_parseLoadOptions(loadOptions)
     @_createCollectionReferences()
     @_interceptOldSuccess()
+    @_calculateAdditionalIncludes()
 
   _parseLoadOptions: (loadOptions) ->
     @loadOptions = $.extend {}, loadOptions
@@ -24,6 +25,12 @@ class Brainstem.CollectionLoader
     filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
     @loadOptions.cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, @loadOptions.page, @loadOptions.perPage, @loadOptions.limit, @loadOptions.offset].join('|')
 
+  _interceptOldSuccess: ->
+    externalSuccess = @loadOptions.success
+    @loadOptions.success = =>
+      @_updateCollection(@externalCollection, @internalCollection)
+      externalSuccess(@externalCollection) if externalSuccess
+
   _createCollectionReferences: ->
     @cachedCollection = @storageManager.storage @loadOptions.name
     @internalCollection = @storageManager.createNewCollection @loadOptions.name, []
@@ -34,39 +41,41 @@ class Brainstem.CollectionLoader
     @externalCollection.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), 'name', 'filters', 'include', 'page', 'perPage', 'limit', 'offset', 'order', 'search')
     @externalCollection.lastFetchOptions.include = @loadOptions.plainInclude
 
+  _calculateAdditionalIncludes: ->
+    @additionalIncludesCount = 0
+    @completedIncludesCount = 0
+
+    if @loadOptions.include
+      for elem in @loadOptions.include when _.values(elem)[0].length
+        @additionalIncludesCount += 1
+
   _checkCache: ->
     unless @loadOptions.cache == false
       if @loadOptions.only?
         @alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.thisLayerInclude)
         if @alreadyLoadedIds.length == @loadOptions.only.length
           # We've already seen every id that is being asked for and have all the associated data.
-          @_success @loadOptions, _.map @loadOptions.only, (id) => @cachedCollection.get(id)
+          @onCollectionLoadSuccess(_.map @loadOptions.only, (id) => @cachedCollection.get(id))
           return @externalCollection
       else
         # Check if we have, at some point, requested enough records with this this order and filter(s).
         if @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]
           subset = _(@storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
           if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.thisLayerInclude)))
-            @_success @loadOptions, subset
+            @onCollectionLoadSuccess(subset)
             return @externalCollection
 
     return false
-
-  _interceptOldSuccess: ->
-    externalSuccess = @loadOptions.success
-    @loadOptions.success = =>
-      @_updateCollection(@externalCollection, @internalCollection)
-      externalSuccess(@externalCollection) if externalSuccess
 
   load: ->
     if not @loadOptions
       throw "You must call #setup first or pass loadOptions into the constructor"
 
-    # Check the cache
+    # Check the cache to see if we have everything that we need.
     if collection = @_checkCache()
       return collection
 
-    # If we haven't returned yet, we need to go to the server to load some missing data.
+    # If we didn't return the collection from the cache, we need to go to the server to load some missing data.
     modelOrCollection = @internalCollection
     modelOrCollection = @loadOptions.model if @loadOptions.only && @loadOptions.model
     
@@ -77,7 +86,10 @@ class Brainstem.CollectionLoader
 
     @externalCollection
 
-  onLoadSuccess: (resp, status, xhr) =>
+  onSyncSuccess: (resp, status, xhr) =>
+    @_updateStorageManagerFromResponse(resp)
+
+  _updateStorageManagerFromResponse: (resp) ->
     # The server response should look something like this:
     #  {
     #    count: 200,
@@ -103,16 +115,16 @@ class Brainstem.CollectionLoader
     if @loadOptions.only?
       data = _.map(@loadOptions.only, (id) => @cachedCollection.get(id))
     else
-      data = _(results).map (result) -> base.data.storage(result.key).get(result.id)
+      data = _.map(results, (result) => @storageManager.storage(result.key).get(result.id))
 
-    @_success @loadOptions, data
+    @onCollectionLoadSuccess(data)
 
   _buildSyncOptions: ->
     syncOptions =
       data: {}
       parse: true
       error: @loadOptions.error
-      success: @onLoadSuccess
+      success: @onSyncSuccess
 
     syncOptions.data.include = @loadOptions.thisLayerInclude.join(",") if @loadOptions.thisLayerInclude.length
     syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",") if @loadOptions.only?
@@ -138,59 +150,40 @@ class Brainstem.CollectionLoader
         collection.add data
       else
         collection.reset data
-    collection.setLoaded true    
+    collection.setLoaded true
 
-  _success: (options, data) ->
-    # Update proxy collection
+  _getIdsForAssociation: (association) ->
+    models = @internalCollection.map (m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a
+    _(models).chain().flatten().pluck("id").compact().uniq().sort().value()
+
+  onCollectionLoadSuccess: (data) ->
     @_updateCollection(@internalCollection, data)
 
-    shouldCall = false
-
-    if @loadOptions
-      expectedServerRequests = @_countRequiredServerRequests(@loadOptions.include)
-      if expectedServerRequests > 0
-        c = 0
-        for hash in @loadOptions.include
-          association = _.keys(hash)[0]
-          nextLevel = hash[association]
-
-          if nextLevel.length
-            associationIds = _(@internalCollection.models).chain().
-            map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
-            flatten().uniq().compact().pluck("id").sort().value()
-
-            newCollectionName = @internalCollection.model.associationDetails(association).collectionName
-
-            loadOptions =
-              name: newCollectionName
-              only: associationIds
-              include: nextLevel
-              error: @loadOptions.error
-              success: =>
-                c += 1
-
-                if c == expectedServerRequests
-                  options.success()
-
-            cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
-            cl.setup(loadOptions)
-            cl.load()
-      else
-        shouldCall = true
+    if @additionalIncludesCount
+      @_loadAdditionalIncludes()
     else
-      shouldCall = true
-    
-    if options.success? && shouldCall
-      options.success()
+      @loadOptions.success()
 
-  _countRequiredServerRequests: (array) =>
-    sum = 0
+  _loadAdditionalIncludes: ->
+    for hash in @loadOptions.include
+      associationName = _.keys(hash)[0]
+      nextLevelInclude = hash[associationName]
 
-    if array?.length
-      for elem in array when _.values(elem)[0].length
-        sum += 1
+      if nextLevelInclude.length
+        collectionName = @internalCollection.model.associationDetails(associationName).collectionName
+        loadOptions =
+          only: @_getIdsForAssociation(associationName)
+          include: nextLevelInclude
+          error: @loadOptions.error
+          success: @_onAdditionalIncludeLoadSuccess
 
-    sum
+        @storageManager.loadCollection(collectionName, loadOptions)
+
+  _onAdditionalIncludeLoadSuccess: =>
+    @completedIncludesCount += 1
+
+    if @completedIncludesCount == @additionalIncludesCount
+      @loadOptions.success()
 
 ####################################
 
