@@ -7,12 +7,12 @@ class Brainstem.CollectionLoader
 
   _parseLoadOptions: (loadOptions) ->
     @loadOptions = $.extend {}, loadOptions
+    @loadOptions.only = if @loadOptions.only then _.map((Brainstem.Utils.extractArray "only", @loadOptions), (id) -> String(id)) else null
 
   load: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
 
     options = @loadOptions
-    only = if options.only then _.map((Brainstem.Utils.extractArray "only", options), (id) -> String(id)) else null
     search = options.search
     include = _(options.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
     filters = options.filters || {}
@@ -24,11 +24,11 @@ class Brainstem.CollectionLoader
     collection = @storageManager.createNewCollection @loadOptions.name, []
 
     unless options.cache == false
-      if only?
-        alreadyLoadedIds = _.select only, (id) => cachedCollection.get(id)?.associationsAreLoaded(include)
-        if alreadyLoadedIds.length == only.length
+      if @loadOptions.only?
+        alreadyLoadedIds = _.select @loadOptions.only, (id) => cachedCollection.get(id)?.associationsAreLoaded(include)
+        if alreadyLoadedIds.length == @loadOptions.only.length
           # We've already seen every id that is being asked for and have all the associated data.
-          @_success options, collection, _.map only, (id) => cachedCollection.get(id)
+          @_success options, collection, _.map @loadOptions.only, (id) => cachedCollection.get(id)
           return collection
       else
         # Check if we have, at some point, requested enough records with this this order and filter(s).
@@ -63,21 +63,21 @@ class Brainstem.CollectionLoader
         for underscoredModelName in keys
           @storageManager.storage(underscoredModelName).update _(resp[underscoredModelName]).values()
 
-        unless options.cache == false || only?
+        unless options.cache == false || @loadOptions.only?
           @storageManager.getCollectionDetails(@loadOptions.name).cache[cacheKey] = results
 
-        if only?
-          @_success options, collection, _.map(only, (id) -> cachedCollection.get(id))
+        if @loadOptions.only?
+          @_success options, collection, _.map(@loadOptions.only, (id) -> cachedCollection.get(id))
         else
           @_success options, collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
 
 
     syncOptions.data.include = include.join(",") if include.length
-    syncOptions.data.only = _.difference(only, alreadyLoadedIds).join(",") if only?
+    syncOptions.data.only = _.difference(@loadOptions.only, alreadyLoadedIds).join(",") if @loadOptions.only?
     syncOptions.data.order = options.order if options.order?
     _.extend(syncOptions.data, _(filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(filters).keys().length
 
-    unless only?
+    unless @loadOptions.only?
       if options.limit? && options.offset?
         syncOptions.data.limit = options.limit
         syncOptions.data.offset = options.offset
@@ -88,7 +88,7 @@ class Brainstem.CollectionLoader
     syncOptions.data.search = search if search
 
     modelOrCollection = collection
-    modelOrCollection = options.model if options.only && options.model
+    modelOrCollection = options.model if @loadOptions.only && options.model
     
     jqXhr = Backbone.sync.call collection, 'read', modelOrCollection, syncOptions
 
