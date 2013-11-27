@@ -3,7 +3,7 @@ window.Brainstem ?= {}
 class Brainstem.CollectionLoader
   constructor: (options = {}) ->
     @storageManager = options.storageManager
-    @_success = options.successFunction
+    @successFunction = options.successFunction
 
   _parseLoadOptions: (loadOptions) ->
     @loadOptions = $.extend {}, loadOptions
@@ -108,6 +108,9 @@ class Brainstem.CollectionLoader
     syncOptions.data.search = @loadOptions.search if @loadOptions.search
     syncOptions
 
+  _success: ->
+    @successFunction.apply(this, arguments)
+
 ####################################
 
 class Brainstem.DataLoader
@@ -161,9 +164,11 @@ class Brainstem.DataLoader
     if @storageManager.expectations?
       @storageManager.handleExpectations name, collection, options
     else
-      @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
+      opts = $.extend {}, options, include: include, success: (firstLayerCollection) =>
         @_success(options, collection, firstLayerCollection)
-      )))
+
+      cl = new Brainstem.CollectionLoader(storageManager: @storageManager, successFunction: @_success)
+      cl.loadCollection(opts)
 
       # @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
       #   expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
@@ -179,10 +184,6 @@ class Brainstem.DataLoader
       # )))
 
     collection
-
-  _loadCollectionWithFirstLayer: (options) =>
-    cl = new Brainstem.CollectionLoader(storageManager: @storageManager, successFunction: @_success)
-    cl.loadCollection(options)
 
   # _handleNextLayer: (options) =>
   #   # Collection is a fully populated collection of tasks whose first layer of associations are loaded.
