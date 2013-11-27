@@ -22,28 +22,26 @@ class Brainstem.CollectionLoader
   load: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
 
-    options = @loadOptions
-
-    unless options.cache == false
+    unless @loadOptions.cache == false
       if @loadOptions.only?
         alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.include)
         if alreadyLoadedIds.length == @loadOptions.only.length
           # We've already seen every id that is being asked for and have all the associated data.
-          @_success options, @collection, _.map @loadOptions.only, (id) => @cachedCollection.get(id)
+          @_success @loadOptions, @collection, _.map @loadOptions.only, (id) => @cachedCollection.get(id)
           return @collection
       else
         # Check if we have, at some point, requested enough records with this this order and filter(s).
         if @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]
           subset = _(@storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
           if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.include)))
-            @_success options, @collection, subset
+            @_success @loadOptions, @collection, subset
             return @collection
 
     # If we haven't returned yet, we need to go to the server to load some missing data.
     syncOptions =
       data: {}
       parse: true
-      error: options.error
+      error: @loadOptions.error
       success: (resp, status, xhr) =>
         # The server response should look something like this:
         #  {
@@ -64,13 +62,13 @@ class Brainstem.CollectionLoader
         for underscoredModelName in keys
           @storageManager.storage(underscoredModelName).update _(resp[underscoredModelName]).values()
 
-        unless options.cache == false || @loadOptions.only?
+        unless @loadOptions.cache == false || @loadOptions.only?
           @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = results
 
         if @loadOptions.only?
-          @_success options, @collection, _.map(@loadOptions.only, (id) => @cachedCollection.get(id))
+          @_success @loadOptions, @collection, _.map(@loadOptions.only, (id) => @cachedCollection.get(id))
         else
-          @_success options, @collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
+          @_success @loadOptions, @collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
 
     syncOptions.data.include = @loadOptions.include.join(",") if @loadOptions.include.length
     syncOptions.data.only = _.difference(@loadOptions.only, alreadyLoadedIds).join(",") if @loadOptions.only?
@@ -78,22 +76,22 @@ class Brainstem.CollectionLoader
     _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length
 
     unless @loadOptions.only?
-      if options.limit? && options.offset?
-        syncOptions.data.limit = options.limit
-        syncOptions.data.offset = options.offset
+      if @loadOptions.limit? && @loadOptions.offset?
+        syncOptions.data.limit = @loadOptions.limit
+        syncOptions.data.offset = @loadOptions.offset
       else
-        syncOptions.data.per_page = options.perPage
-        syncOptions.data.page = options.page
+        syncOptions.data.per_page = @loadOptions.perPage
+        syncOptions.data.page = @loadOptions.page
 
     syncOptions.data.search = @loadOptions.search if @loadOptions.search
 
     modelOrCollection = @collection
-    modelOrCollection = options.model if @loadOptions.only && options.model
+    modelOrCollection = @loadOptions.model if @loadOptions.only && @loadOptions.model
     
     jqXhr = Backbone.sync.call @collection, 'read', modelOrCollection, syncOptions
 
-    if options.returnValues
-      options.returnValues.jqXhr = jqXhr
+    if @loadOptions.returnValues
+      @loadOptions.returnValues.jqXhr = jqXhr
 
     @collection
 
