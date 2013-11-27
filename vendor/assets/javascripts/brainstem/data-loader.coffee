@@ -16,7 +16,11 @@ class Brainstem.CollectionLoader
 
     # Generate collection references
     @cachedCollection = @storageManager.storage @loadOptions.name
-    @externalCollection = @loadOptions.collection
+
+    @externalCollection = @loadOptions.collection || @storageManager.createNewCollection @loadOptions.name, []
+    @externalCollection.setLoaded false
+    @externalCollection.reset([], silent: false) if @loadOptions.reset
+    @externalCollection.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), 'name', 'filters', 'include', 'page', 'perPage', 'limit', 'offset', 'order', 'search')
 
   _checkCache: ->
     unless @loadOptions.cache == false
@@ -168,16 +172,16 @@ class Brainstem.DataLoader
     if options.search
       options.cache = false
 
-    collection = options.collection || @storageManager.createNewCollection name, []
-    collection.setLoaded false
-    collection.reset([], silent: false) if options.reset
-    collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'filters', 'include', 'page', 'perPage', 'limit', 'offset', 'order', 'search')
-
     if @storageManager.expectations?
+      collection = options.collection || @storageManager.createNewCollection name, []
+      collection.setLoaded false
+      collection.reset([], silent: false) if options.reset
+      collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'filters', 'include', 'page', 'perPage', 'limit', 'offset', 'order', 'search')
+
       @storageManager.handleExpectations name, collection, options
     else
       cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
-      cl.loadCollection($.extend({}, options, collection: collection, include: include))
+      collection = cl.loadCollection($.extend({}, options, include: include))
 
     collection
 
