@@ -15,27 +15,29 @@ class Brainstem.CollectionLoader
     filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
     @loadOptions.cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, @loadOptions.page, @loadOptions.perPage, @loadOptions.limit, @loadOptions.offset].join('|')
 
+    # Generate collection references
+    @cachedCollection = @storageManager.storage @loadOptions.name
+    @collection = @storageManager.createNewCollection @loadOptions.name, []
+
   load: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
 
     options = @loadOptions
-    cachedCollection = @storageManager.storage @loadOptions.name
-    collection = @storageManager.createNewCollection @loadOptions.name, []
 
     unless options.cache == false
       if @loadOptions.only?
-        alreadyLoadedIds = _.select @loadOptions.only, (id) => cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.include)
+        alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.include)
         if alreadyLoadedIds.length == @loadOptions.only.length
           # We've already seen every id that is being asked for and have all the associated data.
-          @_success options, collection, _.map @loadOptions.only, (id) => cachedCollection.get(id)
-          return collection
+          @_success options, @collection, _.map @loadOptions.only, (id) => @cachedCollection.get(id)
+          return @collection
       else
         # Check if we have, at some point, requested enough records with this this order and filter(s).
         if @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]
           subset = _(@storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
           if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.include)))
-            @_success options, collection, subset
-            return collection
+            @_success options, @collection, subset
+            return @collection
 
     # If we haven't returned yet, we need to go to the server to load some missing data.
     syncOptions =
@@ -66,9 +68,9 @@ class Brainstem.CollectionLoader
           @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = results
 
         if @loadOptions.only?
-          @_success options, collection, _.map(@loadOptions.only, (id) -> cachedCollection.get(id))
+          @_success options, @collection, _.map(@loadOptions.only, (id) => @cachedCollection.get(id))
         else
-          @_success options, collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
+          @_success options, @collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
 
     syncOptions.data.include = @loadOptions.include.join(",") if @loadOptions.include.length
     syncOptions.data.only = _.difference(@loadOptions.only, alreadyLoadedIds).join(",") if @loadOptions.only?
@@ -85,15 +87,15 @@ class Brainstem.CollectionLoader
 
     syncOptions.data.search = @loadOptions.search if @loadOptions.search
 
-    modelOrCollection = collection
+    modelOrCollection = @collection
     modelOrCollection = options.model if @loadOptions.only && options.model
     
-    jqXhr = Backbone.sync.call collection, 'read', modelOrCollection, syncOptions
+    jqXhr = Backbone.sync.call @collection, 'read', modelOrCollection, syncOptions
 
     if options.returnValues
       options.returnValues.jqXhr = jqXhr
 
-    collection
+    @collection
 
 class Brainstem.DataLoader
   constructor: (options = {}) ->
