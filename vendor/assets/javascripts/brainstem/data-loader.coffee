@@ -11,13 +11,14 @@ class Brainstem.CollectionLoader
     @loadOptions.filters ?= {}
     @loadOptions.include = _(@loadOptions.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
 
+    # Build cache key
+    filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
+    @loadOptions.cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, @loadOptions.page, @loadOptions.perPage, @loadOptions.limit, @loadOptions.offset].join('|')
+
   load: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
 
     options = @loadOptions
-    filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
-    cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, options.page, options.perPage, options.limit, options.offset].join('|')
-
     cachedCollection = @storageManager.storage @loadOptions.name
     collection = @storageManager.createNewCollection @loadOptions.name, []
 
@@ -30,8 +31,8 @@ class Brainstem.CollectionLoader
           return collection
       else
         # Check if we have, at some point, requested enough records with this this order and filter(s).
-        if @storageManager.getCollectionDetails(@loadOptions.name).cache[cacheKey]
-          subset = _(@storageManager.getCollectionDetails(@loadOptions.name).cache[cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
+        if @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]
+          subset = _(@storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
           if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.include)))
             @_success options, collection, subset
             return collection
@@ -62,7 +63,7 @@ class Brainstem.CollectionLoader
           @storageManager.storage(underscoredModelName).update _(resp[underscoredModelName]).values()
 
         unless options.cache == false || @loadOptions.only?
-          @storageManager.getCollectionDetails(@loadOptions.name).cache[cacheKey] = results
+          @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = results
 
         if @loadOptions.only?
           @_success options, collection, _.map(@loadOptions.only, (id) -> cachedCollection.get(id))
