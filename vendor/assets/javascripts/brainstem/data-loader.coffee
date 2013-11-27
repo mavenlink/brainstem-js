@@ -8,15 +8,14 @@ class Brainstem.CollectionLoader
   _parseLoadOptions: (loadOptions) ->
     @loadOptions = $.extend {}, loadOptions
     @loadOptions.only = if @loadOptions.only then _.map((Brainstem.Utils.extractArray "only", @loadOptions), (id) -> String(id)) else null
-
+    @loadOptions.filters ?= {}
   load: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
 
     options = @loadOptions
     include = _(options.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
-    filters = options.filters || {}
     order = options.order || "updated_at:desc"
-    filterKeys = _.map(filters, (v, k) -> "#{k}:#{v}").join(',')
+    filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
     cacheKey = [order, filterKeys, options.page, options.perPage, options.limit, options.offset].join('|')
 
     cachedCollection = @storageManager.storage @loadOptions.name
@@ -74,7 +73,7 @@ class Brainstem.CollectionLoader
     syncOptions.data.include = include.join(",") if include.length
     syncOptions.data.only = _.difference(@loadOptions.only, alreadyLoadedIds).join(",") if @loadOptions.only?
     syncOptions.data.order = options.order if options.order?
-    _.extend(syncOptions.data, _(filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(filters).keys().length
+    _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length
 
     unless @loadOptions.only?
       if options.limit? && options.offset?
