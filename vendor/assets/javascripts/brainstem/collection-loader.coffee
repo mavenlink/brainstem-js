@@ -140,8 +140,6 @@ class Brainstem.CollectionLoader
 
         @storageManager.loadCollection(collectionName, loadOptions)
 
-  ### Helpers ###
-
   _getIdsForAssociation: (association) ->
     models = @internalCollection.map (m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a
     _(models).chain().flatten().pluck("id").compact().uniq().sort().value()
