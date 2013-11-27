@@ -6,6 +6,8 @@ class Brainstem.CollectionLoader
 
   _parseLoadOptions: (loadOptions) ->
     @loadOptions = $.extend {}, loadOptions
+    @loadOptions.plainInclude = @loadOptions.include
+    @loadOptions.include = Brainstem.Utils.wrapObjects(Brainstem.Utils.extractArray "include", @loadOptions)
     @loadOptions.only = if @loadOptions.only then _.map((Brainstem.Utils.extractArray "only", @loadOptions), (id) -> String(id)) else null
     @loadOptions.filters ?= {}
     @loadOptions.thisLayerInclude = _(@loadOptions.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
@@ -226,7 +228,7 @@ class Brainstem.DataLoader
   loadCollection: (name, options) =>
     options = $.extend({}, options, name: name)
     @_checkPageSettings options
-    include = Brainstem.Utils.wrapObjects(Brainstem.Utils.extractArray "include", options)
+
     if options.search
       options.cache = false
 
@@ -239,7 +241,7 @@ class Brainstem.DataLoader
       @storageManager.handleExpectations name, collection, options
     else
       cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
-      collection = cl.loadCollection($.extend({}, options, include: include, plainInclude: options.include))
+      collection = cl.loadCollection(options)
 
     collection
 
