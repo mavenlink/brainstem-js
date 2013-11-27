@@ -9,7 +9,7 @@ class Brainstem.DataLoader
   #     model = manager.loadModel "time_entry"
   #     model = manager.loadModel "time_entry", fields: ["title", "notes"]
   #     model = manager.loadModel "time_entry", include: ["project", "task"]
-  loadModel: (name, id, options) =>
+  loadModel: (name, id, options) ->
     options = _.clone(options || {})
     oldSuccess = options.success
     collectionName = name.pluralize()
@@ -36,7 +36,7 @@ class Brainstem.DataLoader
   #     collection = manager.loadCollection "time_entries", include: ["project:title,description", "task:due_date"]
   #     collection = manager.loadCollection "tasks",      include: ["assets", { "assignees": "account" }, { "sub_tasks": ["assignees", "assets"] }]
   #     collection = manager.loadCollection "time_entries", filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
-  loadCollection: (name, options) =>
+  loadCollection: (name, options) ->
     options = $.extend({}, options, name: name)
     @_checkPageSettings options
 
@@ -59,7 +59,7 @@ class Brainstem.DataLoader
 
   # Helpers
 
-  _checkPageSettings: (options) =>
+  _checkPageSettings: (options) ->
     if options.limit? && options.limit != '' && options.offset? && options.offset != ''
       options.perPage = options.page = undefined
     else
@@ -67,7 +67,7 @@ class Brainstem.DataLoader
 
     @_setDefaultPageSettings(options)
 
-  _setDefaultPageSettings: (options) =>
+  _setDefaultPageSettings: (options) ->
     if options.limit? && options.offset?
       options.limit = 1 if options.limit < 1
       options.offset = 0 if options.offset < 0
