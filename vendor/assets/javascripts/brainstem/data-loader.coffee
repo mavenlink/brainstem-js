@@ -51,7 +51,7 @@ class Brainstem.DataLoader
     if @storageManager.expectations?
       @storageManager.handleExpectations name, collection, options
     else
-      @storageManager._loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
+      @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
         expectedAdditionalLoads = @storageManager._countRequiredServerRequests(include) - 1
         if expectedAdditionalLoads > 0
           timesCalled = 0
@@ -62,6 +62,94 @@ class Brainstem.DataLoader
         else
           @storageManager._success(options, collection, firstLayerCollection)
       )))
+
+    collection
+
+  _loadCollectionWithFirstLayer: (options) =>
+    options = $.extend({}, options)
+    name = options.name
+    only = if options.only then _.map((Brainstem.Utils.extractArray "only", options), (id) -> String(id)) else null
+    search = options.search
+    include = _(options.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
+    filters = options.filters || {}
+    order = options.order || "updated_at:desc"
+    filterKeys = _.map(filters, (v, k) -> "#{k}:#{v}").join(',')
+    cacheKey = [order, filterKeys, options.page, options.perPage, options.limit, options.offset].join('|')
+
+    cachedCollection = @storageManager.storage name
+    collection = @storageManager.createNewCollection name, []
+
+    unless options.cache == false
+      if only?
+        alreadyLoadedIds = _.select only, (id) => cachedCollection.get(id)?.associationsAreLoaded(include)
+        if alreadyLoadedIds.length == only.length
+          # We've already seen every id that is being asked for and have all the associated data.
+          @storageManager._success options, collection, _.map only, (id) => cachedCollection.get(id)
+          return collection
+      else
+        # Check if we have, at some point, requested enough records with this this order and filter(s).
+        if @storageManager.getCollectionDetails(name).cache[cacheKey]
+          subset = _(@storageManager.getCollectionDetails(name).cache[cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
+          if (_.all(subset, (model) => model.associationsAreLoaded(include)))
+            @storageManager._success options, collection, subset
+            return collection
+
+    # If we haven't returned yet, we need to go to the server to load some missing data.
+    syncOptions =
+      data: {}
+      parse: true
+      error: options.error
+      success: (resp, status, xhr) =>
+        # The server response should look something like this:
+        #  {
+        #    count: 200,
+        #    results: [{ key: "tasks", id: 10 }, { key: "tasks", id: 11 }],
+        #    time_entries: [{ id: 2, title: "te1", project_id: 6, task_id: [10, 11] }]
+        #    projects: [{id: 6, title: "some project", time_entry_ids: [2] }]
+        #    tasks: [{id: 10, title: "some task" }, {id: 11, title: "some other task" }]
+        #  }
+        # Loop over all returned data types and update our local storage to represent any new data.
+
+        results = resp['results']
+        keys = _.reject(_.keys(resp), (key) -> key == 'count' || key == 'results')
+        unless _.isEmpty(results)
+          keys.splice(keys.indexOf(name), 1) if keys.indexOf(name) != -1
+          keys.push(name)
+
+        for underscoredModelName in keys
+          @storageManager.storage(underscoredModelName).update _(resp[underscoredModelName]).values()
+
+        unless options.cache == false || only?
+          @storageManager.getCollectionDetails(name).cache[cacheKey] = results
+
+        if only?
+          @storageManager._success options, collection, _.map(only, (id) -> cachedCollection.get(id))
+        else
+          @storageManager._success options, collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
+
+
+    syncOptions.data.include = include.join(",") if include.length
+    syncOptions.data.only = _.difference(only, alreadyLoadedIds).join(",") if only?
+    syncOptions.data.order = options.order if options.order?
+    _.extend(syncOptions.data, _(filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(filters).keys().length
+
+    unless only?
+      if options.limit? && options.offset?
+        syncOptions.data.limit = options.limit
+        syncOptions.data.offset = options.offset
+      else
+        syncOptions.data.per_page = options.perPage
+        syncOptions.data.page = options.page
+
+    syncOptions.data.search = search if search
+
+    modelOrCollection = collection
+    modelOrCollection = options.model if options.only && options.model
+    
+    jqXhr = Backbone.sync.call collection, 'read', modelOrCollection, syncOptions
+
+    if options.returnValues
+      options.returnValues.jqXhr = jqXhr
 
     collection
 
@@ -78,6 +166,6 @@ class Brainstem.DataLoader
         map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
         flatten().uniq().compact().pluck("id").sort().value()
         newCollectionName = options.collection.model.associationDetails(association).collectionName
-        @storageManager._loadCollectionWithFirstLayer name: newCollectionName, only: association_ids, include: nextLevelInclude, error: options.error, success: (loadedAssociationCollection) =>
+        @_loadCollectionWithFirstLayer name: newCollectionName, only: association_ids, include: nextLevelInclude, error: options.error, success: (loadedAssociationCollection) =>
           @_handleNextLayer(collection: loadedAssociationCollection, include: nextLevelInclude, error: options.error, success: options.success)
           options.success()

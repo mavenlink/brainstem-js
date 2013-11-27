@@ -591,7 +591,7 @@ describe 'Brainstem Storage Manager', ->
 
     describe "searching", ->
       it 'turns off caching', ->
-        spy = spyOn(base.data, '_loadCollectionWithFirstLayer')
+        spy = spyOn(base.data.dataLoader, '_loadCollectionWithFirstLayer')
         collection = base.data.loadCollection "tasks", search: "the meaning of life"
         expect(spy.mostRecentCall.args[0]['cache']).toBe(false)
 
