@@ -38,7 +38,7 @@ class Brainstem.DataLoader
   #     collection = manager.loadCollection "time_entries", filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
   loadCollection: (name, options) =>
     options = $.extend({}, options, name: name)
-    @storageManager._checkPageSettings options
+    @_checkPageSettings options
     include = @storageManager._wrapObjects(Brainstem.Utils.extractArray "include", options)
     if options.search
       options.cache = false
@@ -180,3 +180,23 @@ class Brainstem.DataLoader
         collection.reset data
     collection.setLoaded true
     options.success(collection) if options.success?
+
+  # Helpers
+
+  _checkPageSettings: (options) =>
+    if options.limit? && options.limit != '' && options.offset? && options.offset != ''
+      options.perPage = options.page = undefined
+    else
+      options.limit = options.offset = undefined
+
+    @_setDefaultPageSettings(options)
+
+  _setDefaultPageSettings: (options) =>
+    if options.limit? && options.offset?
+      options.limit = 1 if options.limit < 1
+      options.offset = 0 if options.offset < 0
+    else
+      options.perPage = options.perPage || 20
+      options.perPage = 1 if options.perPage < 1
+      options.page = options.page || 1
+      options.page = 1 if options.page < 1

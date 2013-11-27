@@ -57,24 +57,6 @@ class window.Brainstem.StorageManager
   loadCollection: =>
     @dataLoader.loadCollection.apply(@dataLoader, arguments)
 
-  _checkPageSettings: (options) =>
-    if options.limit? && options.limit != '' && options.offset? && options.offset != ''
-      options.perPage = options.page = undefined
-    else
-      options.limit = options.offset = undefined
-
-    @_setDefaultPageSettings(options)
-
-  _setDefaultPageSettings: (options) =>
-    if options.limit? && options.offset?
-      options.limit = 1 if options.limit < 1
-      options.offset = 0 if options.offset < 0
-    else
-      options.perPage = options.perPage || 20
-      options.perPage = 1 if options.perPage < 1
-      options.page = options.page || 1
-      options.page = 1 if options.page < 1
-
   collectionError: (name) =>
     Brainstem.Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")
 
