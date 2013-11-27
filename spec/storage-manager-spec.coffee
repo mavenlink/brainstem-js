@@ -57,11 +57,11 @@ describe 'Brainstem Storage Manager', ->
       expect(newModel.id).toEqual "333"
 
     it "calls loadCollection with the model", ->
-      spyOn(base.data, 'loadCollection')
+      spyOn(base.data.dataLoader, 'loadCollection')
       newModel = base.data.loadModel "time_entry", "333"
 
-      expect(base.data.loadCollection).toHaveBeenCalled()
-      expect(base.data.loadCollection.mostRecentCall.args[1].model).toEqual newModel
+      expect(base.data.dataLoader.loadCollection).toHaveBeenCalled()
+      expect(base.data.dataLoader.loadCollection.mostRecentCall.args[1].model).toEqual newModel
 
     it "calls Backbone.sync with the model", ->
       spyOn(Backbone, 'sync')
@@ -117,7 +117,7 @@ describe 'Brainstem Storage Manager', ->
       expect(spy).toHaveBeenCalled()
 
     it "can disable caching", ->
-      spy = spyOn(base.data, 'loadCollection')
+      spy = spyOn(base.data.dataLoader, 'loadCollection')
       model = base.data.loadModel "time_entry", 1, cache: false
       expect(spy.mostRecentCall.args[1]['cache']).toBe(false)
 

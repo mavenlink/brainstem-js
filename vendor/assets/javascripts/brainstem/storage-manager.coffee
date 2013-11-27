@@ -10,6 +10,7 @@ class window.Brainstem.StorageManager
   constructor: (options = {}) ->
     @collections = {}
     @setErrorInterceptor(options.errorInterceptor)
+    @dataLoader = new Brainstem.DataLoader(storageManager: this)
 
   # Add a collection to the StorageManager.  All collections that will be loaded or used in associations must be added.
   #    manager.addCollection "time_entries", App.Collections.TimeEntries
@@ -49,66 +50,12 @@ class window.Brainstem.StorageManager
   setErrorInterceptor: (interceptor) =>
     @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(jqXHR)
 
-  # Request a model to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
-  # when the load, and any dependent loads, are complete.
-  #     model = manager.loadModel "time_entry"
-  #     model = manager.loadModel "time_entry", fields: ["title", "notes"]
-  #     model = manager.loadModel "time_entry", include: ["project", "task"]
-  loadModel: (name, id, options) =>
-    options = _.clone(options || {})
-    oldSuccess = options.success
-    collectionName = name.pluralize()
-    
-    model = options.model || new (@getCollectionDetails(collectionName).modelKlass)(id: id)
-    model.setLoaded false, trigger: false
 
-    @loadCollection collectionName, _.extend options,
-      only: id
-      model: model
-      success: (collection) ->
-        model.setLoaded true, trigger: false
-        model.set collection.get(id).attributes
-        model.setLoaded true
-        oldSuccess(model) if oldSuccess
-    model
+  loadModel: =>
+    @dataLoader.loadModel.apply(@dataLoader, arguments)
 
-  # Request a set of data to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
-  # when the load, and any dependent loads, are complete.
-  #     collection = manager.loadCollection "time_entries"
-  #     collection = manager.loadCollection "time_entries", only: [2, 6]
-  #     collection = manager.loadCollection "time_entries", fields: ["title", "notes"]
-  #     collection = manager.loadCollection "time_entries", include: ["project", "task"]
-  #     collection = manager.loadCollection "time_entries", include: ["project:title,description", "task:due_date"]
-  #     collection = manager.loadCollection "tasks",      include: ["assets", { "assignees": "account" }, { "sub_tasks": ["assignees", "assets"] }]
-  #     collection = manager.loadCollection "time_entries", filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
-  loadCollection: (name, options) =>
-    options = $.extend({}, options, name: name)
-    @_checkPageSettings options
-    include = @_wrapObjects(Brainstem.Utils.extractArray "include", options)
-    if options.search
-      options.cache = false
-
-    collection = options.collection || @createNewCollection name, []
-    collection.setLoaded false
-    collection.reset([], silent: false) if options.reset
-    collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'filters', 'include', 'page', 'perPage', 'limit', 'offset', 'order', 'search')
-
-    if @expectations?
-      @handleExpectations name, collection, options
-    else
-      @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
-        expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
-        if expectedAdditionalLoads > 0
-          timesCalled = 0
-          @_handleNextLayer collection: firstLayerCollection, include: include, error: options.error, success: =>
-            timesCalled += 1
-            if timesCalled == expectedAdditionalLoads
-              @_success(options, collection, firstLayerCollection)
-        else
-          @_success(options, collection, firstLayerCollection)
-      )))
-
-    collection
+  loadCollection: =>
+    @dataLoader.loadCollection.apply(@dataLoader, arguments)
 
   _handleNextLayer: (options) =>
     # Collection is a fully populated collection of tasks whose first layer of associations are loaded.
