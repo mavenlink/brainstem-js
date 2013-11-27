@@ -14,9 +14,8 @@ class Brainstem.CollectionLoader
     filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
     @loadOptions.cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, @loadOptions.page, @loadOptions.perPage, @loadOptions.limit, @loadOptions.offset].join('|')
 
-    # Generate collection references
+  _createCollectionReferences: ->
     @cachedCollection = @storageManager.storage @loadOptions.name
-
     @externalCollection = @loadOptions.collection || @storageManager.createNewCollection @loadOptions.name, []
     @externalCollection.setLoaded false
     @externalCollection.reset([], silent: false) if @loadOptions.reset
@@ -42,6 +41,7 @@ class Brainstem.CollectionLoader
 
   loadCollection: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
+    @_createCollectionReferences()
 
     # Check the cache
     if collection = @_checkCache()
