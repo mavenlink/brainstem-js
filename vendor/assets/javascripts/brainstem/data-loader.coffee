@@ -58,7 +58,7 @@ class Brainstem.CollectionLoader
       @_updateCollection(@externalCollection, @internalCollection)
       externalSuccess(@externalCollection) if externalSuccess
 
-  loadCollection: ->
+  load: ->
     if not @loadOptions
       throw "You must call #setup first or pass loadOptions into the constructor"
 
@@ -174,7 +174,7 @@ class Brainstem.CollectionLoader
 
             cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
             cl.setup(loadOptions)
-            cl.loadCollection()
+            cl.load()
       else
         shouldCall = true
     else
@@ -247,7 +247,7 @@ class Brainstem.DataLoader
     else
       cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
       cl.setup(options)
-      collection = cl.loadCollection()
+      collection = cl.load()
 
     collection
 
