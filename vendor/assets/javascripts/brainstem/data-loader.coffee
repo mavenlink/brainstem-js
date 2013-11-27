@@ -45,31 +45,10 @@ class Brainstem.CollectionLoader
       return collection
 
     # If we haven't returned yet, we need to go to the server to load some missing data.
-    syncOptions =
-      data: {}
-      parse: true
-      error: @loadOptions.error
-      success: @onLoadSuccess
-
-    syncOptions.data.include = @loadOptions.include.join(",") if @loadOptions.include.length
-    syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",") if @loadOptions.only?
-    syncOptions.data.order = @loadOptions.order if @loadOptions.order?
-    _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length
-
-    unless @loadOptions.only?
-      if @loadOptions.limit? && @loadOptions.offset?
-        syncOptions.data.limit = @loadOptions.limit
-        syncOptions.data.offset = @loadOptions.offset
-      else
-        syncOptions.data.per_page = @loadOptions.perPage
-        syncOptions.data.page = @loadOptions.page
-
-    syncOptions.data.search = @loadOptions.search if @loadOptions.search
-
     modelOrCollection = @collection
     modelOrCollection = @loadOptions.model if @loadOptions.only && @loadOptions.model
     
-    jqXhr = Backbone.sync.call @collection, 'read', modelOrCollection, syncOptions
+    jqXhr = Backbone.sync.call @collection, 'read', modelOrCollection, @_buildSyncOptions()
 
     if @loadOptions.returnValues
       @loadOptions.returnValues.jqXhr = jqXhr
@@ -103,6 +82,29 @@ class Brainstem.CollectionLoader
       @_success @loadOptions, @collection, _.map(@loadOptions.only, (id) => @cachedCollection.get(id))
     else
       @_success @loadOptions, @collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
+
+  _buildSyncOptions: ->
+    syncOptions =
+      data: {}
+      parse: true
+      error: @loadOptions.error
+      success: @onLoadSuccess
+
+    syncOptions.data.include = @loadOptions.include.join(",") if @loadOptions.include.length
+    syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",") if @loadOptions.only?
+    syncOptions.data.order = @loadOptions.order if @loadOptions.order?
+    _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length
+
+    unless @loadOptions.only?
+      if @loadOptions.limit? && @loadOptions.offset?
+        syncOptions.data.limit = @loadOptions.limit
+        syncOptions.data.offset = @loadOptions.offset
+      else
+        syncOptions.data.per_page = @loadOptions.perPage
+        syncOptions.data.page = @loadOptions.page
+
+    syncOptions.data.search = @loadOptions.search if @loadOptions.search
+    syncOptions
 
 class Brainstem.DataLoader
   constructor: (options = {}) ->
