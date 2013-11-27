@@ -50,7 +50,6 @@ class window.Brainstem.StorageManager
   setErrorInterceptor: (interceptor) =>
     @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(jqXHR)
 
-
   loadModel: =>
     @dataLoader.loadModel.apply(@dataLoader, arguments)
 
