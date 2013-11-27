@@ -26,14 +26,14 @@ class Brainstem.CollectionLoader
         if @alreadyLoadedIds.length == @loadOptions.only.length
           # We've already seen every id that is being asked for and have all the associated data.
           @_success @loadOptions, _.map @loadOptions.only, (id) => @cachedCollection.get(id)
-          return @internalCollection
+          return @externalCollection
       else
         # Check if we have, at some point, requested enough records with this this order and filter(s).
         if @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]
           subset = _(@storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
           if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.include)))
             @_success @loadOptions, subset
-            return @internalCollection
+            return @externalCollection
 
     return false
 
@@ -53,7 +53,7 @@ class Brainstem.CollectionLoader
     if @loadOptions.returnValues
       @loadOptions.returnValues.jqXhr = jqXhr
 
-    @internalCollection
+    @externalCollection
 
   onLoadSuccess: (resp, status, xhr) =>
     # The server response should look something like this:
