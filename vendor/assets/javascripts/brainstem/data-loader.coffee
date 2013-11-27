@@ -127,23 +127,9 @@ class Brainstem.CollectionLoader
     # Calls the main callback that is passed to the main loadCollection.
     options.success(@externalCollection) if options.success?
 
-  _wrapObjects: (array) =>
-    output = []
-    _(array).each (elem) =>
-      if elem.constructor == Object
-        for key, value of elem
-          o = {}
-          o[key] = @_wrapObjects(if value instanceof Array then value else [value])
-          output.push o
-      else
-        o = {}
-        o[elem] = []
-        output.push o
-    output
-
   _countRequiredServerRequests: (array, wrapped = false) =>
     if array?.length
-      array = @_wrapObjects(array) unless wrapped
+      array = Brainstem.Utils.wrapObjects(array) unless wrapped
       sum = 1
       _(array).each (elem) =>
         sum += @_countRequiredServerRequests(_(elem).values()[0], true)
@@ -192,7 +178,7 @@ class Brainstem.DataLoader
   loadCollection: (name, options) =>
     options = $.extend({}, options, name: name)
     @_checkPageSettings options
-    include = @_wrapObjects(Brainstem.Utils.extractArray "include", options)
+    include = Brainstem.Utils.wrapObjects(Brainstem.Utils.extractArray "include", options)
     if options.search
       options.cache = false
 
@@ -228,17 +214,3 @@ class Brainstem.DataLoader
       options.perPage = 1 if options.perPage < 1
       options.page = options.page || 1
       options.page = 1 if options.page < 1
-
-  _wrapObjects: (array) =>
-    output = []
-    _(array).each (elem) =>
-      if elem.constructor == Object
-        for key, value of elem
-          o = {}
-          o[key] = @_wrapObjects(if value instanceof Array then value else [value])
-          output.push o
-      else
-        o = {}
-        o[elem] = []
-        output.push o
-    output

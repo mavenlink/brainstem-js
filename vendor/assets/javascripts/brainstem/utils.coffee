@@ -33,3 +33,17 @@ class window.Brainstem.Utils
     result = options[option]
     result = [result] unless result instanceof Array
     _.compact(result)
+
+  @wrapObjects: (array) =>
+    output = []
+    _(array).each (elem) =>
+      if elem.constructor == Object
+        for key, value of elem
+          o = {}
+          o[key] = @wrapObjects(if value instanceof Array then value else [value])
+          output.push o
+      else
+        o = {}
+        o[elem] = []
+        output.push o
+    output

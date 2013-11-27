@@ -649,13 +649,13 @@ describe 'Brainstem Storage Manager', ->
 
   describe "_wrapObjects", ->
     it "wraps elements in an array with objects unless they are already objects", ->
-      expect(base.data.dataLoader._wrapObjects([])).toEqual []
-      expect(base.data.dataLoader._wrapObjects(['a', 'b'])).toEqual [{a: []}, {b: []}]
-      expect(base.data.dataLoader._wrapObjects(['a', 'b': []])).toEqual [{a: []}, {b: []}]
-      expect(base.data.dataLoader._wrapObjects(['a', 'b': 'c'])).toEqual [{a: []}, {b: [{c: []}]}]
-      expect(base.data.dataLoader._wrapObjects([{'a':[], b: 'c', d: 'e' }])).toEqual [{a: []}, {b: [{c: []}]}, {d: [{e: []}]}]
-      expect(base.data.dataLoader._wrapObjects(['a', { b: 'c', d: 'e' }])).toEqual [{a: []}, {b: [{c: []}]}, {d: [{e: []}]}]
-      expect(base.data.dataLoader._wrapObjects([{'a': []}, {'b': ['c', d: []]}])).toEqual [{a: []}, {b: [{c: []}, {d: []}]}]
+      expect(Brainstem.Utils.wrapObjects([])).toEqual []
+      expect(Brainstem.Utils.wrapObjects(['a', 'b'])).toEqual [{a: []}, {b: []}]
+      expect(Brainstem.Utils.wrapObjects(['a', 'b': []])).toEqual [{a: []}, {b: []}]
+      expect(Brainstem.Utils.wrapObjects(['a', 'b': 'c'])).toEqual [{a: []}, {b: [{c: []}]}]
+      expect(Brainstem.Utils.wrapObjects([{'a':[], b: 'c', d: 'e' }])).toEqual [{a: []}, {b: [{c: []}]}, {d: [{e: []}]}]
+      expect(Brainstem.Utils.wrapObjects(['a', { b: 'c', d: 'e' }])).toEqual [{a: []}, {b: [{c: []}]}, {d: [{e: []}]}]
+      expect(Brainstem.Utils.wrapObjects([{'a': []}, {'b': ['c', d: []]}])).toEqual [{a: []}, {b: [{c: []}, {d: []}]}]
 
   describe "_countRequiredServerRequests", ->
     xit "should count the number of loads needed to get the date", ->
