@@ -119,6 +119,8 @@ class Brainstem.CollectionLoader
 
   _success: (options, data) ->
     @_updateCollection(@externalCollection, data)
+
+    # Calls the main callback that is passed to the main loadCollection.
     options.success(@externalCollection) if options.success?
 
 ####################################
