@@ -4,6 +4,14 @@ class Brainstem.CollectionLoader
   constructor: (options = {}) ->
     @storageManager = options.storageManager
 
+    if options.loadOptions
+      @setup(options.loadOptions)
+
+  setup: (loadOptions) ->
+    @_parseLoadOptions(loadOptions)
+    @_createCollectionReferences()
+    @_interceptOldSuccess()
+
   _parseLoadOptions: (loadOptions) ->
     @loadOptions = $.extend {}, loadOptions
     @loadOptions.plainInclude = @loadOptions.include
@@ -50,13 +58,9 @@ class Brainstem.CollectionLoader
       @_updateCollection(@externalCollection, @internalCollection)
       externalSuccess(@externalCollection) if externalSuccess
 
-  _setup: (loadOptions) ->
-    @_parseLoadOptions(loadOptions)
-    @_createCollectionReferences()
-    @_interceptOldSuccess()    
-
-  loadCollection: (loadOptions) ->
-    @_setup(loadOptions)
+  loadCollection: ->
+    if not @loadOptions
+      throw "You must call #setup first or pass loadOptions into the constructor"
 
     # Check the cache
     if collection = @_checkCache()
@@ -157,7 +161,7 @@ class Brainstem.CollectionLoader
 
             newCollectionName = @internalCollection.model.associationDetails(association).collectionName
 
-            opts =
+            loadOptions =
               name: newCollectionName
               only: associationIds
               include: nextLevel
@@ -169,7 +173,8 @@ class Brainstem.CollectionLoader
                   options.success()
 
             cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
-            cl.loadCollection(opts)
+            cl.setup(loadOptions)
+            cl.loadCollection()
       else
         shouldCall = true
     else
@@ -241,7 +246,8 @@ class Brainstem.DataLoader
       @storageManager.handleExpectations name, collection, options
     else
       cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
-      collection = cl.loadCollection(options)
+      cl.setup(options)
+      collection = cl.loadCollection()
 
     collection
 

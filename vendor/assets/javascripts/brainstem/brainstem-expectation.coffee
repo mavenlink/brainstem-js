@@ -52,7 +52,7 @@ class window.Brainstem.Expectation
         @manager.storage(result.key).get(result.id)
 
     cl = new Brainstem.CollectionLoader(storageManager: @manager)
-    cl._setup($.extend({}, options.callOptions, collection: options.collection))
+    cl.setup($.extend({}, options.callOptions, collection: options.collection))
     cl._success(cl.loadOptions, returnedModels)
 
   optionsMatch: (name, options) =>
