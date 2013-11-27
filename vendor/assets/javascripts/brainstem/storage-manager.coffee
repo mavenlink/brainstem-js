@@ -57,17 +57,6 @@ class window.Brainstem.StorageManager
   loadCollection: =>
     @dataLoader.loadCollection.apply(@dataLoader, arguments)
 
-  _success: (options, collection, data) =>
-    if data
-      data = data.models if data.models?
-      collection.setLoaded true, trigger: false
-      if collection.length
-        collection.add data
-      else
-        collection.reset data
-    collection.setLoaded true
-    options.success(collection) if options.success?
-
   _checkPageSettings: (options) =>
     if options.limit? && options.limit != '' && options.offset? && options.offset != ''
       options.perPage = options.page = undefined

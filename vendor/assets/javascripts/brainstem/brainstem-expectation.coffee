@@ -51,7 +51,7 @@ class window.Brainstem.Expectation
       else
         @manager.storage(result.key).get(result.id)
 
-    @manager._success(options.callOptions, options.collection, returnedModels)
+    @manager.dataLoader._success(options.callOptions, options.collection, returnedModels)
 
   optionsMatch: (name, options) =>
     @manager._checkPageSettings options

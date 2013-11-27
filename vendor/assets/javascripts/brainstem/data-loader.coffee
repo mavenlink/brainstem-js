@@ -58,9 +58,9 @@ class Brainstem.DataLoader
           @_handleNextLayer collection: firstLayerCollection, include: include, error: options.error, success: =>
             timesCalled += 1
             if timesCalled == expectedAdditionalLoads
-              @storageManager._success(options, collection, firstLayerCollection)
+              @_success(options, collection, firstLayerCollection)
         else
-          @storageManager._success(options, collection, firstLayerCollection)
+          @_success(options, collection, firstLayerCollection)
       )))
 
     collection
@@ -84,14 +84,14 @@ class Brainstem.DataLoader
         alreadyLoadedIds = _.select only, (id) => cachedCollection.get(id)?.associationsAreLoaded(include)
         if alreadyLoadedIds.length == only.length
           # We've already seen every id that is being asked for and have all the associated data.
-          @storageManager._success options, collection, _.map only, (id) => cachedCollection.get(id)
+          @_success options, collection, _.map only, (id) => cachedCollection.get(id)
           return collection
       else
         # Check if we have, at some point, requested enough records with this this order and filter(s).
         if @storageManager.getCollectionDetails(name).cache[cacheKey]
           subset = _(@storageManager.getCollectionDetails(name).cache[cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
           if (_.all(subset, (model) => model.associationsAreLoaded(include)))
-            @storageManager._success options, collection, subset
+            @_success options, collection, subset
             return collection
 
     # If we haven't returned yet, we need to go to the server to load some missing data.
@@ -123,9 +123,9 @@ class Brainstem.DataLoader
           @storageManager.getCollectionDetails(name).cache[cacheKey] = results
 
         if only?
-          @storageManager._success options, collection, _.map(only, (id) -> cachedCollection.get(id))
+          @_success options, collection, _.map(only, (id) -> cachedCollection.get(id))
         else
-          @storageManager._success options, collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
+          @_success options, collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
 
 
     syncOptions.data.include = include.join(",") if include.length
@@ -169,3 +169,14 @@ class Brainstem.DataLoader
         @_loadCollectionWithFirstLayer name: newCollectionName, only: association_ids, include: nextLevelInclude, error: options.error, success: (loadedAssociationCollection) =>
           @_handleNextLayer(collection: loadedAssociationCollection, include: nextLevelInclude, error: options.error, success: options.success)
           options.success()
+
+  _success: (options, collection, data) =>
+    if data
+      data = data.models if data.models?
+      collection.setLoaded true, trigger: false
+      if collection.length
+        collection.add data
+      else
+        collection.reset data
+    collection.setLoaded true
+    options.success(collection) if options.success?
