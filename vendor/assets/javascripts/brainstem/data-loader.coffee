@@ -17,7 +17,7 @@ class Brainstem.CollectionLoader
 
     # Generate collection references
     @cachedCollection = @storageManager.storage @loadOptions.name
-    @collection = @storageManager.createNewCollection @loadOptions.name, []
+    @internalCollection = @storageManager.createNewCollection @loadOptions.name, []
 
   _checkCache: ->
     unless @loadOptions.cache == false
@@ -25,15 +25,15 @@ class Brainstem.CollectionLoader
         @alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.include)
         if @alreadyLoadedIds.length == @loadOptions.only.length
           # We've already seen every id that is being asked for and have all the associated data.
-          @_success @loadOptions, @collection, _.map @loadOptions.only, (id) => @cachedCollection.get(id)
-          return @collection
+          @_success @loadOptions, @internalCollection, _.map @loadOptions.only, (id) => @cachedCollection.get(id)
+          return @internalCollection
       else
         # Check if we have, at some point, requested enough records with this this order and filter(s).
         if @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]
           subset = _(@storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
           if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.include)))
-            @_success @loadOptions, @collection, subset
-            return @collection
+            @_success @loadOptions, @internalCollection, subset
+            return @internalCollection
 
     return false
 
@@ -45,15 +45,15 @@ class Brainstem.CollectionLoader
       return collection
 
     # If we haven't returned yet, we need to go to the server to load some missing data.
-    modelOrCollection = @collection
+    modelOrCollection = @internalCollection
     modelOrCollection = @loadOptions.model if @loadOptions.only && @loadOptions.model
     
-    jqXhr = Backbone.sync.call @collection, 'read', modelOrCollection, @_buildSyncOptions()
+    jqXhr = Backbone.sync.call @internalCollection, 'read', modelOrCollection, @_buildSyncOptions()
 
     if @loadOptions.returnValues
       @loadOptions.returnValues.jqXhr = jqXhr
 
-    @collection
+    @internalCollection
 
   onLoadSuccess: (resp, status, xhr) =>
     # The server response should look something like this:
@@ -83,7 +83,7 @@ class Brainstem.CollectionLoader
     else
       data = _(results).map (result) -> base.data.storage(result.key).get(result.id)
 
-    @_success @loadOptions, @collection, data
+    @_success @loadOptions, @internalCollection, data
 
   _buildSyncOptions: ->
     syncOptions =
