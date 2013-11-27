@@ -17,6 +17,7 @@ class Brainstem.CollectionLoader
     # Generate collection references
     @cachedCollection = @storageManager.storage @loadOptions.name
     @internalCollection = @storageManager.createNewCollection @loadOptions.name, []
+    @externalCollection = @loadOptions.collection
 
   _checkCache: ->
     unless @loadOptions.cache == false
@@ -24,14 +25,14 @@ class Brainstem.CollectionLoader
         @alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.include)
         if @alreadyLoadedIds.length == @loadOptions.only.length
           # We've already seen every id that is being asked for and have all the associated data.
-          @_success @loadOptions, @internalCollection, _.map @loadOptions.only, (id) => @cachedCollection.get(id)
+          @_success @loadOptions, _.map @loadOptions.only, (id) => @cachedCollection.get(id)
           return @internalCollection
       else
         # Check if we have, at some point, requested enough records with this this order and filter(s).
         if @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]
           subset = _(@storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
           if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.include)))
-            @_success @loadOptions, @internalCollection, subset
+            @_success @loadOptions, subset
             return @internalCollection
 
     return false
@@ -82,7 +83,7 @@ class Brainstem.CollectionLoader
     else
       data = _(results).map (result) -> base.data.storage(result.key).get(result.id)
 
-    @_success @loadOptions, @internalCollection, data
+    @_success @loadOptions, data
 
   _buildSyncOptions: ->
     syncOptions =
@@ -107,7 +108,7 @@ class Brainstem.CollectionLoader
     syncOptions.data.search = @loadOptions.search if @loadOptions.search
     syncOptions
 
-  _success: (options, collection, data) ->
+  _updateCollection: (collection, data) ->
     if data
       data = data.models if data.models?
       collection.setLoaded true, trigger: false
@@ -115,8 +116,12 @@ class Brainstem.CollectionLoader
         collection.add data
       else
         collection.reset data
-    collection.setLoaded true
-    options.success(collection) if options.success?
+    collection.setLoaded true    
+
+  _success: (options, data) ->
+    @_updateCollection(@internalCollection, data)
+    @_updateCollection(@externalCollection, @internalCollection)
+    options.success(@externalCollection) if options.success?
 
 ####################################
 
@@ -171,11 +176,8 @@ class Brainstem.DataLoader
     if @storageManager.expectations?
       @storageManager.handleExpectations name, collection, options
     else
-      opts = $.extend {}, options, include: include, success: (firstLayerCollection) =>
-        @_success(options, collection, firstLayerCollection)
-
       cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
-      cl.loadCollection(opts)
+      cl.loadCollection($.extend({}, options, collection: collection, include: include))
 
       # @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
       #   expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
@@ -208,17 +210,6 @@ class Brainstem.DataLoader
   #       @_loadCollectionWithFirstLayer name: newCollectionName, only: association_ids, include: nextLevelInclude, error: options.error, success: (loadedAssociationCollection) =>
   #         @_handleNextLayer(collection: loadedAssociationCollection, include: nextLevelInclude, error: options.error, success: options.success)
   #         options.success()
-
-  _success: (options, collection, data) =>
-    if data
-      data = data.models if data.models?
-      collection.setLoaded true, trigger: false
-      if collection.length
-        collection.add data
-      else
-        collection.reset data
-    collection.setLoaded true
-    options.success(collection) if options.success?
 
   # Helpers
 
