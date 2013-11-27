@@ -13,6 +13,25 @@ class Brainstem.CollectionLoader
     @_interceptOldSuccess()
     @_calculateAdditionalIncludes()
 
+  load: ->
+    if not @loadOptions
+      throw "You must call #setup first or pass loadOptions into the constructor"
+
+    # Check the cache to see if we have everything that we need.
+    if collection = @_checkCacheForData()
+      return collection
+
+    # If we didn't return the collection from the cache, we need to go to the server to load some missing data.
+    modelOrCollection = @internalCollection
+    modelOrCollection = @loadOptions.model if @loadOptions.only && @loadOptions.model
+    
+    jqXhr = Backbone.sync.call @internalCollection, 'read', modelOrCollection, @_buildSyncOptions()
+
+    if @loadOptions.returnValues
+      @loadOptions.returnValues.jqXhr = jqXhr
+
+    @externalCollection
+
   _parseLoadOptions: (loadOptions) ->
     @loadOptions = $.extend {}, loadOptions
     @loadOptions.plainInclude = @loadOptions.include
@@ -38,7 +57,7 @@ class Brainstem.CollectionLoader
     @externalCollection = @loadOptions.collection || @storageManager.createNewCollection @loadOptions.name, []
     @externalCollection.setLoaded false
     @externalCollection.reset([], silent: false) if @loadOptions.reset
-    @externalCollection.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), 'name', 'filters', 'include', 'page', 'perPage', 'limit', 'offset', 'order', 'search')
+    @externalCollection.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), 'name', 'filters', 'page', 'perPage', 'limit', 'offset', 'order', 'search')
     @externalCollection.lastFetchOptions.include = @loadOptions.plainInclude
 
   _calculateAdditionalIncludes: ->
@@ -49,45 +68,22 @@ class Brainstem.CollectionLoader
       for elem in @loadOptions.include when _.values(elem)[0].length
         @additionalIncludesCount += 1
 
-  _checkCache: ->
-    unless @loadOptions.cache == false
-      if @loadOptions.only?
-        @alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.thisLayerInclude)
-        if @alreadyLoadedIds.length == @loadOptions.only.length
-          # We've already seen every id that is being asked for and have all the associated data.
-          @onCollectionLoadSuccess(_.map @loadOptions.only, (id) => @cachedCollection.get(id))
-          return @externalCollection
-      else
-        # Check if we have, at some point, requested enough records with this this order and filter(s).
-        if @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]
-          subset = _(@storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
-          if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.thisLayerInclude)))
-            @onCollectionLoadSuccess(subset)
-            return @externalCollection
-
-    return false
-
-  load: ->
-    if not @loadOptions
-      throw "You must call #setup first or pass loadOptions into the constructor"
-
-    # Check the cache to see if we have everything that we need.
-    if collection = @_checkCache()
-      return collection
-
-    # If we didn't return the collection from the cache, we need to go to the server to load some missing data.
-    modelOrCollection = @internalCollection
-    modelOrCollection = @loadOptions.model if @loadOptions.only && @loadOptions.model
-    
-    jqXhr = Backbone.sync.call @internalCollection, 'read', modelOrCollection, @_buildSyncOptions()
-
-    if @loadOptions.returnValues
-      @loadOptions.returnValues.jqXhr = jqXhr
-
-    @externalCollection
-
-  onSyncSuccess: (resp, status, xhr) =>
+  _onSyncSuccess: (resp, status, xhr) =>
     @_updateStorageManagerFromResponse(resp)
+
+  _onCollectionLoadSuccess: (data) ->
+    @_updateCollection(@internalCollection, data)
+
+    if @additionalIncludesCount
+      @_loadAdditionalIncludes()
+    else
+      @loadOptions.success()
+
+  _onAdditionalIncludeLoadSuccess: =>
+    @completedIncludesCount += 1
+
+    if @completedIncludesCount == @additionalIncludesCount
+      @loadOptions.success()
 
   _updateStorageManagerFromResponse: (resp) ->
     # The server response should look something like this:
@@ -117,30 +113,7 @@ class Brainstem.CollectionLoader
     else
       data = _.map(results, (result) => @storageManager.storage(result.key).get(result.id))
 
-    @onCollectionLoadSuccess(data)
-
-  _buildSyncOptions: ->
-    syncOptions =
-      data: {}
-      parse: true
-      error: @loadOptions.error
-      success: @onSyncSuccess
-
-    syncOptions.data.include = @loadOptions.thisLayerInclude.join(",") if @loadOptions.thisLayerInclude.length
-    syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",") if @loadOptions.only?
-    syncOptions.data.order = @loadOptions.order if @loadOptions.order?
-    _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length
-
-    unless @loadOptions.only?
-      if @loadOptions.limit? && @loadOptions.offset?
-        syncOptions.data.limit = @loadOptions.limit
-        syncOptions.data.offset = @loadOptions.offset
-      else
-        syncOptions.data.per_page = @loadOptions.perPage
-        syncOptions.data.page = @loadOptions.page
-
-    syncOptions.data.search = @loadOptions.search if @loadOptions.search
-    syncOptions
+    @_onCollectionLoadSuccess(data)
 
   _updateCollection: (collection, data) ->
     if data
@@ -151,18 +124,6 @@ class Brainstem.CollectionLoader
       else
         collection.reset data
     collection.setLoaded true
-
-  _getIdsForAssociation: (association) ->
-    models = @internalCollection.map (m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a
-    _(models).chain().flatten().pluck("id").compact().uniq().sort().value()
-
-  onCollectionLoadSuccess: (data) ->
-    @_updateCollection(@internalCollection, data)
-
-    if @additionalIncludesCount
-      @_loadAdditionalIncludes()
-    else
-      @loadOptions.success()
 
   _loadAdditionalIncludes: ->
     for hash in @loadOptions.include
@@ -179,11 +140,52 @@ class Brainstem.CollectionLoader
 
         @storageManager.loadCollection(collectionName, loadOptions)
 
-  _onAdditionalIncludeLoadSuccess: =>
-    @completedIncludesCount += 1
+  ### Helpers ###
 
-    if @completedIncludesCount == @additionalIncludesCount
-      @loadOptions.success()
+  _getIdsForAssociation: (association) ->
+    models = @internalCollection.map (m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a
+    _(models).chain().flatten().pluck("id").compact().uniq().sort().value()
+
+  _checkCacheForData: ->
+    unless @loadOptions.cache == false
+      if @loadOptions.only?
+        @alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.thisLayerInclude)
+        if @alreadyLoadedIds.length == @loadOptions.only.length
+          # We've already seen every id that is being asked for and have all the associated data.
+          @_onCollectionLoadSuccess(_.map @loadOptions.only, (id) => @cachedCollection.get(id))
+          return @externalCollection
+      else
+        # Check if we have, at some point, requested enough records with this this order and filter(s).
+        if @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]
+          subset = _(@storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
+          if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.thisLayerInclude)))
+            @_onCollectionLoadSuccess(subset)
+            return @externalCollection
+
+    return false
+
+  _buildSyncOptions: ->
+    syncOptions =
+      data: {}
+      parse: true
+      error: @loadOptions.error
+      success: @_onSyncSuccess
+
+    syncOptions.data.include = @loadOptions.thisLayerInclude.join(",") if @loadOptions.thisLayerInclude.length
+    syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",") if @loadOptions.only?
+    syncOptions.data.order = @loadOptions.order if @loadOptions.order?
+    _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length
+
+    unless @loadOptions.only?
+      if @loadOptions.limit? && @loadOptions.offset?
+        syncOptions.data.limit = @loadOptions.limit
+        syncOptions.data.offset = @loadOptions.offset
+      else
+        syncOptions.data.per_page = @loadOptions.perPage
+        syncOptions.data.page = @loadOptions.page
+
+    syncOptions.data.search = @loadOptions.search if @loadOptions.search
+    syncOptions
 
 ####################################
 
