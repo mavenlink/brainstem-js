@@ -680,7 +680,7 @@ describe 'Brainstem Storage Manager', ->
         server.respond()
         expect(customHandler).toHaveBeenCalled()
 
-      xit "should also get called any amount of layers deep", ->
+      it "should also get called any amount of layers deep", ->
         errorHandler = jasmine.createSpy('errorHandler')
         successHandler = jasmine.createSpy('successHandler')
         taskOne = buildTask(id: 10, sub_task_ids: [12])
