@@ -104,7 +104,7 @@ describe 'Brainstem.Collection', ->
       expect(collection.models[0].get("message")).toEqual "new post"
       expect(resetCounter.callCount).toEqual 1
       expect(loadedCounter.callCount).toEqual 1
-      expect(callback).toHaveBeenCalledWith(collection)
+      expect(callback).toHaveBeenCalledWith(collection, 1)
 
   describe "getWithAssocation", ->
     it "defaults to the regular get", ->

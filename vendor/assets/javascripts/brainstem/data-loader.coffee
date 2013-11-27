@@ -8,7 +8,7 @@ class Brainstem.CollectionLoader
     @loadOptions = $.extend {}, loadOptions
     @loadOptions.only = if @loadOptions.only then _.map((Brainstem.Utils.extractArray "only", @loadOptions), (id) -> String(id)) else null
     @loadOptions.filters ?= {}
-    @loadOptions.include = _(@loadOptions.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
+    @loadOptions.thisLayerInclude = _(@loadOptions.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
 
     # Build cache key
     filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
@@ -16,15 +16,18 @@ class Brainstem.CollectionLoader
 
   _createCollectionReferences: ->
     @cachedCollection = @storageManager.storage @loadOptions.name
+    @internalCollection = @storageManager.createNewCollection @loadOptions.name, []
+
     @externalCollection = @loadOptions.collection || @storageManager.createNewCollection @loadOptions.name, []
     @externalCollection.setLoaded false
     @externalCollection.reset([], silent: false) if @loadOptions.reset
     @externalCollection.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), 'name', 'filters', 'include', 'page', 'perPage', 'limit', 'offset', 'order', 'search')
+    @externalCollection.lastFetchOptions.include = @loadOptions.plainInclude
 
   _checkCache: ->
     unless @loadOptions.cache == false
       if @loadOptions.only?
-        @alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.include)
+        @alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.thisLayerInclude)
         if @alreadyLoadedIds.length == @loadOptions.only.length
           # We've already seen every id that is being asked for and have all the associated data.
           @_success @loadOptions, _.map @loadOptions.only, (id) => @cachedCollection.get(id)
@@ -33,7 +36,7 @@ class Brainstem.CollectionLoader
         # Check if we have, at some point, requested enough records with this this order and filter(s).
         if @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]
           subset = _(@storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
-          if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.include)))
+          if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.thisLayerInclude)))
             @_success @loadOptions, subset
             return @externalCollection
 
@@ -48,10 +51,10 @@ class Brainstem.CollectionLoader
       return collection
 
     # If we haven't returned yet, we need to go to the server to load some missing data.
-    modelOrCollection = @externalCollection
+    modelOrCollection = @internalCollection
     modelOrCollection = @loadOptions.model if @loadOptions.only && @loadOptions.model
     
-    jqXhr = Backbone.sync.call @externalCollection, 'read', modelOrCollection, @_buildSyncOptions()
+    jqXhr = Backbone.sync.call @internalCollection, 'read', modelOrCollection, @_buildSyncOptions()
 
     if @loadOptions.returnValues
       @loadOptions.returnValues.jqXhr = jqXhr
@@ -95,7 +98,7 @@ class Brainstem.CollectionLoader
       error: @loadOptions.error
       success: @onLoadSuccess
 
-    syncOptions.data.include = @loadOptions.include.join(",") if @loadOptions.include.length
+    syncOptions.data.include = @loadOptions.thisLayerInclude.join(",") if @loadOptions.thisLayerInclude.length
     syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",") if @loadOptions.only?
     syncOptions.data.order = @loadOptions.order if @loadOptions.order?
     _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length
@@ -122,10 +125,55 @@ class Brainstem.CollectionLoader
     collection.setLoaded true    
 
   _success: (options, data) ->
-    @_updateCollection(@externalCollection, data)
+    # Update proxy collection
+    @_updateCollection(@internalCollection, data)
 
-    # Calls the main callback that is passed to the main loadCollection.
-    options.success(@externalCollection) if options.success?
+    ###
+    When the data is finished loading put the data from the internalCollection into the 
+    externalCollection.  We do this because we don't want the loaded or reset event to happen until
+    everything is loaded
+    ###
+    oldSuccess = options.success
+    options.success = =>
+      @_updateCollection(@externalCollection, @internalCollection)
+      oldSuccess.apply(this, arguments) if oldSuccess
+
+    shouldCall = false
+
+    if @loadOptions
+      expectedServerRequests = @_countRequiredServerRequests(@loadOptions.include) - 1
+      if expectedServerRequests > 0
+        c = 0
+        for hash in @loadOptions.include
+          association = _.keys(hash)[0]
+          nextLevel = hash[association]
+
+          if nextLevel.length
+            associationIds = _(@internalCollection.models).chain().
+            map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
+            flatten().uniq().compact().pluck("id").sort().value()
+
+            newCollectionName = @internalCollection.model.associationDetails(association).collectionName
+
+            opts =
+              name: newCollectionName
+              only: associationIds
+              include: nextLevel
+              error: @loadOptions.error
+              success: (_collection, layers = 1) =>
+                c += layers
+                if c == expectedServerRequests
+                  options.success(@externalCollection, c + 1) if options.success?
+
+            cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
+            cl.loadCollection(opts)
+      else
+        shouldCall = true
+    else
+      shouldCall = true
+    
+    if options.success? && shouldCall
+      options.success(@externalCollection, 1)
 
   _countRequiredServerRequests: (array, wrapped = false) =>
     if array?.length
@@ -191,7 +239,7 @@ class Brainstem.DataLoader
       @storageManager.handleExpectations name, collection, options
     else
       cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
-      collection = cl.loadCollection($.extend({}, options, include: include))
+      collection = cl.loadCollection($.extend({}, options, include: include, plainInclude: options.include))
 
     collection
 
