@@ -162,17 +162,21 @@ class Brainstem.DataLoader
       @storageManager.handleExpectations name, collection, options
     else
       @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
-        expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
-
-        if expectedAdditionalLoads > 0
-          timesCalled = 0
-          @_handleNextLayer collection: firstLayerCollection, include: include, error: options.error, success: =>
-            timesCalled += 1
-            if timesCalled == expectedAdditionalLoads
-              @_success(options, collection, firstLayerCollection)
-        else
-          @_success(options, collection, firstLayerCollection)
+        @_success(options, collection, firstLayerCollection)
       )))
+
+      # @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
+      #   expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
+
+      #   if expectedAdditionalLoads > 0
+      #     timesCalled = 0
+      #     @_handleNextLayer collection: firstLayerCollection, include: include, error: options.error, success: =>
+      #       timesCalled += 1
+      #       if timesCalled == expectedAdditionalLoads
+      #         @_success(options, collection, firstLayerCollection)
+      #   else
+      #     @_success(options, collection, firstLayerCollection)
+      # )))
 
     collection
 
@@ -180,22 +184,22 @@ class Brainstem.DataLoader
     cl = new Brainstem.CollectionLoader(storageManager: @storageManager, successFunction: @_success)
     cl.loadCollection(options)
 
-  _handleNextLayer: (options) =>
-    # Collection is a fully populated collection of tasks whose first layer of associations are loaded.
-    # include is a hierarchical list of associations on those tasks:
-    #   [{ 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }, { 'project': [] }]
+  # _handleNextLayer: (options) =>
+  #   # Collection is a fully populated collection of tasks whose first layer of associations are loaded.
+  #   # include is a hierarchical list of associations on those tasks:
+  #   #   [{ 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }, { 'project': [] }]
 
-    _(options.include).each (hash) => # { 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }
-      association = _.keys(hash)[0] # time_entries
-      nextLevelInclude = hash[association] # ['project': [], 'task': [{ 'assignees': []}]]
-      if nextLevelInclude.length
-        association_ids = _(options.collection.models).chain().
-        map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
-        flatten().uniq().compact().pluck("id").sort().value()
-        newCollectionName = options.collection.model.associationDetails(association).collectionName
-        @_loadCollectionWithFirstLayer name: newCollectionName, only: association_ids, include: nextLevelInclude, error: options.error, success: (loadedAssociationCollection) =>
-          @_handleNextLayer(collection: loadedAssociationCollection, include: nextLevelInclude, error: options.error, success: options.success)
-          options.success()
+  #   _(options.include).each (hash) => # { 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }
+  #     association = _.keys(hash)[0] # time_entries
+  #     nextLevelInclude = hash[association] # ['project': [], 'task': [{ 'assignees': []}]]
+  #     if nextLevelInclude.length
+  #       association_ids = _(options.collection.models).chain().
+  #       map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
+  #       flatten().uniq().compact().pluck("id").sort().value()
+  #       newCollectionName = options.collection.model.associationDetails(association).collectionName
+  #       @_loadCollectionWithFirstLayer name: newCollectionName, only: association_ids, include: nextLevelInclude, error: options.error, success: (loadedAssociationCollection) =>
+  #         @_handleNextLayer(collection: loadedAssociationCollection, include: nextLevelInclude, error: options.error, success: options.success)
+  #         options.success()
 
   _success: (options, collection, data) =>
     if data
@@ -242,12 +246,12 @@ class Brainstem.DataLoader
         output.push o
     output
 
-  _countRequiredServerRequests: (array, wrapped = false) =>
-    if array?.length
-      array = @_wrapObjects(array) unless wrapped
-      sum = 1
-      _(array).each (elem) =>
-        sum += @_countRequiredServerRequests(_(elem).values()[0], true)
-      sum
-    else
-      0
+  # _countRequiredServerRequests: (array, wrapped = false) =>
+  #   if array?.length
+  #     array = @_wrapObjects(array) unless wrapped
+  #     sum = 1
+  #     _(array).each (elem) =>
+  #       sum += @_countRequiredServerRequests(_(elem).values()[0], true)
+  #     sum
+  #   else
+  #     0
