@@ -19,13 +19,11 @@ class Brainstem.CollectionLoader
     @cachedCollection = @storageManager.storage @loadOptions.name
     @collection = @storageManager.createNewCollection @loadOptions.name, []
 
-  load: (loadOptions) ->
-    @_parseLoadOptions(loadOptions)
-
+  _checkCache: ->
     unless @loadOptions.cache == false
       if @loadOptions.only?
-        alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.include)
-        if alreadyLoadedIds.length == @loadOptions.only.length
+        @alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.include)
+        if @alreadyLoadedIds.length == @loadOptions.only.length
           # We've already seen every id that is being asked for and have all the associated data.
           @_success @loadOptions, @collection, _.map @loadOptions.only, (id) => @cachedCollection.get(id)
           return @collection
@@ -36,6 +34,15 @@ class Brainstem.CollectionLoader
           if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.include)))
             @_success @loadOptions, @collection, subset
             return @collection
+
+    return false
+
+  load: (loadOptions) ->
+    @_parseLoadOptions(loadOptions)
+
+    # Check the cache
+    if collection = @_checkCache()
+      return collection
 
     # If we haven't returned yet, we need to go to the server to load some missing data.
     syncOptions =
@@ -71,7 +78,7 @@ class Brainstem.CollectionLoader
           @_success @loadOptions, @collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
 
     syncOptions.data.include = @loadOptions.include.join(",") if @loadOptions.include.length
-    syncOptions.data.only = _.difference(@loadOptions.only, alreadyLoadedIds).join(",") if @loadOptions.only?
+    syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",") if @loadOptions.only?
     syncOptions.data.order = @loadOptions.order if @loadOptions.order?
     _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length
 
