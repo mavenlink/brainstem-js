@@ -49,33 +49,7 @@ class Brainstem.CollectionLoader
       data: {}
       parse: true
       error: @loadOptions.error
-      success: (resp, status, xhr) =>
-        # The server response should look something like this:
-        #  {
-        #    count: 200,
-        #    results: [{ key: "tasks", id: 10 }, { key: "tasks", id: 11 }],
-        #    time_entries: [{ id: 2, title: "te1", project_id: 6, task_id: [10, 11] }]
-        #    projects: [{id: 6, title: "some project", time_entry_ids: [2] }]
-        #    tasks: [{id: 10, title: "some task" }, {id: 11, title: "some other task" }]
-        #  }
-        # Loop over all returned data types and update our local storage to represent any new data.
-
-        results = resp['results']
-        keys = _.reject(_.keys(resp), (key) -> key == 'count' || key == 'results')
-        unless _.isEmpty(results)
-          keys.splice(keys.indexOf(@loadOptions.name), 1) if keys.indexOf(@loadOptions.name) != -1
-          keys.push(@loadOptions.name)
-
-        for underscoredModelName in keys
-          @storageManager.storage(underscoredModelName).update _(resp[underscoredModelName]).values()
-
-        unless @loadOptions.cache == false || @loadOptions.only?
-          @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = results
-
-        if @loadOptions.only?
-          @_success @loadOptions, @collection, _.map(@loadOptions.only, (id) => @cachedCollection.get(id))
-        else
-          @_success @loadOptions, @collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
+      success: @onLoadSuccess
 
     syncOptions.data.include = @loadOptions.include.join(",") if @loadOptions.include.length
     syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",") if @loadOptions.only?
@@ -101,6 +75,34 @@ class Brainstem.CollectionLoader
       @loadOptions.returnValues.jqXhr = jqXhr
 
     @collection
+
+  onLoadSuccess: (resp, status, xhr) =>
+    # The server response should look something like this:
+    #  {
+    #    count: 200,
+    #    results: [{ key: "tasks", id: 10 }, { key: "tasks", id: 11 }],
+    #    time_entries: [{ id: 2, title: "te1", project_id: 6, task_id: [10, 11] }]
+    #    projects: [{id: 6, title: "some project", time_entry_ids: [2] }]
+    #    tasks: [{id: 10, title: "some task" }, {id: 11, title: "some other task" }]
+    #  }
+    # Loop over all returned data types and update our local storage to represent any new data.
+
+    results = resp['results']
+    keys = _.reject(_.keys(resp), (key) -> key == 'count' || key == 'results')
+    unless _.isEmpty(results)
+      keys.splice(keys.indexOf(@loadOptions.name), 1) if keys.indexOf(@loadOptions.name) != -1
+      keys.push(@loadOptions.name)
+
+    for underscoredModelName in keys
+      @storageManager.storage(underscoredModelName).update _(resp[underscoredModelName]).values()
+
+    unless @loadOptions.cache == false || @loadOptions.only?
+      @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = results
+
+    if @loadOptions.only?
+      @_success @loadOptions, @collection, _.map(@loadOptions.only, (id) => @cachedCollection.get(id))
+    else
+      @_success @loadOptions, @collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
 
 class Brainstem.DataLoader
   constructor: (options = {}) ->
