@@ -13,7 +13,6 @@ class Brainstem.CollectionLoader
     @_parseLoadOptions(loadOptions)
 
     options = @loadOptions
-    search = options.search
     include = _(options.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
     filters = options.filters || {}
     order = options.order || "updated_at:desc"
@@ -85,7 +84,7 @@ class Brainstem.CollectionLoader
         syncOptions.data.per_page = options.perPage
         syncOptions.data.page = options.page
 
-    syncOptions.data.search = search if search
+    syncOptions.data.search = @loadOptions.search if @loadOptions.search
 
     modelOrCollection = collection
     modelOrCollection = options.model if @loadOptions.only && options.model
