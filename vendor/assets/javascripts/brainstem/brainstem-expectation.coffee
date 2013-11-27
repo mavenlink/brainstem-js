@@ -51,10 +51,9 @@ class window.Brainstem.Expectation
       else
         @manager.storage(result.key).get(result.id)
 
-    cl = new Brainstem.CollectionLoader()
-    cl.internalCollection = options.collection
-    cl.externalCollection = options.collection
-    cl._success(options.callOptions, returnedModels)
+    cl = new Brainstem.CollectionLoader(storageManager: @manager)
+    cl._setup($.extend({}, options.callOptions, collection: options.collection))
+    cl._success(cl.loadOptions, returnedModels)
 
   optionsMatch: (name, options) =>
     @manager.dataLoader._checkPageSettings options

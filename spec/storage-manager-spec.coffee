@@ -147,7 +147,7 @@ describe 'Brainstem Storage Manager', ->
         expect(collection.loaded).toBe true
       collection = base.data.loadCollection "time_entries", success: spy
       server.respond()
-      expect(spy).toHaveBeenCalledWith(collection, 1)
+      expect(spy).toHaveBeenCalledWith(collection)
 
     it "saves it's options onto the returned collection", ->
       collection = base.data.loadCollection "time_entries", order: "baz:desc", filters: { bar: 2 }
@@ -289,7 +289,7 @@ describe 'Brainstem Storage Manager', ->
           collection.bind "reset", checkStructure
           expect(success).not.toHaveBeenCalled()
           server.respond()
-          expect(success).toHaveBeenCalledWith(collection, 4)
+          expect(success).toHaveBeenCalledWith(collection)
           expect(callCount).toEqual 3
 
       describe "caching", ->

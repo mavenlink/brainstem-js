@@ -44,9 +44,19 @@ class Brainstem.CollectionLoader
 
     return false
 
-  loadCollection: (loadOptions) ->
+  _interceptOldSuccess: ->
+    externalSuccess = @loadOptions.success
+    @loadOptions.success = =>
+      @_updateCollection(@externalCollection, @internalCollection)
+      externalSuccess(@externalCollection) if externalSuccess
+
+  _setup: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
     @_createCollectionReferences()
+    @_interceptOldSuccess()    
+
+  loadCollection: (loadOptions) ->
+    @_setup(loadOptions)
 
     # Check the cache
     if collection = @_checkCache()
@@ -130,20 +140,10 @@ class Brainstem.CollectionLoader
     # Update proxy collection
     @_updateCollection(@internalCollection, data)
 
-    ###
-    When the data is finished loading put the data from the internalCollection into the 
-    externalCollection.  We do this because we don't want the loaded or reset event to happen until
-    everything is loaded
-    ###
-    oldSuccess = options.success
-    options.success = =>
-      @_updateCollection(@externalCollection, @internalCollection)
-      oldSuccess.apply(this, arguments) if oldSuccess
-
     shouldCall = false
 
     if @loadOptions
-      expectedServerRequests = @_countRequiredServerRequests(@loadOptions.include) - 1
+      expectedServerRequests = @_countRequiredServerRequests(@loadOptions.include)
       if expectedServerRequests > 0
         c = 0
         for hash in @loadOptions.include
@@ -163,9 +163,9 @@ class Brainstem.CollectionLoader
               include: nextLevel
               error: @loadOptions.error
               success: (_collection, layers = 1) =>
-                c += layers
+                c += 1
                 if c == expectedServerRequests
-                  options.success(@externalCollection, c + 1) if options.success?
+                  options.success() #if options.success?
 
             cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
             cl.loadCollection(opts)
@@ -175,17 +175,16 @@ class Brainstem.CollectionLoader
       shouldCall = true
     
     if options.success? && shouldCall
-      options.success(@externalCollection, 1)
+      options.success()
 
-  _countRequiredServerRequests: (array, wrapped = false) =>
+  _countRequiredServerRequests: (array) =>
+    sum = 0
+
     if array?.length
-      array = Brainstem.Utils.wrapObjects(array) unless wrapped
-      sum = 1
-      _(array).each (elem) =>
-        sum += @_countRequiredServerRequests(_(elem).values()[0], true)
-      sum
-    else
-      0
+      for elem in array when _.values(elem)[0].length
+        sum += 1
+
+    sum
 
 ####################################
 
