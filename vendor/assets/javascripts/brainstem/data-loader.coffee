@@ -9,11 +9,12 @@ class Brainstem.CollectionLoader
     @loadOptions = $.extend {}, loadOptions
     @loadOptions.only = if @loadOptions.only then _.map((Brainstem.Utils.extractArray "only", @loadOptions), (id) -> String(id)) else null
     @loadOptions.filters ?= {}
+    @loadOptions.include = _(@loadOptions.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
+
   load: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
 
     options = @loadOptions
-    include = _(options.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
     filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
     cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, options.page, options.perPage, options.limit, options.offset].join('|')
 
@@ -22,7 +23,7 @@ class Brainstem.CollectionLoader
 
     unless options.cache == false
       if @loadOptions.only?
-        alreadyLoadedIds = _.select @loadOptions.only, (id) => cachedCollection.get(id)?.associationsAreLoaded(include)
+        alreadyLoadedIds = _.select @loadOptions.only, (id) => cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.include)
         if alreadyLoadedIds.length == @loadOptions.only.length
           # We've already seen every id that is being asked for and have all the associated data.
           @_success options, collection, _.map @loadOptions.only, (id) => cachedCollection.get(id)
@@ -31,7 +32,7 @@ class Brainstem.CollectionLoader
         # Check if we have, at some point, requested enough records with this this order and filter(s).
         if @storageManager.getCollectionDetails(@loadOptions.name).cache[cacheKey]
           subset = _(@storageManager.getCollectionDetails(@loadOptions.name).cache[cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
-          if (_.all(subset, (model) => model.associationsAreLoaded(include)))
+          if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.include)))
             @_success options, collection, subset
             return collection
 
@@ -68,8 +69,7 @@ class Brainstem.CollectionLoader
         else
           @_success options, collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
 
-
-    syncOptions.data.include = include.join(",") if include.length
+    syncOptions.data.include = @loadOptions.include.join(",") if @loadOptions.include.length
     syncOptions.data.only = _.difference(@loadOptions.only, alreadyLoadedIds).join(",") if @loadOptions.only?
     syncOptions.data.order = @loadOptions.order if @loadOptions.order?
     _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length
