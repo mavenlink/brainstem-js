@@ -162,10 +162,11 @@ class Brainstem.CollectionLoader
               only: associationIds
               include: nextLevel
               error: @loadOptions.error
-              success: (_collection, layers = 1) =>
+              success: =>
                 c += 1
+
                 if c == expectedServerRequests
-                  options.success() #if options.success?
+                  options.success()
 
             cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
             cl.loadCollection(opts)
