@@ -3,7 +3,6 @@ window.Brainstem ?= {}
 class Brainstem.CollectionLoader
   constructor: (options = {}) ->
     @storageManager = options.storageManager
-    @successFunction = options.successFunction
 
   _parseLoadOptions: (loadOptions) ->
     @loadOptions = $.extend {}, loadOptions
@@ -108,8 +107,16 @@ class Brainstem.CollectionLoader
     syncOptions.data.search = @loadOptions.search if @loadOptions.search
     syncOptions
 
-  _success: ->
-    @successFunction.apply(this, arguments)
+  _success: (options, collection, data) ->
+    if data
+      data = data.models if data.models?
+      collection.setLoaded true, trigger: false
+      if collection.length
+        collection.add data
+      else
+        collection.reset data
+    collection.setLoaded true
+    options.success(collection) if options.success?
 
 ####################################
 
@@ -167,7 +174,7 @@ class Brainstem.DataLoader
       opts = $.extend {}, options, include: include, success: (firstLayerCollection) =>
         @_success(options, collection, firstLayerCollection)
 
-      cl = new Brainstem.CollectionLoader(storageManager: @storageManager, successFunction: @_success)
+      cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
       cl.loadCollection(opts)
 
       # @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
