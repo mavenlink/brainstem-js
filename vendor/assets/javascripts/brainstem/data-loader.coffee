@@ -37,7 +37,7 @@ class Brainstem.CollectionLoader
 
     return false
 
-  load: (loadOptions) ->
+  loadCollection: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
 
     # Check the cache
@@ -79,9 +79,11 @@ class Brainstem.CollectionLoader
       @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = results
 
     if @loadOptions.only?
-      @_success @loadOptions, @collection, _.map(@loadOptions.only, (id) => @cachedCollection.get(id))
+      data = _.map(@loadOptions.only, (id) => @cachedCollection.get(id))
     else
-      @_success @loadOptions, @collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
+      data = _(results).map (result) -> base.data.storage(result.key).get(result.id)
+
+    @_success @loadOptions, @collection, data
 
   _buildSyncOptions: ->
     syncOptions =
@@ -105,6 +107,8 @@ class Brainstem.CollectionLoader
 
     syncOptions.data.search = @loadOptions.search if @loadOptions.search
     syncOptions
+
+####################################
 
 class Brainstem.DataLoader
   constructor: (options = {}) ->
@@ -174,7 +178,7 @@ class Brainstem.DataLoader
 
   _loadCollectionWithFirstLayer: (options) =>
     cl = new Brainstem.CollectionLoader(storageManager: @storageManager, successFunction: @_success)
-    cl.load(options)
+    cl.loadCollection(options)
 
   _handleNextLayer: (options) =>
     # Collection is a fully populated collection of tasks whose first layer of associations are loaded.
