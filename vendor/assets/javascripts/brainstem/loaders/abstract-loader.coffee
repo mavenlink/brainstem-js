@@ -9,7 +9,6 @@ class Brainstem.AbstractLoader
 
   setup: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
-    @_calculateAdditionalIncludes()
     @_createObjectReferences()
     @_interceptOldSuccess()
 
@@ -42,14 +41,6 @@ class Brainstem.AbstractLoader
     @loadOptions.cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, @loadOptions.page, @loadOptions.perPage, @loadOptions.limit, @loadOptions.offset].join('|')
 
     @cachedCollection = @storageManager.storage @_getCollectionName()
-
-  _calculateAdditionalIncludes: ->
-    @additionalIncludesCount = 0
-    @completedIncludesCount = 0
-
-    if @loadOptions.include
-      for elem in @loadOptions.include when _.values(elem)[0].length
-        @additionalIncludesCount += 1
 
   _createObjectReferences: ->
     throw "Implement in your subclass"
@@ -115,10 +106,26 @@ class Brainstem.AbstractLoader
   _updateStorageManagerFromResponse: ->
     throw "Implement in your subclass"
 
+  _calculateAdditionalIncludes: ->
+    @completedIncludesCount = 0
+    @additionalIncludes = []
+
+    for hash in @loadOptions.include 
+      associationName = _.keys(hash)[0]
+      associationIds = @_getIdsForAssociation(associationName)
+      associationInclude = hash[associationName]
+
+      if associationIds.length && associationInclude.length
+        @additionalIncludes.push
+          name: associationName
+          ids: associationIds
+          include: associationInclude
+
   _onLoadSuccess: (data) ->
     @_updateObjects(@internalObject, data)
+    @_calculateAdditionalIncludes()
 
-    if @additionalIncludesCount
+    if @additionalIncludes.length
       @_loadAdditionalIncludes()
     else
       @loadOptions.success()
@@ -127,28 +134,21 @@ class Brainstem.AbstractLoader
     throw "Implement in your subclass"
 
   _loadAdditionalIncludes: ->
-    for hash in @loadOptions.include
-      associationName = _.keys(hash)[0]
-      associationIds = @_getIdsForAssociation(associationName)
-      nextLevelInclude = hash[associationName]
+    for association in @additionalIncludes
+      collectionName = @_getModel().associationDetails(association.name).collectionName
 
-      if !associationIds.length
-        @_onAdditionalIncludeLoadSuccess()
-        
-      else if nextLevelInclude.length
-        collectionName = @_getModel().associationDetails(associationName).collectionName
-        loadOptions =
-          only: associationIds
-          include: nextLevelInclude
-          error: @loadOptions.error
-          success: @_onAdditionalIncludeLoadSuccess
+      loadOptions =
+        only: association.ids
+        include: association.include
+        error: @loadOptions.error
+        success: @_onAdditionalIncludeLoadSuccess
 
-        @storageManager.loadCollection(collectionName, loadOptions)
+      @storageManager.loadCollection(collectionName, loadOptions)
 
   _onAdditionalIncludeLoadSuccess: =>
     @completedIncludesCount += 1
 
-    if @completedIncludesCount == @additionalIncludesCount
+    if @completedIncludesCount == @additionalIncludes.length
       @loadOptions.success()
 
   _getModel: ->
