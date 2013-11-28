@@ -10,12 +10,20 @@ class Brainstem.DataLoader
   #     model = manager.loadModel "time_entry", fields: ["title", "notes"]
   #     model = manager.loadModel "time_entry", include: ["project", "task"]
   loadModel: (name, id, options = {}) ->
+    return if not id
+    
     options = $.extend({}, options, name: name, only: id)
     @_checkPageSettings options
     
     ml = new Brainstem.ModelLoader(storageManager: @storageManager)
-    ml.setup(options)
-    ml.load()
+    model = ml.setup(options)
+
+    if @storageManager.expectations?
+      @storageManager.handleExpectations name.pluralize(), model, options
+    else
+      ml.load()
+
+    model
 
   # Request a set of data to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
   # when the load, and any dependent loads, are complete.

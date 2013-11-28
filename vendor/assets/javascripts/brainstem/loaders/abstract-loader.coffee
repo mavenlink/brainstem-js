@@ -129,12 +129,13 @@ class Brainstem.AbstractLoader
   _loadAdditionalIncludes: ->
     for hash in @loadOptions.include
       associationName = _.keys(hash)[0]
+      associationIds = @_getIdsForAssociation(associationName)
       nextLevelInclude = hash[associationName]
 
-      if nextLevelInclude.length
+      if associationIds.length && nextLevelInclude.length
         collectionName = @_getModel().associationDetails(associationName).collectionName
         loadOptions =
-          only: @_getIdsForAssociation(associationName)
+          only: associationIds
           include: nextLevelInclude
           error: @loadOptions.error
           success: @_onAdditionalIncludeLoadSuccess
@@ -164,4 +165,4 @@ class Brainstem.AbstractLoader
     if obj instanceof Backbone.Collection
       obj.models
     else
-      obj
+      obj || [] # TODO: revisit this.. we shouldn't be getting to this stage.

@@ -51,9 +51,16 @@ class window.Brainstem.Expectation
       else
         @manager.storage(result.key).get(result.id)
 
-    cl = new Brainstem.CollectionLoader(storageManager: @manager)
-    cl.setup($.extend({}, options.callOptions, collection: options.collection))
-    cl._onLoadSuccess(returnedModels)
+    if options.collection instanceof Backbone.Collection
+      loader = new Brainstem.CollectionLoader(storageManager: @manager)
+      loadOptions = $.extend({}, options.callOptions, collection: options.collection)
+    else
+      loader = new Brainstem.ModelLoader(storageManager: @manager)
+      loadOptions = $.extend({}, options.callOptions, model: options.collection)
+
+    loader.setup(loadOptions)
+    loader.additionalIncludesCount = 0 # we don't need to fetch additional things from the server in a stub
+    loader._onLoadSuccess(returnedModels)
 
   optionsMatch: (name, options) =>
     @manager.dataLoader._checkPageSettings options
