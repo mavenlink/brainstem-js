@@ -59,7 +59,10 @@ class window.Brainstem.Expectation
       loadOptions = $.extend({}, options.callOptions, model: options.collection)
 
     loader.setup(loadOptions)
-    loader.additionalIncludesCount = 0 # we don't need to fetch additional things from the server in a stub
+
+    # we don't need to fetch additional things from the server in an expectation.
+    loader.loadOptions.include = []
+
     loader._onLoadSuccess(returnedModels)
 
   optionsMatch: (name, options) =>
