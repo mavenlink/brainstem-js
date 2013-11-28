@@ -1,7 +1,7 @@
 class App.Models.Project extends Brainstem.Model
   brainstemKey: "projects"
   paramRoot: 'project'
-  url: '/api/projects'
+  urlRoot: '/api/projects'
 
   @associations:
     tasks: ["tasks"]

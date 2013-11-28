@@ -1,7 +1,7 @@
 class App.Models.TimeEntry extends Brainstem.Model
   brainstemKey: "time_entries"
   paramRoot: 'time_entry'
-  url: '/api/time_entries'
+  urlRoot: '/api/time_entries'
 
   @associations:
     project: "projects"
