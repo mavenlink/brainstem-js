@@ -132,6 +132,7 @@ describe 'Brainstem Expectations', ->
     it "should allow wildcard params", ->
       manager.stubImmediate "projects", include: '*', response: (stub) ->
         stub.results = [project1, project2]
+        stub.associated.tasks = [task1]
       expect(manager.loadCollection("projects", include: ["tasks"]).models).toEqual [project1, project2]
       expect(manager.loadCollection("projects", include: ["users"]).models).toEqual [project1, project2]
       expect(manager.loadCollection("projects").models).toEqual [project1, project2]
