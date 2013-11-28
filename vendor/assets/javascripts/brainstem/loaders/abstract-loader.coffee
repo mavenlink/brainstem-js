@@ -132,7 +132,10 @@ class Brainstem.AbstractLoader
       associationIds = @_getIdsForAssociation(associationName)
       nextLevelInclude = hash[associationName]
 
-      if associationIds.length && nextLevelInclude.length
+      if !associationIds.length
+        @_onAdditionalIncludeLoadSuccess()
+        
+      else if nextLevelInclude.length
         collectionName = @_getModel().associationDetails(associationName).collectionName
         loadOptions =
           only: associationIds
