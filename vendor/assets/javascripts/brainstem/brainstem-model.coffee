@@ -15,7 +15,7 @@ class window.Brainstem.Model extends Backbone.Model
     return modelObject
 
   # Handle create and update responses with JSON root keys
-  parse: (resp, xhr) =>
+  parse: (resp, xhr) ->
     @updateStorageManager(resp)
     modelObject = @_parseResultsResponse(resp)
     super(@constructor.parse(modelObject), xhr)
@@ -75,7 +75,7 @@ class window.Brainstem.Model extends Backbone.Model
   # provided, all associations are assumed.
   #   model.associationsAreLoaded(["project", "task"]) # => true|false
   #   model.associationsAreLoaded() # => true|false
-  associationsAreLoaded: (associations) =>
+  associationsAreLoaded: (associations) ->
     associations ||= _.keys(@constructor.associations)
     _.all associations, (association) =>
       details = @constructor.associationDetails(association)
@@ -85,7 +85,7 @@ class window.Brainstem.Model extends Backbone.Model
         @attributes.hasOwnProperty(details.key) && _.all(@attributes[details.key], (id) -> base.data.storage(details.collectionName).get(id))
 
   # Override Model#get to access associations as well as fields.
-  get: (field, options = {}) =>
+  get: (field, options = {}) ->
     if details = @constructor.associationDetails(field)
       if details.type == "BelongsTo"
         id = @get(details.key) # project_id
@@ -111,7 +111,7 @@ class window.Brainstem.Model extends Backbone.Model
     else
       super(field)
 
-  className: =>
+  className: ->
     @paramRoot
 
   defaultJSONBlacklist: ->
@@ -123,7 +123,7 @@ class window.Brainstem.Model extends Backbone.Model
   updateJSONBlacklist: ->
     []
 
-  toServerJSON: (method, options) =>
+  toServerJSON: (method, options) ->
     json = @toJSON(options)
     blacklist = @defaultJSONBlacklist()
 
