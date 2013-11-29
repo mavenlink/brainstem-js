@@ -10,7 +10,6 @@ class window.Brainstem.StorageManager
   constructor: (options = {}) ->
     @collections = {}
     @setErrorInterceptor(options.errorInterceptor)
-    @dataLoader = new Brainstem.DataLoader(storageManager: this)
 
   # Add a collection to the StorageManager.  All collections that will be loaded or used in associations must be added.
   #    manager.addCollection "time_entries", App.Collections.TimeEntries
@@ -50,23 +49,29 @@ class window.Brainstem.StorageManager
   setErrorInterceptor: (interceptor) ->
     @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(jqXHR)
 
+  # Request a model to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
+  # when the load, and any dependent loads, are complete.
+  #     model = manager.loadModel "time_entry"
+  #     model = manager.loadModel "time_entry", fields: ["title", "notes"]
+  #     model = manager.loadModel "time_entry", include: ["project", "task"]
   loadModel: (name, id, options = {}) ->
     return if not id
 
-    successCallback = options.success
-    options = _.omit(options, 'success')
+    loader = @loadObject(name, $.extend({}, options, only: id), isCollection: false)
+    loader.externalObject
 
-    ml = @dataLoader.loadModel.apply(@dataLoader, [name, id, options])
-    ml.done(successCallback) if successCallback? && _.isFunction(successCallback)
-    ml.externalObject
-
+  # Request a set of data to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
+  # when the load, and any dependent loads, are complete.
+  #     collection = manager.loadCollection "time_entries"
+  #     collection = manager.loadCollection "time_entries", only: [2, 6]
+  #     collection = manager.loadCollection "time_entries", fields: ["title", "notes"]
+  #     collection = manager.loadCollection "time_entries", include: ["project", "task"]
+  #     collection = manager.loadCollection "time_entries", include: ["project:title,description", "task:due_date"]
+  #     collection = manager.loadCollection "tasks",      include: ["assets", { "assignees": "account" }, { "sub_tasks": ["assignees", "assets"] }]
+  #     collection = manager.loadCollection "time_entries", filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
   loadCollection: (name, options = {}) ->
-    successCallback = options.success
-    options = _.omit(options, 'success')
-
-    cl = @dataLoader.loadCollection.apply(@dataLoader, [name, options])
-    cl.done(successCallback) if successCallback? && _.isFunction(successCallback)
-    cl.externalObject
+    loader = @loadObject(name, options)
+    loader.externalObject
 
   collectionError: (name) ->
     Brainstem.Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")
@@ -105,3 +110,47 @@ class window.Brainstem.StorageManager
         expectation.recordRequest(loader)
         return
     throw "No expectation matched #{name} with #{JSON.stringify options}"
+
+  # Helpers
+  loadObject: (name, loadOptions, options = {}) ->
+    options = $.extend({}, { isCollection: true }, options)
+
+    successCallback = loadOptions.success
+    loadOptions = _.omit(loadOptions, 'success')
+    loadOptions = $.extend({}, loadOptions, name: name)
+
+    if options.isCollection
+      loaderClass = Brainstem.CollectionLoader
+    else
+      loaderClass = Brainstem.ModelLoader
+
+    @_checkPageSettings loadOptions
+
+    loader = new loaderClass(storageManager: this)
+    loader.setup(loadOptions)
+    loader.done(successCallback) if successCallback? && _.isFunction(successCallback)
+
+    if @expectations?
+      @handleExpectations(loader)
+    else
+      loader.load()
+
+    loader
+    
+  _checkPageSettings: (options) ->
+    if options.limit? && options.limit != '' && options.offset? && options.offset != ''
+      options.perPage = options.page = undefined
+    else
+      options.limit = options.offset = undefined
+
+    @_setDefaultPageSettings(options)
+
+  _setDefaultPageSettings: (options) ->
+    if options.limit? && options.offset?
+      options.limit = 1 if options.limit < 1
+      options.offset = 0 if options.offset < 0
+    else
+      options.perPage = options.perPage || 20
+      options.perPage = 1 if options.perPage < 1
+      options.page = options.page || 1
+      options.page = 1 if options.page < 1

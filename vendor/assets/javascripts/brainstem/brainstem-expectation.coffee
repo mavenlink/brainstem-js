@@ -4,7 +4,7 @@ class window.Brainstem.Expectation
   constructor: (collectionName, options, manager) ->
     @collectionName = collectionName
     @manager = manager
-    @manager.dataLoader._setDefaultPageSettings options
+    @manager._setDefaultPageSettings options
     @options = options
     @results = []
     @matches = []
@@ -57,7 +57,7 @@ class window.Brainstem.Expectation
     loader._onLoadSuccess(returnedModels)
 
   optionsMatch: (name, options) ->
-    @manager.dataLoader._checkPageSettings options
+    @manager._checkPageSettings options
     if !@disabled && @collectionName == name
       _(['include', 'only', 'order', 'filters', 'perPage', 'page', 'limit', 'offset', 'search']).all (optionType) =>
         @options[optionType] == "*" || Brainstem.Utils.matches(_.compact(_.flatten([options[optionType]])), _.compact(_.flatten([@options[optionType]])))

@@ -149,7 +149,7 @@ class Brainstem.AbstractLoader
         include: association.include
         error: @loadOptions.error
 
-      promises.push(@storageManager.dataLoader.loadCollection(collectionName, loadOptions))
+      promises.push(@storageManager.loadObject(collectionName, loadOptions))
 
     $.when.apply($, promises).done(@_onLoadingCompleted)
 
