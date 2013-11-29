@@ -11,22 +11,8 @@ class Brainstem.DataLoader
   #     model = manager.loadModel "time_entry", include: ["project", "task"]
   loadModel: (name, id, options = {}) ->
     return if not id
-    
-    options = $.extend({}, options, name: name, only: id)
-    @_checkPageSettings options
-    
-    ml = new Brainstem.ModelLoader(storageManager: @storageManager)
-    ml.setup(options)
-
-    #TODO: handleExpectations should just take a loader.
-    # loaders know their name, externalObject, loadOptions, etc.
-    if @storageManager.expectations?
-      options.loader = ml
-      @storageManager.handleExpectations name.pluralize(), ml.externalObject, options
-    else
-      ml.load()
-
-    ml
+    options = $.extend({}, options, only: id)
+    @_loadObject(name, Brainstem.ModelLoader, options)
 
   # Request a set of data to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
   # when the load, and any dependent loads, are complete.
@@ -38,23 +24,26 @@ class Brainstem.DataLoader
   #     collection = manager.loadCollection "tasks",      include: ["assets", { "assignees": "account" }, { "sub_tasks": ["assignees", "assets"] }]
   #     collection = manager.loadCollection "time_entries", filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
   loadCollection: (name, options = {}) ->
+    @_loadObject(name, Brainstem.CollectionLoader, options)
+
+  # Helpers
+  _loadObject: (name, loaderClass, options) ->
+    if not loaderClass or not _.isFunction(loaderClass)
+      throw "A loader class is required when calling _loadObject"
+
     options = $.extend({}, options, name: name)
     @_checkPageSettings options
 
-    cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
-    cl.setup(options)
+    loader = new loaderClass(storageManager: @storageManager)
+    loader.setup(options)
 
-    #TODO: handleExpectations should just take a loader.
-    # loaders know their name, externalObject, loadOptions, etc.
     if @storageManager.expectations?
-      options.loader = cl
-      @storageManager.handleExpectations name, cl.externalObject, options
+      @storageManager.handleExpectations(loader)
     else
-      cl.load()
+      loader.load()
 
-    cl
-
-  # Helpers
+    loader
+    
   _checkPageSettings: (options) ->
     if options.limit? && options.limit != '' && options.offset? && options.offset != ''
       options.perPage = options.page = undefined

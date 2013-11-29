@@ -19,22 +19,22 @@ class window.Brainstem.Expectation
   remove: =>
     @disabled = true
 
-  recordRequest: (collection, callOptions) =>
+  recordRequest: (loader) =>
     if @immediate
-      @handleRequest collection: collection, callOptions: callOptions
+      @handleRequest(loader)
     else
-      @requestQueue.push collection: collection, callOptions: callOptions
+      @requestQueue.push(loader)
 
   respond: =>
     for request in @requestQueue
       @handleRequest request
     @requestQueue = []
 
-  handleRequest: (options) =>
-    @matches.push options.callOptions
+  handleRequest: (loader) =>
+    @matches.push loader.originalOptions
 
     if @triggerError?
-      return @manager.errorInterceptor(options.callOptions.error, options.collection, options.callOptions, @triggerError)
+      return @manager.errorInterceptor(loader.originalOptions.error, loader.externalObject, loader.originalOptions, @triggerError)
 
     for key, values of @associated
       values = [values] unless values instanceof Array
@@ -45,24 +45,11 @@ class window.Brainstem.Expectation
       if result instanceof Brainstem.Model
         @manager.storage(result.brainstemKey).update [result]
 
-    returnedModels = _(@results).map (result) =>
+    returnedModels = _.map @results, (result) =>
       if result instanceof Brainstem.Model
         @manager.storage(result.brainstemKey).get(result.id)
       else
         @manager.storage(result.key).get(result.id)
-
-    loader = options.callOptions.loader
-
-    if not loader
-      if options.collection instanceof Backbone.Collection
-        loader = new Brainstem.CollectionLoader(storageManager: @manager)
-        loadOptions = $.extend({}, options.callOptions, collection: options.collection)
-      else
-        loader = new Brainstem.ModelLoader(storageManager: @manager)
-        loadOptions = $.extend({}, options.callOptions, model: options.collection)
-
-      loader.setup(loadOptions)
-      loader.done(loadOptions.success)
 
     # we don't need to fetch additional things from the server in an expectation.
     loader.loadOptions.include = []

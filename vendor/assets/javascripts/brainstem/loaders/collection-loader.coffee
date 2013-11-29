@@ -1,6 +1,9 @@
 window.Brainstem ?= {}
 
 class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
+  getCollectionName: ->
+    @loadOptions.name
+
   _createObjectReferences: ->
     @internalObject = @storageManager.createNewCollection @loadOptions.name, []
 
@@ -54,9 +57,6 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
 
   _getModel: ->
     @internalObject.model
-
-  _getCollectionName: ->
-    @loadOptions.name
 
   _getModelsForAssociation: (association) ->
     @internalObject.map (m) => @_modelsOrObj(m.get(association))

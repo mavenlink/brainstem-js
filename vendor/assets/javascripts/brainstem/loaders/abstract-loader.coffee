@@ -24,8 +24,12 @@ class Brainstem.AbstractLoader
     else
       @_loadData()
 
+  getCollectionName: ->
+    throw "Implement in your subclass"
+
   _parseLoadOptions: (loadOptions) ->
-    @loadOptions = $.extend {}, loadOptions
+    @originalOptions = _.clone(loadOptions)
+    @loadOptions = _.clone(loadOptions)
     @loadOptions.plainInclude = @loadOptions.include
     @loadOptions.include = Brainstem.Utils.wrapObjects(Brainstem.Utils.extractArray "include", @loadOptions)
     @loadOptions.only = if @loadOptions.only then _.map((Brainstem.Utils.extractArray "only", @loadOptions), (id) -> String(id)) else null
@@ -40,7 +44,7 @@ class Brainstem.AbstractLoader
     filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
     @loadOptions.cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, @loadOptions.page, @loadOptions.perPage, @loadOptions.limit, @loadOptions.offset].join('|')
 
-    @cachedCollection = @storageManager.storage @_getCollectionName()
+    @cachedCollection = @storageManager.storage @getCollectionName()
 
   _createObjectReferences: ->
     throw "Implement in your subclass"
@@ -54,8 +58,8 @@ class Brainstem.AbstractLoader
         return @externalObject
     else
       # Check if we have, at some point, requested enough records with this this order and filter(s).
-      if @storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]
-        subset = _(@storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
+      if @storageManager.getCollectionDetails(@getCollectionName()).cache[@loadOptions.cacheKey]
+        subset = _(@storageManager.getCollectionDetails(@getCollectionName()).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
         if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.thisLayerInclude)))
           @_onLoadSuccess(subset)
           return @externalObject
@@ -150,9 +154,6 @@ class Brainstem.AbstractLoader
     $.when.apply($, promises).done(@_onLoadingCompleted)
 
   _getModel: ->
-    throw "Implement in your subclass"
-
-  _getCollectionName: ->
     throw "Implement in your subclass"
 
   _getModelsForAssociation: ->

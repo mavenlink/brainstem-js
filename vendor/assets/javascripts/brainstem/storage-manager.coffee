@@ -51,19 +51,21 @@ class window.Brainstem.StorageManager
     @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(jqXHR)
 
   loadModel: (name, id, options = {}) =>
-    success = options.success
+    return if not id
+
+    successCallback = options.success
     options = _.omit(options, 'success')
 
     ml = @dataLoader.loadModel.apply(@dataLoader, [name, id, options])
-    ml.done(success) if success? && _.isFunction(success)
+    ml.done(successCallback) if successCallback? && _.isFunction(successCallback)
     ml.externalObject
 
   loadCollection: (name, options = {}) =>
-    success = options.success
+    successCallback = options.success
     options = _.omit(options, 'success')
 
     cl = @dataLoader.loadCollection.apply(@dataLoader, [name, options])
-    cl.done(success) if success? && _.isFunction(success)
+    cl.done(successCallback) if successCallback? && _.isFunction(successCallback)
     cl.externalObject
 
   collectionError: (name) =>
@@ -95,9 +97,11 @@ class window.Brainstem.StorageManager
   enableExpectations: =>
     @expectations = []
 
-  handleExpectations: (name, collection, options) =>
+  handleExpectations: (loader) =>
+    name = loader.getCollectionName()
+
     for expectation in @expectations
-      if expectation.optionsMatch(name, options)
-        expectation.recordRequest(collection, options)
+      if expectation.optionsMatch(name, loader.originalOptions)
+        expectation.recordRequest(loader)
         return
     throw "No expectation matched #{name} with #{JSON.stringify options}"
