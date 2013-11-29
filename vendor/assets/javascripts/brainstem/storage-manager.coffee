@@ -23,34 +23,34 @@ class window.Brainstem.StorageManager
 
   # Access the cache for a particular collection.
   #    manager.storage("time_entries").get(12).get("title")
-  storage: (name) =>
+  storage: (name) ->
     @getCollectionDetails(name).storage
 
-  dataUsage: =>
+  dataUsage: ->
     sum = 0
     for dataType in @collectionNames()
       sum += @storage(dataType).length
     sum
 
-  reset: =>
+  reset: ->
     for name, attributes of @collections
       attributes.storage.reset []
       attributes.cache = {}
 
   # Access details of a collection.  An error will be thrown if the collection cannot be found.
-  getCollectionDetails: (name) =>
+  getCollectionDetails: (name) ->
     @collections[name] || @collectionError(name)
 
-  collectionNames: =>
+  collectionNames: ->
     _.keys(@collections)
 
-  collectionExists: (name) =>
+  collectionExists: (name) ->
     !!@collections[name]
 
-  setErrorInterceptor: (interceptor) =>
+  setErrorInterceptor: (interceptor) ->
     @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(jqXHR)
 
-  loadModel: (name, id, options = {}) =>
+  loadModel: (name, id, options = {}) ->
     return if not id
 
     successCallback = options.success
@@ -60,7 +60,7 @@ class window.Brainstem.StorageManager
     ml.done(successCallback) if successCallback? && _.isFunction(successCallback)
     ml.externalObject
 
-  loadCollection: (name, options = {}) =>
+  loadCollection: (name, options = {}) ->
     successCallback = options.success
     options = _.omit(options, 'success')
 
@@ -68,22 +68,22 @@ class window.Brainstem.StorageManager
     cl.done(successCallback) if successCallback? && _.isFunction(successCallback)
     cl.externalObject
 
-  collectionError: (name) =>
+  collectionError: (name) ->
     Brainstem.Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")
 
-  createNewCollection: (collectionName, models = [], options = {}) =>
+  createNewCollection: (collectionName, models = [], options = {}) ->
     loaded = options.loaded
     delete options.loaded
     collection = new (@getCollectionDetails(collectionName).klass)(models, options)
     collection.setLoaded(true, trigger: false) if loaded
     collection
 
-  createNewModel: (modelName, options) =>
+  createNewModel: (modelName, options) ->
     new (@getCollectionDetails(modelName.pluralize()).modelKlass)(options || {})
 
   # Expectations and stubbing
 
-  stub: (collectionName, options) =>
+  stub: (collectionName, options) ->
     if @expectations?
       expectation = new Brainstem.Expectation(collectionName, options, @)
       @expectations.push expectation
@@ -91,13 +91,13 @@ class window.Brainstem.StorageManager
     else
       throw "You must call #enableExpectations on your instance of Brainstem.StorageManager before you can set expectations."
 
-  stubImmediate: (collectionName, options) =>
+  stubImmediate: (collectionName, options) ->
     @stub collectionName, $.extend({}, options, immediate: true)
 
-  enableExpectations: =>
+  enableExpectations: ->
     @expectations = []
 
-  handleExpectations: (loader) =>
+  handleExpectations: (loader) ->
     name = loader.getCollectionName()
 
     for expectation in @expectations
