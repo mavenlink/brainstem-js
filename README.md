@@ -25,7 +25,7 @@ What follows is an overview.
 
 ### StorageManager
 
-The `Brianstem.StorageManager` is in charge of loading data over the API, as well as returning already cached data.  We recommend setting one up in a singleton App class.
+The `Brainstem.StorageManager` is in charge of loading data over the API, as well as returning already cached data.  We recommend setting one up in a singleton App class.
 
 	class Application
 	  constructor: ->
