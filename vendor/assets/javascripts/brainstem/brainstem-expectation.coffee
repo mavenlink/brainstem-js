@@ -16,21 +16,21 @@ class window.Brainstem.Expectation
     @requestQueue = []
     @options.response(@) if @options.response?
 
-  remove: =>
+  remove: ->
     @disabled = true
 
-  recordRequest: (loader) =>
+  recordRequest: (loader) ->
     if @immediate
       @handleRequest(loader)
     else
       @requestQueue.push(loader)
 
-  respond: =>
+  respond: ->
     for request in @requestQueue
       @handleRequest request
     @requestQueue = []
 
-  handleRequest: (loader) =>
+  handleRequest: (loader) ->
     @matches.push loader.originalOptions
 
     if @triggerError?
@@ -56,7 +56,7 @@ class window.Brainstem.Expectation
 
     loader._onLoadSuccess(returnedModels)
 
-  optionsMatch: (name, options) =>
+  optionsMatch: (name, options) ->
     @manager.dataLoader._checkPageSettings options
     if !@disabled && @collectionName == name
       _(['include', 'only', 'order', 'filters', 'perPage', 'page', 'limit', 'offset', 'search']).all (optionType) =>
