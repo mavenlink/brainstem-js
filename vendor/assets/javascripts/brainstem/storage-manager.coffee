@@ -50,11 +50,21 @@ class window.Brainstem.StorageManager
   setErrorInterceptor: (interceptor) =>
     @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(jqXHR)
 
-  loadModel: =>
-    @dataLoader.loadModel.apply(@dataLoader, arguments)
+  loadModel: (name, id, options = {}) =>
+    success = options.success
+    options = _.omit(options, 'success')
 
-  loadCollection: =>
-    @dataLoader.loadCollection.apply(@dataLoader, arguments)
+    ml = @dataLoader.loadModel.apply(@dataLoader, [name, id, options])
+    ml.done(success) if success? && _.isFunction(success)
+    ml.externalObject
+
+  loadCollection: (name, options = {}) =>
+    success = options.success
+    options = _.omit(options, 'success')
+
+    cl = @dataLoader.loadCollection.apply(@dataLoader, [name, options])
+    cl.done(success) if success? && _.isFunction(success)
+    cl.externalObject
 
   collectionError: (name) =>
     Brainstem.Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")

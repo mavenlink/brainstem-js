@@ -16,14 +16,17 @@ class Brainstem.DataLoader
     @_checkPageSettings options
     
     ml = new Brainstem.ModelLoader(storageManager: @storageManager)
-    model = ml.setup(options)
+    ml.setup(options)
 
+    #TODO: handleExpectations should just take a loader.
+    # loaders know their name, externalObject, loadOptions, etc.
     if @storageManager.expectations?
-      @storageManager.handleExpectations name.pluralize(), model, options
+      options.loader = ml
+      @storageManager.handleExpectations name.pluralize(), ml.externalObject, options
     else
       ml.load()
 
-    model
+    ml
 
   # Request a set of data to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
   # when the load, and any dependent loads, are complete.
@@ -39,17 +42,19 @@ class Brainstem.DataLoader
     @_checkPageSettings options
 
     cl = new Brainstem.CollectionLoader(storageManager: @storageManager)
-    collection = cl.setup(options)
+    cl.setup(options)
 
+    #TODO: handleExpectations should just take a loader.
+    # loaders know their name, externalObject, loadOptions, etc.
     if @storageManager.expectations?
-      @storageManager.handleExpectations name, collection, options
+      options.loader = cl
+      @storageManager.handleExpectations name, cl.externalObject, options
     else
       cl.load()
 
-    collection
+    cl
 
   # Helpers
-
   _checkPageSettings: (options) ->
     if options.limit? && options.limit != '' && options.offset? && options.offset != ''
       options.perPage = options.page = undefined

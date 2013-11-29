@@ -3,6 +3,7 @@ window.Brainstem ?= {}
 class Brainstem.AbstractLoader
   constructor: (options = {}) ->
     @storageManager = options.storageManager
+    @_createPromise()
 
     if options.loadOptions
       @setup(options.loadOptions)
@@ -10,7 +11,6 @@ class Brainstem.AbstractLoader
   setup: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
     @_createObjectReferences()
-    @_interceptOldSuccess()
 
     @externalObject
 
@@ -44,12 +44,6 @@ class Brainstem.AbstractLoader
 
   _createObjectReferences: ->
     throw "Implement in your subclass"
-
-  _interceptOldSuccess: ->
-    externalSuccess = @loadOptions.success
-    @loadOptions.success = =>
-      @_updateObjects(@externalObject, @internalObject)
-      externalSuccess(@externalObject) if externalSuccess
 
   _checkCacheForData: ->
     if @loadOptions.only?
@@ -107,7 +101,6 @@ class Brainstem.AbstractLoader
     throw "Implement in your subclass"
 
   _calculateAdditionalIncludes: ->
-    @completedIncludesCount = 0
     @additionalIncludes = []
 
     for hash in @loadOptions.include 
@@ -128,12 +121,22 @@ class Brainstem.AbstractLoader
     if @additionalIncludes.length
       @_loadAdditionalIncludes()
     else
-      @loadOptions.success()
+      @_onLoadingCompleted()
+
+  _createPromise: ->
+    @deferred = $.Deferred()
+    @deferred.promise(this)
+
+  _onLoadingCompleted: =>
+    @_updateObjects(@externalObject, @internalObject)
+    @deferred.resolve(@externalObject)
 
   _updateObjects: ->
     throw "Implement in your subclass"
 
   _loadAdditionalIncludes: ->
+    promises = []
+
     for association in @additionalIncludes
       collectionName = @_getModel().associationDetails(association.name).collectionName
 
@@ -141,15 +144,10 @@ class Brainstem.AbstractLoader
         only: association.ids
         include: association.include
         error: @loadOptions.error
-        success: @_onAdditionalIncludeLoadSuccess
 
-      @storageManager.loadCollection(collectionName, loadOptions)
+      promises.push(@storageManager.dataLoader.loadCollection(collectionName, loadOptions))
 
-  _onAdditionalIncludeLoadSuccess: =>
-    @completedIncludesCount += 1
-
-    if @completedIncludesCount == @additionalIncludes.length
-      @loadOptions.success()
+    $.when.apply($, promises).done(@_onLoadingCompleted)
 
   _getModel: ->
     throw "Implement in your subclass"

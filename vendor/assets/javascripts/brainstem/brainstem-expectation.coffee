@@ -51,14 +51,18 @@ class window.Brainstem.Expectation
       else
         @manager.storage(result.key).get(result.id)
 
-    if options.collection instanceof Backbone.Collection
-      loader = new Brainstem.CollectionLoader(storageManager: @manager)
-      loadOptions = $.extend({}, options.callOptions, collection: options.collection)
-    else
-      loader = new Brainstem.ModelLoader(storageManager: @manager)
-      loadOptions = $.extend({}, options.callOptions, model: options.collection)
+    loader = options.callOptions.loader
 
-    loader.setup(loadOptions)
+    if not loader
+      if options.collection instanceof Backbone.Collection
+        loader = new Brainstem.CollectionLoader(storageManager: @manager)
+        loadOptions = $.extend({}, options.callOptions, collection: options.collection)
+      else
+        loader = new Brainstem.ModelLoader(storageManager: @manager)
+        loadOptions = $.extend({}, options.callOptions, model: options.collection)
+
+      loader.setup(loadOptions)
+      loader.done(loadOptions.success)
 
     # we don't need to fetch additional things from the server in an expectation.
     loader.loadOptions.include = []
