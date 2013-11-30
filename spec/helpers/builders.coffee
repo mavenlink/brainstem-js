@@ -25,8 +25,8 @@ spec.defineBuilders = ->
       window.base.data.storage(storageName).add obj if window.base.data.collectionExists(storageName)
       obj
 
-    eval("window.#{"build_#{name.underscore()}".camelize(true)} = builder")
-    eval("window.#{"build_and_cache_#{name.underscore()}".camelize(true)} = creator")
+    window["build_#{name.underscore()}".camelize(true)] = builder
+    window["build_and_cache_#{name.underscore()}".camelize(true)] = creator
 
   isIdAttr = (attrName) ->
     attrName == 'id' || attrName.match(/_id$/) || (attrName.match(/_ids$/))
