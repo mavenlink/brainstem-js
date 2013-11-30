@@ -49,11 +49,11 @@ class window.Brainstem.StorageManager
   setErrorInterceptor: (interceptor) ->
     @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(jqXHR)
 
-  # Request a model to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
+  # Request a model to be loaded, optionally ensuring that associations be included as well.  A model is returned immediately and is updated
   # when the load, and any dependent loads, are complete.
-  #     model = manager.loadModel "time_entry"
-  #     model = manager.loadModel "time_entry", fields: ["title", "notes"]
-  #     model = manager.loadModel "time_entry", include: ["project", "task"]
+  #     model = manager.loadModel "time_entry", 2
+  #     model = manager.loadModel "time_entry", 2, fields: ["title", "notes"]
+  #     model = manager.loadModel "time_entry", 2, include: ["project", "task"]
   loadModel: (name, id, options = {}) ->
     return if not id
 
