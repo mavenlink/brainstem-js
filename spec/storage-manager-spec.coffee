@@ -40,8 +40,8 @@ describe 'Brainstem Storage Manager', ->
       tasks = [buildTask(id: 2, title: "a task", project_id: 15)]
       projects = [buildProject(id: 15)]
       timeEntries = [buildTimeEntry(id: 1, task_id: 2, project_id: 15, title: "a time entry")]
-      respondWith server, "/api/time_entries/1?only=1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
-      respondWith server, "/api/time_entries/1?include=project%2Ctask&only=1", resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
+      respondWith server, "/api/time_entries/1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
+      respondWith server, "/api/time_entries/1?include=project%2Ctask", resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
 
     it "uses a passed in model if present", ->
       existingModel = buildTimeEntry(id: 55)
@@ -94,7 +94,7 @@ describe 'Brainstem Storage Manager', ->
       subTaskAssignee = buildUser(name: 'Slice')
       subTask.set('assignee_ids', [subTaskAssignee.id])
 
-      respondWith server, "/api/tasks/#{mainTask.id}?include=assignees%2Csub_tasks%2Cproject&only=#{mainTask.id}", resultsFrom: "tasks", data: { results: resultsArray("tasks", [mainTask]), tasks: resultsObject([mainTask, subTask]), projects: resultsObject([mainProject]), users: resultsObject([mainTaskAssignee]) }
+      respondWith server, "/api/tasks/#{mainTask.id}?include=assignees%2Csub_tasks%2Cproject", resultsFrom: "tasks", data: { results: resultsArray("tasks", [mainTask]), tasks: resultsObject([mainTask, subTask]), projects: resultsObject([mainProject]), users: resultsObject([mainTaskAssignee]) }
       respondWith server, "/api/tasks?include=assignees&only=#{subTask.id}", resultsFrom: "tasks", data: { results: resultsArray("tasks", [subTask]), tasks: resultsObject([subTask]), users: resultsObject([subTaskAssignee]) }
       respondWith server, "/api/projects?include=time_entries&only=#{mainProject.id}", resultsFrom: "projects", data: { results: resultsArray("projects", [mainProject]), time_entries: resultsObject([timeEntry]), projects: resultsObject([mainProject]) }
       respondWith server, "/api/time_entries?include=task&only=" + timeEntry.id, resultsFrom: "time_entries", data: { results: resultsArray("time_entries", [timeEntry]), time_entries: resultsObject([timeEntry]), tasks: resultsObject([timeTask]) }
@@ -142,7 +142,7 @@ describe 'Brainstem Storage Manager', ->
 
     it "works even when the server returned associations of the same type", ->
       posts = [buildPost(id: 2, reply: true), buildPost(id: 3, reply: true), buildPost(id: 1, reply: false, reply_ids: [2, 3])]
-      respondWith server, "/api/posts/1?include=replies&only=1", data: { results: [{ key: "posts", id: 1 }], posts: posts }
+      respondWith server, "/api/posts/1?include=replies", data: { results: [{ key: "posts", id: 1 }], posts: posts }
       model = base.data.loadModel "post", 1, include: ["replies"]
       expect(model.loaded).toBe false
       server.respond()
@@ -186,7 +186,7 @@ describe 'Brainstem Storage Manager', ->
     it "invokes the error callback when the server responds with a 404", ->
       successSpy = jasmine.createSpy('successSpy')
       errorSpy = jasmine.createSpy('errorSpy')
-      respondWith server, "/api/time_entries/1337?only=1337", data: { results: [] }, status: 404
+      respondWith server, "/api/time_entries/1337", data: { results: [] }, status: 404
       base.data.loadModel "time_entry", 1337, success: successSpy, error: errorSpy
 
       server.respond()

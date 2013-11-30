@@ -9,7 +9,7 @@ class Brainstem.ModelLoader extends Brainstem.AbstractLoader
     @externalObject = @loadOptions.model || @storageManager.createNewModel @loadOptions.name
     @externalObject.setLoaded false, trigger: false
 
-    @internalObject.set('id', @loadOptions.only[0]) # TODO: remove only from model loads since it uses show routes and ModelLoader is a singular loader.
+    @internalObject.set('id', @loadOptions.only[0])
     @externalObject.set('id', @loadOptions.only[0])
 
   _updateStorageManagerFromResponse: (resp) ->

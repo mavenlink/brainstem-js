@@ -74,6 +74,9 @@ class Brainstem.AbstractLoader
 
     @externalObject
 
+  _shouldUseOnly: ->
+    @internalObject instanceof Backbone.Collection
+
   _buildSyncOptions: ->
     syncOptions =
       data: {}
@@ -82,7 +85,10 @@ class Brainstem.AbstractLoader
       success: @_onSyncSuccess
 
     syncOptions.data.include = @loadOptions.thisLayerInclude.join(",") if @loadOptions.thisLayerInclude.length
-    syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",") if @loadOptions.only?
+
+    if @loadOptions.only && @_shouldUseOnly()
+      syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",")
+
     syncOptions.data.order = @loadOptions.order if @loadOptions.order?
     _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length
 
