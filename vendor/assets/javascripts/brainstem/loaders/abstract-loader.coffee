@@ -171,15 +171,6 @@ class Brainstem.AbstractLoader
           include: associationInclude
 
   ###*
-   * Called when all loading (including nested loads) are complete.
-   * Updates the `externalObject` with the data that was gathered and resolves the promise.
-   * @return {[type]} [description]
-  ###
-  _onLoadingCompleted: =>
-    @_updateObjects(@externalObject, @internalObject)
-    @deferred.resolve(@externalObject)
-
-  ###*
    * Loads the next layer of includes from the server.
    * When all loads are complete, it will call `_onLoadingCompleted` which will resolve this layer.
    * @return {undefined}
@@ -198,6 +189,15 @@ class Brainstem.AbstractLoader
       promises.push(@storageManager.loadObject(collectionName, loadOptions))
 
     $.when.apply($, promises).done(@_onLoadingCompleted)
+
+  ###*
+   * Called when all loading (including nested loads) are complete.
+   * Updates the `externalObject` with the data that was gathered and resolves the promise.
+   * @return {[type]} [description]
+  ###
+  _onLoadingCompleted: =>
+    @_updateObjects(@externalObject, @internalObject)
+    @deferred.resolve(@externalObject)
 
   ###*
    * Updates the object with the supplied data. Will be called:
