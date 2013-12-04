@@ -134,7 +134,7 @@ describe 'Brainstem Storage Manager', ->
 
     it "uses the cache if it can", ->
       task = buildAndCacheTask(id: 200)
-      spy = spyOn(Brainstem.AbstractLoader.prototype, '_loadData')
+      spy = spyOn(Brainstem.AbstractLoader.prototype, '_loadFromServer')
 
       model = base.data.loadModel "task", task.id
       expect(model.attributes).toEqual(task.attributes)

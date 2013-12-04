@@ -102,7 +102,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       beforeEach ->
         loader = createLoader()
         spyOn(loader, '_checkCacheForData')
-        spyOn(loader, '_loadData')
+        spyOn(loader, '_loadFromServer')
         funct = -> loader.load()
 
       it 'throws if there are no loadOptions', ->
@@ -116,7 +116,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       beforeEach ->
         loader = createLoader()
         spyOn(loader, '_checkCacheForData')
-        spyOn(loader, '_loadData')
+        spyOn(loader, '_loadFromServer')
 
       context 'loadOptions.cache is true', ->
         it 'calls #_checkCacheForData', ->
@@ -135,10 +135,10 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
             expect(loader.load()).toEqual(fakeData)
 
         context '#_checkCacheForData does not return data', ->
-          it 'calls #_loadData', ->
+          it 'calls #_loadFromServer', ->
             loader.setup()
             loader.load()
-            expect(loader._loadData).toHaveBeenCalled()
+            expect(loader._loadFromServer).toHaveBeenCalled()
 
       context 'loadOptions.cache is false', ->
         it 'does not call #_checkCacheForData', ->
@@ -147,10 +147,10 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           loader.load()
           expect(loader._checkCacheForData).not.toHaveBeenCalled()
 
-        it 'calls #_loadData', ->
+        it 'calls #_loadFromServer', ->
           loader.setup()
           loader.load()
-          expect(loader._loadData).toHaveBeenCalled()
+          expect(loader._loadFromServer).toHaveBeenCalled()
 
   describe '#_parseLoadOptions', ->
     opts = null
@@ -298,7 +298,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           loader.setup(opts)
           notFound(loader, opts)
 
-  describe '#_loadData', ->
+  describe '#_loadFromServer', ->
     opts = syncOpts = null
 
     beforeEach ->
@@ -311,19 +311,19 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
     it 'calls Backbone.sync with the read, the, internalObject, and #_buildSyncOptions', ->
       loader.setup(opts)
-      loader._loadData()
+      loader._loadFromServer()
       expect(Backbone.sync).toHaveBeenCalledWith 'read', loader.internalObject, syncOpts
 
     it 'puts the jqXhr on the returnValues if present', ->
       opts.returnValues = returnValues = {}
       loader.setup(opts)
 
-      loader._loadData()
+      loader._loadFromServer()
       expect(returnValues.jqXhr.success).not.toBeUndefined()
 
     it 'returns the externalObject', ->
       loader.setup(opts)
-      ret = loader._loadData()
+      ret = loader._loadFromServer()
       expect(ret).toEqual loader.externalObject
 
   describe '#_shouldUseOnly', ->
@@ -355,8 +355,8 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       opts.error = spy = jasmine.createSpy()
       expect(getSyncOptions(loader, opts).error).toEqual spy
 
-    it 'sets success as #_onSyncSuccess', ->
-      expect(getSyncOptions(loader, opts).success).toEqual(loader._onSyncSuccess)
+    it 'sets success as #_onServerLoadSuccess', ->
+      expect(getSyncOptions(loader, opts).success).toEqual(loader._onServerLoadSuccess)
 
     it 'sets data.include to be the layer of includes that this loader is loading', ->
       opts.include = [
@@ -460,19 +460,19 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         opts.search = 'term'
         expect(getSyncOptions(loader, opts).data.search).toEqual 'term'
 
-  describe '#_onSyncSuccess', ->
+  describe '#_onServerLoadSuccess', ->
     beforeEach ->
       loader = createLoader()
       spyOn(loader, '_onLoadSuccess')
 
     it 'calls #_updateStorageManagerFromResponse with the response', ->
-      loader._onSyncSuccess('response')
+      loader._onServerLoadSuccess('response')
       expect(loader._updateStorageManagerFromResponse).toHaveBeenCalledWith 'response'
 
-    it 'calls #_onSyncSuccess with the result from #_updateStorageManagerFromResponse', ->
+    it 'calls #_onServerLoadSuccess with the result from #_updateStorageManagerFromResponse', ->
       loader._updateStorageManagerFromResponse.andReturn 'data'
 
-      loader._onSyncSuccess()
+      loader._onServerLoadSuccess()
       expect(loader._onLoadSuccess).toHaveBeenCalledWith 'data'
 
   describe '#_calculateAdditionalIncludes', ->

@@ -28,20 +28,6 @@ class Brainstem.AbstractLoader
     @externalObject
 
   ###*
-   * Loads the model from memory or the server.
-   * @return {object} the loader's `externalObject`
-  ###
-  load: ->
-    if not @loadOptions
-      throw "You must call #setup first or pass loadOptions into the constructor"
-
-    # Check the cache to see if we have everything that we need.
-    if @loadOptions.cache && data = @_checkCacheForData()
-      data
-    else
-      @_loadData()
-
-  ###*
    * Parse supplied loadOptions, add defaults, transform them into appropriate structures, and pull out important pieces.
    * @param  {object} loadOptions
    * @return {object} transformed loadOptions
@@ -84,6 +70,20 @@ class Brainstem.AbstractLoader
     throw "Implement in your subclass"
 
   ###*
+   * Loads the model from memory or the server.
+   * @return {object} the loader's `externalObject`
+  ###
+  load: ->
+    if not @loadOptions
+      throw "You must call #setup first or pass loadOptions into the constructor"
+
+    # Check the cache to see if we have everything that we need.
+    if @loadOptions.cache && data = @_checkCacheForData()
+      data
+    else
+      @_loadFromServer()
+
+  ###*
    * Checks to see if the current requested data is available in the caching layer.
    * If it is available then update the externalObject with that data (via `_onLoadSuccess`).
    * @return {[boolean|object]} returns false if not found otherwise returns the externalObject.
@@ -109,7 +109,7 @@ class Brainstem.AbstractLoader
    * Makes a GET request to the server via Backbone.sync with the built syncOptions.
    * @return {object} externalObject that will be updated when everything is complete.
   ###
-  _loadData: ->
+  _loadFromServer: ->
     jqXhr = Backbone.sync.call @internalObject, 'read', @internalObject, @_buildSyncOptions()
 
     if @loadOptions.returnValues
@@ -118,51 +118,13 @@ class Brainstem.AbstractLoader
     @externalObject
 
   ###*
-   * Decides whether or not the `only` filter should be applied in the syncOptions.
-   * Models will not use the `only` filter as they use show routes.
-   * @return {boolean} whether or not to use the `only` filter
-  ###
-  _shouldUseOnly: ->
-    @internalObject instanceof Backbone.Collection
-
-  ###*
-   * Generates the Brainstem specific options that are passed to Backbone.sync.
-   * @return {object} options that are passed to Backbone.sync
-  ###
-  _buildSyncOptions: ->
-    syncOptions =
-      data: {}
-      parse: true
-      error: @loadOptions.error
-      success: @_onSyncSuccess
-
-    syncOptions.data.include = @loadOptions.thisLayerInclude.join(",") if @loadOptions.thisLayerInclude.length
-
-    if @loadOptions.only && @_shouldUseOnly()
-      syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",")
-
-    syncOptions.data.order = @loadOptions.order if @loadOptions.order?
-    _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length
-
-    unless @loadOptions.only?
-      if @loadOptions.limit? && @loadOptions.offset?
-        syncOptions.data.limit = @loadOptions.limit
-        syncOptions.data.offset = @loadOptions.offset
-      else
-        syncOptions.data.per_page = @loadOptions.perPage
-        syncOptions.data.page = @loadOptions.page
-
-    syncOptions.data.search = @loadOptions.search if @loadOptions.search
-    syncOptions
-
-  ###*
    * Called when the Backbone.sync successfully responds from the server.
    * @param  {object} resp    JSON response from the server.
    * @param  {string} _status
    * @param  {object} _xhr    jQuery XHR object
    * @return {undefined}
   ###
-  _onSyncSuccess: (resp, _status, _xhr) =>
+  _onServerLoadSuccess: (resp, _status, _xhr) =>
     data = @_updateStorageManagerFromResponse(resp)
     @_onLoadSuccess(data)
 
@@ -218,17 +180,6 @@ class Brainstem.AbstractLoader
     @deferred.resolve(@externalObject)
 
   ###*
-   * Updates the object with the supplied data. Will be called:
-   *   + after the server responds, `object` will be `internalObject` and data will be the result of `_updateStorageManagerFromResponse`
-   *   + after all loading is complete, `object` will be the `externalObject` and data will be the `internalObject`
-   * @param  {object} object object that will receive the data
-   * @param  {object} data data that needs set on the object
-   * @return {undefined}
-  ###
-  _updateObjects: (object, data) ->
-    throw "Implement in your subclass"
-
-  ###*
    * Loads the next layer of includes from the server.
    * When all loads are complete, it will call `_onLoadingCompleted` which will resolve this layer.
    * @return {undefined}
@@ -247,6 +198,55 @@ class Brainstem.AbstractLoader
       promises.push(@storageManager.loadObject(collectionName, loadOptions))
 
     $.when.apply($, promises).done(@_onLoadingCompleted)
+
+  ###*
+   * Updates the object with the supplied data. Will be called:
+   *   + after the server responds, `object` will be `internalObject` and data will be the result of `_updateStorageManagerFromResponse`
+   *   + after all loading is complete, `object` will be the `externalObject` and data will be the `internalObject`
+   * @param  {object} object object that will receive the data
+   * @param  {object} data data that needs set on the object
+   * @return {undefined}
+  ###
+  _updateObjects: (object, data) ->
+    throw "Implement in your subclass"
+
+  ###*
+   * Generates the Brainstem specific options that are passed to Backbone.sync.
+   * @return {object} options that are passed to Backbone.sync
+  ###
+  _buildSyncOptions: ->
+    syncOptions =
+      data: {}
+      parse: true
+      error: @loadOptions.error
+      success: @_onServerLoadSuccess
+
+    syncOptions.data.include = @loadOptions.thisLayerInclude.join(",") if @loadOptions.thisLayerInclude.length
+
+    if @loadOptions.only && @_shouldUseOnly()
+      syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",")
+
+    syncOptions.data.order = @loadOptions.order if @loadOptions.order?
+    _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length
+
+    unless @loadOptions.only?
+      if @loadOptions.limit? && @loadOptions.offset?
+        syncOptions.data.limit = @loadOptions.limit
+        syncOptions.data.offset = @loadOptions.offset
+      else
+        syncOptions.data.per_page = @loadOptions.perPage
+        syncOptions.data.page = @loadOptions.page
+
+    syncOptions.data.search = @loadOptions.search if @loadOptions.search
+    syncOptions
+
+  ###*
+   * Decides whether or not the `only` filter should be applied in the syncOptions.
+   * Models will not use the `only` filter as they use show routes.
+   * @return {boolean} whether or not to use the `only` filter
+  ###
+  _shouldUseOnly: ->
+    @internalObject instanceof Backbone.Collection
 
   ###*
    * Returns the name of the collection that this loader maps to and will update in the storageManager.
