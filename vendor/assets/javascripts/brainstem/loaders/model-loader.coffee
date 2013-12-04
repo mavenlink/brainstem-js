@@ -3,10 +3,6 @@ window.Brainstem ?= {}
 class Brainstem.ModelLoader extends Brainstem.AbstractLoader
   getCollectionName: ->
     @loadOptions.name.pluralize()
-    
-  _createObjectReferences: ->
-    @_createInternalObject()
-    @_createExternalObject()
 
   _createInternalObject: ->
     @internalObject = @storageManager.createNewModel @loadOptions.name

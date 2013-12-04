@@ -17,7 +17,8 @@ class Brainstem.AbstractLoader
 
   setup: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
-    @_createObjectReferences()
+    @_createInternalObject()
+    @_createExternalObject()
 
     @externalObject
 
@@ -53,9 +54,6 @@ class Brainstem.AbstractLoader
     @cachedCollection = @storageManager.storage @getCollectionName()
 
     @loadOptions
-
-  _createObjectReferences: ->
-    throw "Implement in your subclass"
 
   _checkCacheForData: ->
     if @loadOptions.only?

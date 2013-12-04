@@ -29,19 +29,6 @@ describe 'Loaders CollectionLoader', ->
         loader.setup(opts)
         expect(loader.getCollectionName()).toEqual 'tasks'
 
-    describe '#_createObjectReferences', ->
-      it 'calls #_createInternalObject', ->
-        spyOn(loader, '_createInternalObject')
-
-        loader.setup(opts)
-        expect(loader._createInternalObject).toHaveBeenCalled()
-
-      it 'calls #_createExternalObject', ->
-        spyOn(loader, '_createExternalObject')
-        
-        loader.setup(opts)
-        expect(loader._createExternalObject).toHaveBeenCalled()
-
     describe '#_createInternalObject', ->
       collection = null
 
