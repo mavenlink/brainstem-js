@@ -193,7 +193,7 @@ class Brainstem.AbstractLoader
   ###*
    * Called when all loading (including nested loads) are complete.
    * Updates the `externalObject` with the data that was gathered and resolves the promise.
-   * @return {[type]} [description]
+   * @return {undefined}
   ###
   _onLoadingCompleted: =>
     @_updateObjects(@externalObject, @internalObject)
@@ -258,7 +258,7 @@ class Brainstem.AbstractLoader
   ###*
    * This needs to return a constructor for the model that associations will be compared with.
    * This typically will be the current collection's model/current model constructor.
-   * @return {Brainstem.Model} [description]
+   * @return {Brainstem.Model}
   ###
   _getModel: ->
     throw "Implement in your subclass"
