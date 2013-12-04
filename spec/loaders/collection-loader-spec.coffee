@@ -24,10 +24,10 @@ describe 'Loaders CollectionLoader', ->
       loader = createLoader()
       opts = defaultLoadOptions()
 
-    describe '#getCollectionName', ->
+    describe '#_getCollectionName', ->
       it 'should return the name from loadOptions', ->
         loader.setup(opts)
-        expect(loader.getCollectionName()).toEqual 'tasks'
+        expect(loader._getCollectionName()).toEqual 'tasks'
 
     describe '#_createInternalObject', ->
       collection = null

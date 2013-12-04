@@ -17,7 +17,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       storageManager: storageManager
 
     loader = new loaderClass(_.extend {}, defaults, opts)
-    loader.getCollectionName = -> 'tasks'
+    loader._getCollectionName = -> 'tasks'
     loader._createInternalObject = ->
       @internalObject = bar: 'foo'
 

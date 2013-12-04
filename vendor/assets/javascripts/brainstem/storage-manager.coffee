@@ -103,7 +103,7 @@ class window.Brainstem.StorageManager
     @expectations = []
 
   handleExpectations: (loader) ->
-    name = loader.getCollectionName()
+    name = loader._getCollectionName()
 
     for expectation in @expectations
       if expectation.optionsMatch(name, loader.originalOptions)

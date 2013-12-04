@@ -42,13 +42,6 @@ class Brainstem.AbstractLoader
       @_loadData()
 
   ###*
-   * Returns the name of the collection that this loader maps to and will update in the storageManager.
-   * @return {string} name of the collection
-  ###
-  getCollectionName: ->
-    throw "Implement in your subclass"
-
-  ###*
    * Parse supplied loadOptions, add defaults, transform them into appropriate structures, and pull out important pieces.
    * @param  {object} loadOptions
    * @return {object} transformed loadOptions
@@ -69,7 +62,7 @@ class Brainstem.AbstractLoader
     filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
     @loadOptions.cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, @loadOptions.page, @loadOptions.perPage, @loadOptions.limit, @loadOptions.offset].join('|')
 
-    @cachedCollection = @storageManager.storage @getCollectionName()
+    @cachedCollection = @storageManager.storage @_getCollectionName()
 
     @loadOptions
 
@@ -104,8 +97,8 @@ class Brainstem.AbstractLoader
         return @externalObject
     else
       # Check if we have, at some point, requested enough records with this this order and filter(s).
-      if @storageManager.getCollectionDetails(@getCollectionName()).cache[@loadOptions.cacheKey]
-        subset = _(@storageManager.getCollectionDetails(@getCollectionName()).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
+      if @storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]
+        subset = _(@storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
         if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.thisLayerInclude)))
           @_onLoadSuccess(subset)
           return @externalObject
@@ -254,6 +247,13 @@ class Brainstem.AbstractLoader
       promises.push(@storageManager.loadObject(collectionName, loadOptions))
 
     $.when.apply($, promises).done(@_onLoadingCompleted)
+
+  ###*
+   * Returns the name of the collection that this loader maps to and will update in the storageManager.
+   * @return {string} name of the collection
+  ###
+  _getCollectionName: ->
+    throw "Implement in your subclass"
 
   ###*
    * This needs to return a constructor for the model that associations will be compared with.

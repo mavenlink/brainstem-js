@@ -25,10 +25,10 @@ describe 'Loaders ModelLoader', ->
       loader = createLoader()
       opts = defaultLoadOptions()
 
-    describe '#getCollectionName', ->
+    describe '#_getCollectionName', ->
       it 'returns the pluralized name of the model', ->
         loader.setup(opts)
-        expect(loader.getCollectionName()).toEqual 'tasks'
+        expect(loader._getCollectionName()).toEqual 'tasks'
 
     describe '#_createInternalObject', ->
       model = null

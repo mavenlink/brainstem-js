@@ -1,7 +1,7 @@
 window.Brainstem ?= {}
 
 class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
-  getCollectionName: ->
+  _getCollectionName: ->
     @loadOptions.name
 
   _createInternalObject: ->
