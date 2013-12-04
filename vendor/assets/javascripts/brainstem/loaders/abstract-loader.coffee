@@ -15,6 +15,11 @@ class Brainstem.AbstractLoader
     @deferred = $.Deferred()
     @deferred.promise(this)
 
+  ###*
+   * Setup the loader with a list of Brainstem specific loadOptions
+   * @param  {object} loadOptions Brainstem specific loadOptions (filters, include, only, etc)
+   * @return {object} externalObject that was created.
+  ###
   setup: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
     @_createInternalObject()
@@ -22,6 +27,10 @@ class Brainstem.AbstractLoader
 
     @externalObject
 
+  ###*
+   * Loads the model from memory or the server.
+   * @return {object} the loader's `externalObject`
+  ###
   load: ->
     if not @loadOptions
       throw "You must call #setup first or pass loadOptions into the constructor"
@@ -32,9 +41,18 @@ class Brainstem.AbstractLoader
     else
       @_loadData()
 
+  ###*
+   * Returns the name of the collection that this loader maps to and will update in the storageManager.
+   * @return {string} name of the collection
+  ###
   getCollectionName: ->
     throw "Implement in your subclass"
 
+  ###*
+   * Parse supplied loadOptions, add defaults, transform them into appropriate structures, and pull out important pieces.
+   * @param  {object} loadOptions
+   * @return {object} transformed loadOptions
+  ###
   _parseLoadOptions: (loadOptions = {}) ->
     @originalOptions = _.clone(loadOptions)
     @loadOptions = _.clone(loadOptions)
@@ -55,6 +73,28 @@ class Brainstem.AbstractLoader
 
     @loadOptions
 
+  ###*
+   * Creates a new proxy object on the loader (`internalObject`) that will serve as the middleman between the server and the external object.
+   * When the server responds with models/attributes it will update the internalObject first and when everything is complete it will update
+   * the externalObject.
+   * @return {undefined}
+  ###
+  _createInternalObject: ->
+    throw "Implement in your subclass"
+
+  ###*
+   * Creates a new object on the loader (`externalObject`) that will be returned by setup and resolved with the promise (as the first argument).  This object will not
+   * be updated until all loading (including additional loads) are complete.
+   * @return {undefined}
+  ###
+  _createExternalObject: ->
+    throw "Implement in your subclass"
+
+  ###*
+   * Checks to see if the current requested data is available in the caching layer.
+   * If it is available then update the externalObject with that data (via `_onLoadSuccess`).
+   * @return {[boolean|object]} returns false if not found otherwise returns the externalObject.
+  ###
   _checkCacheForData: ->
     if @loadOptions.only?
       @alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.thisLayerInclude)
@@ -72,6 +112,10 @@ class Brainstem.AbstractLoader
 
     return false
 
+  ###*
+   * Makes a GET request to the server via Backbone.sync with the built syncOptions.
+   * @return {object} externalObject that will be updated when everything is complete.
+  ###
   _loadData: ->
     jqXhr = Backbone.sync.call @internalObject, 'read', @internalObject, @_buildSyncOptions()
 
@@ -80,9 +124,18 @@ class Brainstem.AbstractLoader
 
     @externalObject
 
+  ###*
+   * Decides whether or not the `only` filter should be applied in the syncOptions.
+   * Models will not use the `only` filter as they use show routes.
+   * @return {boolean} whether or not to use the `only` filter
+  ###
   _shouldUseOnly: ->
     @internalObject instanceof Backbone.Collection
 
+  ###*
+   * Generates the Brainstem specific options that are passed to Backbone.sync.
+   * @return {object} options that are passed to Backbone.sync
+  ###
   _buildSyncOptions: ->
     syncOptions =
       data: {}
@@ -109,13 +162,45 @@ class Brainstem.AbstractLoader
     syncOptions.data.search = @loadOptions.search if @loadOptions.search
     syncOptions
 
+  ###*
+   * Called when the Backbone.sync successfully responds from the server.
+   * @param  {object} resp    JSON response from the server.
+   * @param  {string} _status
+   * @param  {object} _xhr    jQuery XHR object
+   * @return {undefined}
+  ###
   _onSyncSuccess: (resp, _status, _xhr) =>
     data = @_updateStorageManagerFromResponse(resp)
     @_onLoadSuccess(data)
 
-  _updateStorageManagerFromResponse: ->
+  ###*
+   * Called when the server responds with data and needs to be persisted to the storageManager.
+   * @param  {object} resp JSON data from the server
+   * @return {[array|object]} array of models or model that was parsed.
+  ###
+  _updateStorageManagerFromResponse: (resp) ->
     throw "Implement in your subclass"
 
+  ###*
+   * Updates the internalObject with the data in the storageManager and either loads more data or resolves this load.
+   * Called after sync + storage manager upadting.
+   * @param  {array|object} data array of models or model from _updateStorageManagerFromResponse
+   * @return {undefined}
+  ###
+  _onLoadSuccess: (data) ->
+    @_updateObjects(@internalObject, data)
+    @_calculateAdditionalIncludes()
+
+    if @additionalIncludes.length
+      @_loadAdditionalIncludes()
+    else
+      @_onLoadingCompleted()
+
+  ###*
+   * Called after the server responds with the first layer of includes to determine if any more loads are needed.
+   * It will only make additional loads if there were IDs returned during this load for a given association.
+   * @return {undefined}
+  ###
   _calculateAdditionalIncludes: ->
     @additionalIncludes = []
 
@@ -130,22 +215,31 @@ class Brainstem.AbstractLoader
           ids: associationIds
           include: associationInclude
 
-  _onLoadSuccess: (data) ->
-    @_updateObjects(@internalObject, data)
-    @_calculateAdditionalIncludes()
-
-    if @additionalIncludes.length
-      @_loadAdditionalIncludes()
-    else
-      @_onLoadingCompleted()
-
+  ###*
+   * Called when all loading (including nested loads) are complete.
+   * Updates the `externalObject` with the data that was gathered and resolves the promise.
+   * @return {[type]} [description]
+  ###
   _onLoadingCompleted: =>
     @_updateObjects(@externalObject, @internalObject)
     @deferred.resolve(@externalObject)
 
-  _updateObjects: ->
+  ###*
+   * Updates the object with the supplied data. Will be called:
+   *   + after the server responds, `object` will be `internalObject` and data will be the result of `_updateStorageManagerFromResponse`
+   *   + after all loading is complete, `object` will be the `externalObject` and data will be the `internalObject`
+   * @param  {object} object object that will receive the data
+   * @param  {object} data data that needs set on the object
+   * @return {undefined}
+  ###
+  _updateObjects: (object, data) ->
     throw "Implement in your subclass"
 
+  ###*
+   * Loads the next layer of includes from the server.
+   * When all loads are complete, it will call `_onLoadingCompleted` which will resolve this layer.
+   * @return {undefined}
+  ###
   _loadAdditionalIncludes: ->
     promises = []
 
@@ -161,16 +255,36 @@ class Brainstem.AbstractLoader
 
     $.when.apply($, promises).done(@_onLoadingCompleted)
 
+  ###*
+   * This needs to return a constructor for the model that associations will be compared with.
+   * This typically will be the current collection's model/current model constructor.
+   * @return {Brainstem.Model} [description]
+  ###
   _getModel: ->
     throw "Implement in your subclass"
 
-  _getModelsForAssociation: ->
+  ###*
+   * This needs to return an array of models that correspond to the supplied association.
+   * @return {array} models that are associated with this association
+  ###
+  _getModelsForAssociation: (association) ->
     throw "Implement in your subclass"
 
+  ###*
+   * Returns an array of IDs that need to be loaded for this association.
+   * @param  {string} association name of the association
+   * @return {array} array of IDs to fetch for this association.
+  ###
   _getIdsForAssociation: (association) ->
     models = @_getModelsForAssociation(association)
     _(models).chain().flatten().pluck("id").compact().uniq().sort().value()
 
+  ###*
+   * Parses the result of model.get(associationName) to either return a collection's models
+   * or the model itself.
+   * @param  {object|Backbone.Collection} obj result of calling `.get` on a model with an association name.
+   * @return {object|array} either a model object or an array of models from a collection.
+  ###
   _modelsOrObj: (obj) ->
     if obj instanceof Backbone.Collection
       obj.models
