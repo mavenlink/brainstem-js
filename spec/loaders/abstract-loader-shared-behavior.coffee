@@ -35,9 +35,14 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       loader = createLoader(storageManager: storageManager)
       expect(loader.storageManager).toEqual storageManager
 
-    it 'calls #_createPromise', ->
-      spy = spyOn(loaderClass.prototype, '_createPromise')
+    it 'creates a deferred object and turns the loader into a promise', ->
+      spy = jasmine.createSpy('promise spy')
+
       loader = createLoader()
+      expect(loader._deferred).not.toBeUndefined()
+      loader.then(spy)
+
+      loader._deferred.resolve()
       expect(spy).toHaveBeenCalled()
 
     describe 'options.loadOptions', ->
@@ -52,17 +57,6 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
         loader = createLoader()
         expect(spy).not.toHaveBeenCalled()
-
-  describe '#_createPromise', ->
-    it 'creates a deferred object and turns the loader into a promise', ->
-      spy = jasmine.createSpy('promise spy')
-
-      loader = createLoader()
-      expect(loader.deferred).not.toBeUndefined()
-      loader.then(spy)
-
-      loader.deferred.resolve()
-      expect(spy).toHaveBeenCalled()
 
   describe '#setup', ->
     it 'calls #_parseLoadOptions with the loadOptions', ->

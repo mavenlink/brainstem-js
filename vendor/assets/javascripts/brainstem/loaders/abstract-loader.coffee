@@ -6,14 +6,12 @@ class Brainstem.AbstractLoader
 
   constructor: (options = {}) ->
     @storageManager = options.storageManager
-    @_createPromise()
+
+    @_deferred = $.Deferred()
+    @_deferred.promise(this)
 
     if options.loadOptions
       @setup(options.loadOptions)
-
-  _createPromise: ->
-    @deferred = $.Deferred()
-    @deferred.promise(this)
 
   ###*
    * Setup the loader with a list of Brainstem specific loadOptions
@@ -197,7 +195,7 @@ class Brainstem.AbstractLoader
   ###
   _onLoadingCompleted: =>
     @_updateObjects(@externalObject, @internalObject)
-    @deferred.resolve(@externalObject)
+    @_deferred.resolve(@externalObject)
 
   ###*
    * Updates the object with the supplied data. Will be called:
