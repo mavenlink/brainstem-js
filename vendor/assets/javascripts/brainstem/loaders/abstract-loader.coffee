@@ -1,12 +1,19 @@
 window.Brainstem ?= {}
 
 class Brainstem.AbstractLoader
+  internalObject: null
+  externalObject: null
+
   constructor: (options = {}) ->
     @storageManager = options.storageManager
     @_createPromise()
 
     if options.loadOptions
       @setup(options.loadOptions)
+
+  _createPromise: ->
+    @deferred = $.Deferred()
+    @deferred.promise(this)
 
   setup: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
@@ -27,14 +34,13 @@ class Brainstem.AbstractLoader
   getCollectionName: ->
     throw "Implement in your subclass"
 
-  _parseLoadOptions: (loadOptions) ->
+  _parseLoadOptions: (loadOptions = {}) ->
     @originalOptions = _.clone(loadOptions)
     @loadOptions = _.clone(loadOptions)
-    @loadOptions.plainInclude = @loadOptions.include
     @loadOptions.include = Brainstem.Utils.wrapObjects(Brainstem.Utils.extractArray "include", @loadOptions)
     @loadOptions.only = if @loadOptions.only then _.map((Brainstem.Utils.extractArray "only", @loadOptions), (id) -> String(id)) else null
     @loadOptions.filters ?= {}
-    @loadOptions.thisLayerInclude = _(@loadOptions.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
+    @loadOptions.thisLayerInclude = _.map @loadOptions.include, (i) -> _.keys(i)[0] # pull off the top layer of includes
 
     # Determine whether or not we should look at the cache
     @loadOptions.cache ?= true
@@ -45,6 +51,8 @@ class Brainstem.AbstractLoader
     @loadOptions.cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, @loadOptions.page, @loadOptions.perPage, @loadOptions.limit, @loadOptions.offset].join('|')
 
     @cachedCollection = @storageManager.storage @getCollectionName()
+
+    @loadOptions
 
   _createObjectReferences: ->
     throw "Implement in your subclass"
@@ -132,10 +140,6 @@ class Brainstem.AbstractLoader
       @_loadAdditionalIncludes()
     else
       @_onLoadingCompleted()
-
-  _createPromise: ->
-    @deferred = $.Deferred()
-    @deferred.promise(this)
 
   _onLoadingCompleted: =>
     @_updateObjects(@externalObject, @internalObject)
