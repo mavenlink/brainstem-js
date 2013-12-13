@@ -4,14 +4,15 @@ class Brainstem.ModelLoader extends Brainstem.AbstractLoader
   _getCollectionName: ->
     @loadOptions.name.pluralize()
 
-  _createInternalObject: ->
-    @internalObject = @storageManager.createNewModel @loadOptions.name
-    @internalObject.set('id', @loadOptions.only[0])
+  _createObjects: ->
+    id = @loadOptions.only[0]
 
-  _createExternalObject: ->
+    @internalObject = @storageManager.createNewModel @loadOptions.name
+    @internalObject.set('id', id)
+
     @externalObject = @loadOptions.model || @storageManager.createNewModel @loadOptions.name
     @externalObject.setLoaded false, trigger: false
-    @externalObject.set('id', @loadOptions.only[0])
+    @externalObject.set('id', id)
 
   _updateStorageManagerFromResponse: (resp) ->
     @internalObject.parse(resp)

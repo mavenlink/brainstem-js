@@ -20,8 +20,7 @@ class Brainstem.AbstractLoader
   ###
   setup: (loadOptions) ->
     @_parseLoadOptions(loadOptions)
-    @_createInternalObject()
-    @_createExternalObject()
+    @_createObjects()
 
     @externalObject
 
@@ -50,22 +49,25 @@ class Brainstem.AbstractLoader
 
     @loadOptions
 
-  ###*
-   * Creates a new proxy object on the loader (`internalObject`) that will serve as the middleman between the server and the external object.
-   * When the server responds with models/attributes it will update the internalObject first and when everything is complete it will update
-   * the externalObject.
-   * @return {undefined}
-  ###
-  _createInternalObject: ->
+  _createObjects: ->
     throw "Implement in your subclass"
 
-  ###*
-   * Creates a new object on the loader (`externalObject`) that will be returned by setup and resolved with the promise (as the first argument).  This object will not
-   * be updated until all loading (including additional loads) are complete.
-   * @return {undefined}
-  ###
-  _createExternalObject: ->
-    throw "Implement in your subclass"
+  # ###*
+  #  * Creates a new proxy object on the loader (`internalObject`) that will serve as the middleman between the server and the external object.
+  #  * When the server responds with models/attributes it will update the internalObject first and when everything is complete it will update
+  #  * the externalObject.
+  #  * @return {undefined}
+  # ###
+  # _createInternalObject: ->
+  #   throw "Implement in your subclass"
+
+  # ###*
+  #  * Creates a new object on the loader (`externalObject`) that will be returned by setup and resolved with the promise (as the first argument).  This object will not
+  #  * be updated until all loading (including additional loads) are complete.
+  #  * @return {undefined}
+  # ###
+  # _createExternalObject: ->
+  #   throw "Implement in your subclass"
 
   ###*
    * Loads the model from memory or the server.

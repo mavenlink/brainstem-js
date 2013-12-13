@@ -18,11 +18,10 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
     loader = new loaderClass(_.extend {}, defaults, opts)
     loader._getCollectionName = -> 'tasks'
-    loader._createInternalObject = ->
+    loader._createObjects = ->
       @internalObject = bar: 'foo'
-
-    loader._createExternalObject = ->
       @externalObject = foo: 'bar'
+      
     loader._getModelsForAssociation = -> [{ id: 5 }, { id: 2 }, { id: 1 }, { id: 4 }, { id: 1 }, [{ id: 6 }], { id: null }]
     loader._getModel = -> App.Collections.Tasks::model
     loader._updateStorageManagerFromResponse = jasmine.createSpy()
@@ -68,19 +67,12 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       loader.setup(opts)
       expect(loader._parseLoadOptions).toHaveBeenCalledWith(opts)
 
-    it 'calls _createInternalObject', ->
+    it 'calls _createObjects', ->
       loader = createLoader()
-      spyOn(loader, '_createInternalObject')
+      spyOn(loader, '_createObjects')
 
       loader.setup()
-      expect(loader._createInternalObject).toHaveBeenCalled()
-
-    it 'calls _createExternalObject', ->
-      loader = createLoader()
-      spyOn(loader, '_createExternalObject')
-
-      loader.setup()
-      expect(loader._createExternalObject).toHaveBeenCalled()
+      expect(loader._createObjects).toHaveBeenCalled()
 
     it 'returns the externalObject', ->
       loader = createLoader()

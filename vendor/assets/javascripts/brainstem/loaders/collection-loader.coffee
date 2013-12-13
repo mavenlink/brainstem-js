@@ -4,10 +4,9 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
   _getCollectionName: ->
     @loadOptions.name
 
-  _createInternalObject: ->
+  _createObjects: ->
     @internalObject = @storageManager.createNewCollection @loadOptions.name, []
 
-  _createExternalObject: ->
     @externalObject = @loadOptions.collection || @storageManager.createNewCollection @loadOptions.name, []
     @externalObject.setLoaded false
     @externalObject.reset([], silent: false) if @loadOptions.reset

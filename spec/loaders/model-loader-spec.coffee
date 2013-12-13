@@ -30,42 +30,35 @@ describe 'Loaders ModelLoader', ->
         loader.setup(opts)
         expect(loader._getCollectionName()).toEqual 'tasks'
 
-    describe '#_createInternalObject', ->
+    describe '#_createObjects', ->
       model = null
 
       beforeEach ->
-        spyOn(loader, '_createExternalObject')
         model = new App.Models.Task()
         spyOn(loader.storageManager, 'createNewModel').andReturn model
 
       it 'creates a new model from the name in loadOptions', ->
         loader.setup(opts)
-        expect(loader.storageManager.createNewModel.callCount).toEqual 1
+        expect(loader.storageManager.createNewModel.callCount).toEqual 2
         expect(loader.internalObject).toEqual model
 
       it 'sets the id on the internalObjecrt', ->
         loader.setup(opts)
         expect(loader.internalObject.id).toEqual '1'
 
-    describe '#_createExternalObject', ->
-      model = null
-
-      beforeEach ->
-        spyOn(loader, '_createInternalObject')
-        model = new App.Models.Task()
-        spyOn(loader.storageManager, 'createNewModel').andReturn model
-
       context 'model is passed in to loadOptions', ->
         it 'uses the model that is passed in', ->
-          opts.model ?= new App.Models.Task()
+          opts.model ?= buildAndCacheTask(id: 1)
+
+          console.log loader.storageManager.storage('tasks')
+
           loader.setup(opts)
-          expect(loader.storageManager.createNewModel).not.toHaveBeenCalled()
           expect(loader.externalObject).toEqual opts.model
 
       context 'model is not passed in to loadOptions', ->
         it 'creates a new model from the name in loadOptions', ->
           loader.setup(opts)
-          expect(loader.storageManager.createNewModel.callCount).toEqual 1
+          expect(loader.storageManager.createNewModel.callCount).toEqual 2
           expect(loader.externalObject).toEqual model
 
       it 'sets the id on the externalObject', ->

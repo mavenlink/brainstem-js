@@ -29,38 +29,28 @@ describe 'Loaders CollectionLoader', ->
         loader.setup(opts)
         expect(loader._getCollectionName()).toEqual 'tasks'
 
-    describe '#_createInternalObject', ->
+    describe '#_createObjects', ->
       collection = null
 
       beforeEach ->
-        spyOn(loader, '_createExternalObject')
         collection = new App.Collections.Tasks()
         spyOn(loader.storageManager, 'createNewCollection').andReturn collection
 
       it 'creates a new collection from the name in loadOptions', ->
         loader.setup(opts)
-        expect(loader.storageManager.createNewCollection.callCount).toEqual 1
+        expect(loader.storageManager.createNewCollection.callCount).toEqual 2
         expect(loader.internalObject).toEqual collection
-
-    describe '#_createExternalObject', ->
-      collection = null
-
-      beforeEach ->
-        spyOn(loader, '_createInternalObject')
-        collection = new App.Collections.Tasks()
-        spyOn(loader.storageManager, 'createNewCollection').andReturn collection
 
       context 'collection is passed in to loadOptions', ->
         it 'uses the collection that is passed in', ->
           opts.collection ?= new App.Collections.Tasks()
           loader.setup(opts)
-          expect(loader.storageManager.createNewCollection).not.toHaveBeenCalled()
           expect(loader.externalObject).toEqual opts.collection
 
       context 'collection is not passed in to loadOptions', ->
         it 'creates a new collection from the name in loadOptions', ->
           loader.setup(opts)
-          expect(loader.storageManager.createNewCollection.callCount).toEqual 1
+          expect(loader.storageManager.createNewCollection.callCount).toEqual 2
           expect(loader.externalObject).toEqual collection
 
       it 'sets the collection to not loaded', ->
