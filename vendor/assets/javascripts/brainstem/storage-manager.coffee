@@ -109,7 +109,7 @@ class window.Brainstem.StorageManager
       if expectation.optionsMatch(name, loader.originalOptions)
         expectation.recordRequest(loader)
         return
-    throw "No expectation matched #{name} with #{JSON.stringify options}"
+    throw "No expectation matched #{name} with #{JSON.stringify loader.originalOptions}"
 
   # Helpers
   loadObject: (name, loadOptions, options = {}) ->
