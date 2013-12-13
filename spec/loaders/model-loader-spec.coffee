@@ -8,7 +8,7 @@ describe 'Loaders ModelLoader', ->
     only: 1
 
   createLoader = (opts = {}) ->
-    storageManager = new Brainstem.StorageManager()
+    storageManager = base.data
     storageManager.addCollection('tasks', App.Collections.Tasks)
 
     defaults = 
@@ -37,33 +37,65 @@ describe 'Loaders ModelLoader', ->
         model = new App.Models.Task()
         spyOn(loader.storageManager, 'createNewModel').andReturn model
 
-      it 'creates a new model from the name in loadOptions', ->
+      context 'there is a matching model in the storageManager', ->
+        context 'a model was passed in', ->
+          it 'throws an exception when the model does not match the cached model', ->
+            buildAndCacheTask(id: 1)
+
+            opts.model ?= new App.Models.Task()
+
+            funct = ->
+              loader.setup(opts)
+
+            expect(funct).toThrow()
+
+          it 'does not throw an exception if the model matches the cached model', ->
+            opts.model ?= buildAndCacheTask(id: 1)
+
+            funct = ->
+              loader.setup(opts)
+
+            expect(funct).not.toThrow()
+
+          it 'sets the internalObject to be the cachedModel', ->
+            opts.model ?= buildAndCacheTask(id: 1)
+
+            loader.setup(opts)
+            expect(loader.internalObject).toEqual opts.model
+
+        context 'a model was not passed in', ->
+          it 'sets the internalObject to be the cached model', ->
+            model = buildAndCacheTask(id: 1)
+            loader.setup(opts)
+            expect(loader.internalObject).toEqual model
+
+      context 'there is not a matching model in the storageManager', ->
+        context 'a model was passed in', ->
+          it 'uses that passed in model as the internalObject', ->
+            opts.model ?= buildTask(id: 1)
+            loader.setup(opts)
+            expect(loader.internalObject).toEqual opts.model
+
+        context 'a model was not passed in',->
+          it 'creates a new model and uses that as the internalObject', ->
+            loader.setup(opts)
+            expect(loader.internalObject).toEqual model
+
+          it 'sets the ID on that model', ->
+            loader.setup(opts)
+            expect(loader.internalObject.id).toEqual '1'
+
+      it 'uses the internalObject as the externalObject', ->
         loader.setup(opts)
-        expect(loader.storageManager.createNewModel.callCount).toEqual 2
-        expect(loader.internalObject).toEqual model
+        expect(loader.internalObject).toEqual loader.externalObject
 
-      it 'sets the id on the internalObjecrt', ->
+      it 'sets the externalObject to be not loaded', ->
+        opts.model ?= buildAndCacheTask(id: 1)
+        opts.model.setLoaded true
+        expect(opts.model.loaded).toEqual true
+
         loader.setup(opts)
-        expect(loader.internalObject.id).toEqual '1'
-
-      context 'model is passed in to loadOptions', ->
-        it 'uses the model that is passed in', ->
-          opts.model ?= buildAndCacheTask(id: 1)
-
-          console.log loader.storageManager.storage('tasks')
-
-          loader.setup(opts)
-          expect(loader.externalObject).toEqual opts.model
-
-      context 'model is not passed in to loadOptions', ->
-        it 'creates a new model from the name in loadOptions', ->
-          loader.setup(opts)
-          expect(loader.storageManager.createNewModel.callCount).toEqual 2
-          expect(loader.externalObject).toEqual model
-
-      it 'sets the id on the externalObject', ->
-        loader.setup(opts)
-        expect(loader.externalObject.id).toEqual '1'
+        expect(opts.model.loaded).toEqual false
 
     describe '#_updateStorageManagerFromResponse', ->
       it 'calls parse on the internalObject with the response', ->
