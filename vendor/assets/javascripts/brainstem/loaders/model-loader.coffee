@@ -26,7 +26,7 @@ class Brainstem.ModelLoader extends Brainstem.AbstractLoader
   _updateStorageManagerFromResponse: (resp) ->
     @internalObject.parse(resp)
 
-  _updateObjects: (object, data) ->
+  _updateObjects: (object, data, silent = false) ->
     object.setLoaded true, trigger: false
 
     if _.isArray(data) && data.length == 1
@@ -36,7 +36,7 @@ class Brainstem.ModelLoader extends Brainstem.AbstractLoader
       data = data.attributes
 
     object.set(data)
-    object.setLoaded true
+    object.setLoaded true unless silent
 
   _getModel: ->
     @internalObject.constructor

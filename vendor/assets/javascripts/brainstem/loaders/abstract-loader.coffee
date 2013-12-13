@@ -143,7 +143,7 @@ class Brainstem.AbstractLoader
    * @return {undefined}
   ###
   _onLoadSuccess: (data) ->
-    @_updateObjects(@internalObject, data)
+    @_updateObjects(@internalObject, data, true)
     @_calculateAdditionalIncludes()
 
     if @additionalIncludes.length
@@ -205,9 +205,10 @@ class Brainstem.AbstractLoader
    *   + after all loading is complete, `object` will be the `externalObject` and data will be the `internalObject`
    * @param  {object} object object that will receive the data
    * @param  {object} data data that needs set on the object
+   * @param  {boolean} silent whether or not to trigger loaded at the end of the update
    * @return {undefined}
   ###
-  _updateObjects: (object, data) ->
+  _updateObjects: (object, data, silent = false) ->
     throw "Implement in your subclass"
 
   ###*

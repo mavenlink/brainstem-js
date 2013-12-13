@@ -43,7 +43,7 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
 
     data
 
-  _updateObjects: (object, data) ->
+  _updateObjects: (object, data, silent = false) ->
     object.setLoaded true, trigger: false
 
     if data
@@ -53,7 +53,7 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
       else
         object.reset data
 
-    object.setLoaded true
+    object.setLoaded true unless silent
 
   _getModel: ->
     @internalObject.model

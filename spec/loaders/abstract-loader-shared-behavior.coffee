@@ -25,7 +25,11 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     loader._getModelsForAssociation = -> [{ id: 5 }, { id: 2 }, { id: 1 }, { id: 4 }, { id: 1 }, [{ id: 6 }], { id: null }]
     loader._getModel = -> App.Collections.Tasks::model
     loader._updateStorageManagerFromResponse = jasmine.createSpy()
-    loader._updateObjects = jasmine.createSpy()
+    loader._updateObjects = (obj, data, silent) ->
+      obj.setLoaded true unless silent
+
+    spyOn(loader, '_updateObjects')
+
     loader
 
   describe '#constructor', ->
@@ -489,9 +493,9 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       spyOn(loader, '_loadAdditionalIncludes')
       spyOn(loader, '_calculateAdditionalIncludes')
 
-    it 'calls #_updateObjects with the internalObject and the data', ->
+    it 'calls #_updateObjects with the internalObject, the data, and silent set to true', ->
       loader._onLoadSuccess('test data')
-      expect(loader._updateObjects).toHaveBeenCalledWith(loader.internalObject, 'test data')
+      expect(loader._updateObjects).toHaveBeenCalledWith(loader.internalObject, 'test data', true)
 
     it 'calls #_calculateAdditionalIncludes', ->
       loader._onLoadSuccess()
@@ -525,6 +529,22 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
       loader._onLoadingCompleted()
       expect(spy).toHaveBeenCalledWith(loader.externalObject)
+
+  describe '#_updateObjects', ->
+    fakeObj = null
+
+    beforeEach ->
+      loader = createLoader()
+      fakeObj = setLoaded: jasmine.createSpy()
+      loader._updateObjects.andCallThrough()
+
+    it 'sets the object to loaded if silent is false', ->
+      loader._updateObjects(fakeObj, {})
+      expect(fakeObj.setLoaded).toHaveBeenCalled()
+
+    it 'does not set the object to loaded if silent is true', ->
+      loader._updateObjects(fakeObj, {}, true)
+      expect(fakeObj.setLoaded).not.toHaveBeenCalled()
 
   describe '#_loadAdditionalIncludes', ->
     opts = null
