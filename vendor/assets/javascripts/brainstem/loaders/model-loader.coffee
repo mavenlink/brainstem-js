@@ -7,6 +7,11 @@ class Brainstem.ModelLoader extends Brainstem.AbstractLoader
   _createObjects: ->
     id = @loadOptions.only[0]
 
+    cachedModel = @storageManager.storage(@_getCollectionName()).get(id)
+
+    if cachedModel && @loadOptions.model && cachedModel != @loadOptions.model
+      throw "model already in storage manager"
+
     @internalObject = @storageManager.createNewModel @loadOptions.name
     @internalObject.set('id', id)
 
