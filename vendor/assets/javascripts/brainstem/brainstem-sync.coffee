@@ -36,7 +36,7 @@ Backbone.sync = (method, model, options) ->
     else
       data = json
 
-    data.include = Brainstem.Utils.extractArray("include", options).join(";")
+    data.include = Brainstem.Utils.extractArray("include", options).join(",")
     data.filters = Brainstem.Utils.extractArray("filters", options).join(",")
     params.data = JSON.stringify(data)
 
