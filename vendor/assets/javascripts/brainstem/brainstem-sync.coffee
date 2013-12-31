@@ -58,7 +58,7 @@ Backbone.sync = (method, model, options) ->
         beforeSend.apply this, arguments
 
   # Don't process data on a non-GET request.
-  if params.type != 'GET' && !options.emulateJSON
+  if params.type != 'GET' && !options.emulateJSON && params.type != 'DELETE'
     params.processData = false
 
   # If we're sending a `PATCH` request, and we're in an old Internet Explorer
