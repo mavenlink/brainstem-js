@@ -57,6 +57,10 @@ Backbone.sync = (method, model, options) ->
       if beforeSend
         beforeSend.apply this, arguments
 
+  # Clear out default data for DELETE requests, fixes a firefox issue where this exception is thrown: JavaScript component does not have a method named: “available”
+  if params.type == 'DELETE'
+    params.data = null
+
   # Don't process data on a non-GET request.
   if params.type != 'GET' && !options.emulateJSON
     params.processData = false
