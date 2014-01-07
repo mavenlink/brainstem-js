@@ -49,25 +49,14 @@ class Brainstem.AbstractLoader
 
     @loadOptions
 
+  ###*
+   * Sets up both the `internalObject` and `externalObject`.
+   * In the case of models the `internalObject` and `externalObject` are the same.
+   * In the case of collections the `internalObject` is a proxy object that updates the `externalObject` when all loading is completed.
+   * @return {[type]} [description]
+  ###
   _createObjects: ->
     throw "Implement in your subclass"
-
-  # ###*
-  #  * Creates a new proxy object on the loader (`internalObject`) that will serve as the middleman between the server and the external object.
-  #  * When the server responds with models/attributes it will update the internalObject first and when everything is complete it will update
-  #  * the externalObject.
-  #  * @return {undefined}
-  # ###
-  # _createInternalObject: ->
-  #   throw "Implement in your subclass"
-
-  # ###*
-  #  * Creates a new object on the loader (`externalObject`) that will be returned by setup and resolved with the promise (as the first argument).  This object will not
-  #  * be updated until all loading (including additional loads) are complete.
-  #  * @return {undefined}
-  # ###
-  # _createExternalObject: ->
-  #   throw "Implement in your subclass"
 
   ###*
    * Loads the model from memory or the server.
