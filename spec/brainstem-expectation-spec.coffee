@@ -63,16 +63,31 @@ describe 'Brainstem Expectations', ->
       expect(collection.get(1).get("tasks").models).toEqual [task1]
       expect(collection.get(2).get("tasks").models).toEqual []
 
-    it "should not try to recursively load includes in an expectation", ->
-      expectation = manager.stub "projects", include: '*', response: (stub) ->
-        stub.results = [project1, project2]
-        stub.associated.projects = [project1, project2]
-        stub.associated.tasks = [task1]
+    describe 'recursive loading', ->
+      context 'recursive option is false', ->
+        it "should not try to recursively load includes in an expectation", ->
+          expectation = manager.stub "projects", include: '*', response: (stub) ->
+            stub.results = [project1, project2]
+            stub.associated.projects = [project1, project2]
+            stub.associated.tasks = [task1]
 
-      spy = spyOn(Brainstem.AbstractLoader.prototype, '_loadAdditionalIncludes')
-      collection = manager.loadCollection "projects", include: ["tasks" : ["time_entries"]]
-      expectation.respond()
-      expect(spy).not.toHaveBeenCalled()
+          spy = spyOn(Brainstem.AbstractLoader.prototype, '_loadAdditionalIncludes')
+          collection = manager.loadCollection "projects", include: ["tasks" : ["time_entries"]]
+          expectation.respond()
+          expect(spy).not.toHaveBeenCalled()
+
+      context 'recursive option is true', ->
+        it "should recursively load includes in an expectation", ->
+          expectation = manager.stub "projects", include: '*', response: (stub) ->
+            stub.results = [project1, project2]
+            stub.associated.projects = [project1, project2]
+            stub.associated.tasks = [task1]
+            stub.recursive = true
+
+          spy = spyOn(Brainstem.AbstractLoader.prototype, '_loadAdditionalIncludes')
+          collection = manager.loadCollection "projects", include: ["tasks" : ["time_entries"]]
+          expectation.respond()
+          expect(spy).toHaveBeenCalled()
 
     describe "triggering errors", ->
       it "triggers errors when asked to do so", ->

@@ -8,6 +8,7 @@ class window.Brainstem.Expectation
     @options = options
     @results = []
     @matches = []
+    @recursive = false
     @triggerError = options.triggerError
     @immediate = options.immediate
     delete options.immediate
@@ -51,8 +52,9 @@ class window.Brainstem.Expectation
       else
         @manager.storage(result.key).get(result.id)
 
-    # we don't need to fetch additional things from the server in an expectation.
-    loader.loadOptions.include = []
+    unless @recursive
+      # we don't need to fetch additional things from the server in an expectation.
+      loader.loadOptions.include = []
 
     loader._onLoadSuccess(returnedModels)
 
@@ -60,7 +62,14 @@ class window.Brainstem.Expectation
     @manager._checkPageSettings options
     if !@disabled && @collectionName == name
       _(['include', 'only', 'order', 'filters', 'perPage', 'page', 'limit', 'offset', 'search']).all (optionType) =>
-        @options[optionType] == "*" || Brainstem.Utils.matches(_.compact(_.flatten([options[optionType]])), _.compact(_.flatten([@options[optionType]])))
+        option = _.compact(_.flatten([options[optionType]]))
+        expectedOption = _.compact(_.flatten([@options[optionType]]))
+
+        if optionType == 'include'
+          option = Brainstem.Utils.wrapObjects(option)
+          expectedOption = Brainstem.Utils.wrapObjects(expectedOption)
+
+        @options[optionType] == "*" || Brainstem.Utils.matches(option, expectedOption)
     else
       false
 

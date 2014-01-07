@@ -193,6 +193,48 @@ describe 'Brainstem Storage Manager', ->
       expect(successSpy).not.toHaveBeenCalled()
       expect(errorSpy).toHaveBeenCalled()
 
+    it "does not trigger loaded until all of the associations are included", ->
+      base.data.enableExpectations()
+
+      project = buildProject()
+      user = buildUser()
+
+      task = buildTask(title: 'foobar', project_id: project.id)
+      task2 = buildTask(project_id: project.id)
+      task3 = buildTask(project_id: project.id, assignee_ids: [user.id])
+
+      project.set('task_ids', [task.id, task2.id, task3.id])
+
+      taskExpectation = base.data.stub "tasks", include: ['project': [{ 'tasks': ['assignees'] }]], only: task.id, name: "task", response: (stub) ->
+        stub.results = [task]
+        stub.associated.project = [project]
+        stub.recursive = true
+
+      projectExpectation = base.data.stub "projects", include: ['tasks': ['assignees']], only: project.id, name: "projects", response: (stub) ->
+        stub.results = [project]
+        stub.associated.tasks = [task, task2, task3]
+        stub.recursive = true
+
+      taskWithAssigneesExpectation = base.data.stub "tasks", only: [task.id, task2.id, task3.id], include: ['assignees'], name: "tasks", response: (stub) ->
+        stub.results = [task]
+        stub.associated.users = [user]
+
+      loadedSpy = jasmine.createSpy('loaded')
+
+      model = buildTask(id: task.id)
+      model.on 'loaded', loadedSpy
+
+      base.data.loadModel "task", model.id, model: model, include: ['project': [{ 'tasks': ['assignees'] }]]
+
+      taskExpectation.respond()
+      expect(loadedSpy).not.toHaveBeenCalled()
+
+      projectExpectation.respond()
+      expect(loadedSpy).not.toHaveBeenCalled()
+
+      taskWithAssigneesExpectation.respond()
+      expect(loadedSpy).toHaveBeenCalled()
+
   describe 'loadCollection', ->
     it "loads a collection of models", ->
       timeEntries = [buildTimeEntry(), buildTimeEntry()]
