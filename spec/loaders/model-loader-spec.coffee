@@ -33,57 +33,22 @@ describe 'Loaders ModelLoader', ->
     describe '#_createObjects', ->
       model = null
 
-      beforeEach ->
-        model = new App.Models.Task()
-        spyOn(loader.storageManager, 'createNewModel').andReturn model
-
       context 'there is a matching model in the storageManager', ->
-        context 'a model was passed in', ->
-          it 'throws an exception when the model does not match the cached model', ->
-            buildAndCacheTask(id: 1)
-
-            opts.model ?= new App.Models.Task()
-
-            funct = ->
-              loader.setup(opts)
-
-            expect(funct).toThrow()
-
-          it 'does not throw an exception if the model matches the cached model', ->
-            opts.model ?= buildAndCacheTask(id: 1)
-
-            funct = ->
-              loader.setup(opts)
-
-            expect(funct).not.toThrow()
-
-          it 'sets the internalObject to be the cachedModel', ->
-            opts.model ?= buildAndCacheTask(id: 1)
-
-            loader.setup(opts)
-            expect(loader.internalObject).toEqual opts.model
-
-        context 'a model was not passed in', ->
-          it 'sets the internalObject to be the cached model', ->
-            model = buildAndCacheTask(id: 1)
-            loader.setup(opts)
-            expect(loader.internalObject).toEqual model
+        it 'sets the internalObject to be the cached model', ->
+          model = buildAndCacheTask(id: 1)
+          loader.setup(opts)
+          expect(loader.internalObject).toEqual model
 
       context 'there is not a matching model in the storageManager', ->
-        context 'a model was passed in', ->
-          it 'uses that passed in model as the internalObject', ->
-            opts.model ?= buildTask(id: 1)
-            loader.setup(opts)
-            expect(loader.internalObject).toEqual opts.model
+        it 'creates a new model and uses that as the internalObject', ->
+          model = new App.Models.Task()
+          spyOn(loader.storageManager, 'createNewModel').andReturn model
+          loader.setup(opts)
+          expect(loader.internalObject).toEqual model
 
-        context 'a model was not passed in',->
-          it 'creates a new model and uses that as the internalObject', ->
-            loader.setup(opts)
-            expect(loader.internalObject).toEqual model
-
-          it 'sets the ID on that model', ->
-            loader.setup(opts)
-            expect(loader.internalObject.id).toEqual '1'
+        it 'sets the ID on that model', ->
+          loader.setup(opts)
+          expect(loader.internalObject.id).toEqual '1'
 
       it 'uses the internalObject as the externalObject', ->
         loader.setup(opts)

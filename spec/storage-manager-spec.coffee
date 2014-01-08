@@ -43,15 +43,6 @@ describe 'Brainstem Storage Manager', ->
       respondWith server, "/api/time_entries/1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
       respondWith server, "/api/time_entries/1?include=project%2Ctask", resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
 
-    it "uses a passed in model if present", ->
-      existingModel = buildTimeEntry(id: 55)
-
-      newModel = base.data.loadModel "time_entry", existingModel.id, model: existingModel, include: ["project", "task"]
-      expect(newModel).toEqual(existingModel)
-
-      newModel = base.data.loadModel "time_entry", existingModel.id, include: ["project", "task"]
-      expect(newModel).not.toEqual(existingModel)
-
     it "creates a new model with the supplied id", ->
       newModel = base.data.loadModel "time_entry", "333"
       expect(newModel.id).toEqual "333"
@@ -221,10 +212,10 @@ describe 'Brainstem Storage Manager', ->
 
       loadedSpy = jasmine.createSpy('loaded')
 
-      model = buildTask(id: task.id)
+      model = buildAndCacheTask(id: task.id)
       model.on 'loaded', loadedSpy
 
-      base.data.loadModel "task", model.id, model: model, include: ['project': [{ 'tasks': ['assignees'] }]]
+      base.data.loadModel "task", model.id, include: ['project': [{ 'tasks': ['assignees'] }]]
 
       taskExpectation.respond()
       expect(loadedSpy).not.toHaveBeenCalled()
