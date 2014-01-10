@@ -28,13 +28,49 @@ describe 'Brainstem.Model', ->
       expect(base.data.storage('users').get(5).attributes).toEqual(response.users[5])
       expect(base.data.storage('users').get(6).attributes).toEqual(response.users[6])
 
-    it 'should add the parsing model to the storage manager instead of making a new one', ->
-      response.tasks[1].title = 'Hello'
-      expect(base.data.storage('tasks').get(1)).toBeUndefined()
+    describe 'adding new models to the storage manager', ->
+      context 'there is an ID on the model already', ->
+        # usually happens when fetching an existing model and not using StorageManager#loadModel
+        # new App.Models.Task(id: 5).fetch()
 
-      model.parse(response)
-      expect(base.data.storage('tasks').get(1)).toEqual(model)
-      expect(base.data.storage('tasks').get(1).get('title')).toEqual('Hello')
+        beforeEach ->
+          model.set('id', 1)
+
+        context 'model ID matches response ID', ->
+          it 'should add the parsing model to the storage manager', ->
+            response.tasks[1].id = 1
+            expect(base.data.storage('tasks').get(1)).toBeUndefined()
+
+            model.parse(response)
+            expect(base.data.storage('tasks').get(1)).not.toBeUndefined()
+            expect(base.data.storage('tasks').get(1)).toEqual model
+
+        context 'model ID does not match response ID', ->
+          # this only happens when an association has the same brainstemKey as the parent record
+          # we want to add a new model to the storage manager and not worry about ourself
+
+          it 'should not add the parsing model to the storage manager', ->
+            response.tasks[1].id = 2345
+            expect(base.data.storage('tasks').get(1)).toBeUndefined()
+
+            model.parse(response)
+            expect(base.data.storage('tasks').get(1)).toBeUndefined()
+            expect(base.data.storage('tasks').get(2345)).not.toEqual model
+
+      context 'there is not an ID on the model instance already', ->
+        # usually happens when creating a new model:
+        # new App.Models.Task(title: 'test').save()
+
+        beforeEach ->
+          expect(model.id).toBeUndefined()
+
+        it 'should add the parsing model to the storage manager', ->
+          response.tasks[1].title = 'Hello'
+          expect(base.data.storage('tasks').get(1)).toBeUndefined()
+
+          model.parse(response)
+          expect(base.data.storage('tasks').get(1)).toEqual(model)
+          expect(base.data.storage('tasks').get(1).get('title')).toEqual('Hello')
 
     it 'should work with an empty response', ->
       expect( -> model.parse(tasks: {}, results: [], count: 0)).not.toThrow()

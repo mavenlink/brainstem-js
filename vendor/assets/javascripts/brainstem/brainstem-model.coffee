@@ -38,7 +38,7 @@ class window.Brainstem.Model extends Backbone.Model
         if collectionModel
           collectionModel.set(attributes)
         else
-          if @brainstemKey == underscoredModelName
+          if @brainstemKey == underscoredModelName && (@isNew() || @id == attributes.id)
             @set(attributes)
             collection.add(this)
           else

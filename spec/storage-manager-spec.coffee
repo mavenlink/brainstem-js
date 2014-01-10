@@ -152,7 +152,6 @@ describe 'Brainstem Storage Manager', ->
     it "triggers changes", ->
       model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
       spy = jasmine.createSpy().andCallFake ->
-        expect(model.loaded).toBe true
         expect(model.get("title")).toEqual "a time entry"
         expect(model.get('task').get('title')).toEqual "a task"
         expect(model.get('project').id).toEqual "15"
@@ -161,6 +160,7 @@ describe 'Brainstem Storage Manager', ->
       server.respond()
       expect(spy).toHaveBeenCalled()
       expect(spy.callCount).toEqual 1
+      expect(model.loaded).toBe true
 
     it "accepts a success function", ->
       spy = jasmine.createSpy().andCallFake (model) ->
