@@ -38,7 +38,11 @@ class window.Brainstem.Model extends Backbone.Model
         if collectionModel
           collectionModel.set(attributes)
         else
-          collection.add(attributes)
+          if @brainstemKey == underscoredModelName && this.isNew()
+            @set(attributes)
+            collection.add(this)
+          else
+            collection.add(attributes)
 
   _parseResultsResponse: (resp) ->
     return resp unless resp['results']
