@@ -25,6 +25,11 @@ describe 'Loaders ModelLoader', ->
       loader = createLoader()
       opts = defaultLoadOptions()
 
+    describe '#getModel', ->
+      it 'should return the externalObject', ->
+        loader.setup(opts)
+        expect(loader.getModel()).toEqual loader.externalObject
+
     describe '#_getCollectionName', ->
       it 'returns the pluralized name of the model', ->
         loader.setup(opts)

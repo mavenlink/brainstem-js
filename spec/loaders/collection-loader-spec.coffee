@@ -24,6 +24,11 @@ describe 'Loaders CollectionLoader', ->
       loader = createLoader()
       opts = defaultLoadOptions()
 
+    describe '#getCollection', ->
+      it 'should return the externalObject', ->
+        loader.setup(opts)
+        expect(loader.getCollection()).toEqual loader.externalObject
+
     describe '#_getCollectionName', ->
       it 'should return the name from loadOptions', ->
         loader.setup(opts)
