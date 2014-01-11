@@ -58,7 +58,7 @@ class window.Brainstem.StorageManager
     return if not id
 
     loader = @loadObject(name, $.extend({}, options, only: id), isCollection: false)
-    loader.externalObject
+    loader
 
   # Request a set of data to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
   # when the load, and any dependent loads, are complete.

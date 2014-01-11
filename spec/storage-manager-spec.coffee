@@ -44,23 +44,18 @@ describe 'Brainstem Storage Manager', ->
       respondWith server, "/api/time_entries/1?include=project%2Ctask", resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
 
     it "creates a new model with the supplied id", ->
-      newModel = base.data.loadModel "time_entry", "333"
-      expect(newModel.id).toEqual "333"
-
-    xit "calls loadCollection with the model", ->
-      spyOn(base.data.dataLoader, 'loadCollection')
-      newModel = base.data.loadModel "time_entry", "333"
-
-      expect(base.data.dataLoader.loadCollection).toHaveBeenCalled()
-      expect(base.data.dataLoader.loadCollection.mostRecentCall.args[1].model).toEqual newModel
+      loader = base.data.loadModel "time_entry", "333"
+      expect(loader.getModel().id).toEqual "333"
 
     it "calls Backbone.sync with a model", ->
       spyOn(Backbone, 'sync')
-      newModel = base.data.loadModel "time_entry", "333"
+      base.data.loadModel "time_entry", "333"
       expect(Backbone.sync).toHaveBeenCalledWith 'read', jasmine.any(App.Models.TimeEntry), jasmine.any(Object)
 
     it "loads a single model from the server, including associations", ->
-      model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
+      loader = base.data.loadModel "time_entry", 1, include: ["project", "task"]
+      model = loader.getModel()
+
       expect(model.loaded).toBe false
       server.respond()
       expect(model.loaded).toBe true
@@ -90,7 +85,9 @@ describe 'Brainstem Storage Manager', ->
       respondWith server, "/api/projects?include=time_entries&only=#{mainProject.id}", resultsFrom: "projects", data: { results: resultsArray("projects", [mainProject]), time_entries: resultsObject([timeEntry]), projects: resultsObject([mainProject]) }
       respondWith server, "/api/time_entries?include=task&only=" + timeEntry.id, resultsFrom: "time_entries", data: { results: resultsArray("time_entries", [timeEntry]), time_entries: resultsObject([timeEntry]), tasks: resultsObject([timeTask]) }
 
-      model = base.data.loadModel "task", mainTask.id, include: ["assignees", {"sub_tasks": ["assignees"]}, { "project" : [{ "time_entries": ["task"] }] }]
+      loader = base.data.loadModel "task", mainTask.id, include: ["assignees", {"sub_tasks": ["assignees"]}, { "project" : [{ "time_entries": ["task"] }] }]
+      model = loader.getModel()
+
       server.respond()
 
       # check main model
@@ -127,14 +124,16 @@ describe 'Brainstem Storage Manager', ->
       task = buildAndCacheTask(id: 200)
       spy = spyOn(Brainstem.AbstractLoader.prototype, '_loadFromServer')
 
-      model = base.data.loadModel "task", task.id
+      loader = base.data.loadModel "task", task.id
+      model = loader.getModel()
       expect(model.attributes).toEqual(task.attributes)
       expect(spy).not.toHaveBeenCalled()
 
     it "works even when the server returned associations of the same type", ->
       posts = [buildPost(id: 2, reply: true), buildPost(id: 3, reply: true), buildPost(id: 1, reply: false, reply_ids: [2, 3])]
       respondWith server, "/api/posts/1?include=replies", data: { results: [{ key: "posts", id: 1 }], posts: posts }
-      model = base.data.loadModel "post", 1, include: ["replies"]
+      loader = base.data.loadModel "post", 1, include: ["replies"]
+      model = loader.getModel()
       expect(model.loaded).toBe false
       server.respond()
       expect(model.loaded).toBe true
@@ -150,7 +149,8 @@ describe 'Brainstem Storage Manager', ->
       expect(events).toEqual ["tasks", "time_entries"]
 
     it "triggers changes", ->
-      model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
+      loader = base.data.loadModel "time_entry", 1, include: ["project", "task"]
+      model = loader.getModel()
       spy = jasmine.createSpy().andCallFake ->
         expect(model.get("title")).toEqual "a time entry"
         expect(model.get('task').get('title')).toEqual "a task"
@@ -165,13 +165,13 @@ describe 'Brainstem Storage Manager', ->
     it "accepts a success function", ->
       spy = jasmine.createSpy().andCallFake (model) ->
         expect(model.loaded).toBe true
-      model = base.data.loadModel "time_entry", 1, success: spy
+      base.data.loadModel "time_entry", 1, success: spy
       server.respond()
       expect(spy).toHaveBeenCalled()
 
     it "can disable caching", ->
       spy = spyOn(Brainstem.ModelLoader.prototype, '_checkCacheForData').andCallThrough()
-      model = base.data.loadModel "time_entry", 1, cache: false
+      base.data.loadModel "time_entry", 1, cache: false
       expect(spy).not.toHaveBeenCalled()
 
     it "invokes the error callback when the server responds with a 404", ->
