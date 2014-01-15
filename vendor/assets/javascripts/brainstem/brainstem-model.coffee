@@ -2,10 +2,6 @@
 
 # Extend Backbone.Model to include associations.
 class window.Brainstem.Model extends Backbone.Model
-  constructor: ->
-    super
-    @setLoaded false
-
   # Parse ISO8601 attribute strings into date objects
   @parse: (modelObject) ->
     for k,v of modelObject
@@ -141,5 +137,3 @@ class window.Brainstem.Model extends Backbone.Model
       delete json[blacklistKey]
 
     json
-
-_.extend(Brainstem.Model.prototype, Brainstem.LoadingMixin);

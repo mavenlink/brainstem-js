@@ -53,12 +53,14 @@ describe 'Brainstem Storage Manager', ->
       expect(Backbone.sync).toHaveBeenCalledWith 'read', jasmine.any(App.Models.TimeEntry), jasmine.any(Object)
 
     it "loads a single model from the server, including associations", ->
+      loaded = false
       loader = base.data.loadModel "time_entry", 1, include: ["project", "task"]
+      loader.done -> loaded = true
       model = loader.getModel()
 
-      expect(model.loaded).toBe false
+      expect(loaded).toBe false
       server.respond()
-      expect(model.loaded).toBe true
+      expect(loaded).toBe true
       expect(model.id).toEqual "1"
       expect(model.get("title")).toEqual "a time entry"
       expect(model.get('task').get('title')).toEqual "a task"
@@ -132,11 +134,13 @@ describe 'Brainstem Storage Manager', ->
     it "works even when the server returned associations of the same type", ->
       posts = [buildPost(id: 2, reply: true), buildPost(id: 3, reply: true), buildPost(id: 1, reply: false, reply_ids: [2, 3])]
       respondWith server, "/api/posts/1?include=replies", data: { results: [{ key: "posts", id: 1 }], posts: posts }
+      loaded = false
       loader = base.data.loadModel "post", 1, include: ["replies"]
+      loader.done -> loaded = true
       model = loader.getModel()
-      expect(model.loaded).toBe false
+      expect(loaded).toBe false
       server.respond()
-      expect(model.loaded).toBe true
+      expect(loaded).toBe true
       expect(model.id).toEqual "1"
       expect(model.get("replies").pluck("id")).toEqual ["2", "3"]
 
@@ -149,7 +153,9 @@ describe 'Brainstem Storage Manager', ->
       expect(events).toEqual ["tasks", "time_entries"]
 
     it "triggers changes", ->
+      loaded = false
       loader = base.data.loadModel "time_entry", 1, include: ["project", "task"]
+      loader.done -> loaded = true
       model = loader.getModel()
       spy = jasmine.createSpy().andCallFake ->
         expect(model.get("title")).toEqual "a time entry"
@@ -157,14 +163,14 @@ describe 'Brainstem Storage Manager', ->
         expect(model.get('project').id).toEqual "15"
       model.bind "change", spy
       expect(spy).not.toHaveBeenCalled()
+      expect(loaded).toBe false
       server.respond()
       expect(spy).toHaveBeenCalled()
       expect(spy.callCount).toEqual 1
-      expect(model.loaded).toBe true
+      expect(loaded).toBe true
 
     it "accepts a success function", ->
-      spy = jasmine.createSpy().andCallFake (model) ->
-        expect(model.loaded).toBe true
+      spy = jasmine.createSpy()
       base.data.loadModel "time_entry", 1, success: spy
       server.respond()
       expect(spy).toHaveBeenCalled()
@@ -184,7 +190,7 @@ describe 'Brainstem Storage Manager', ->
       expect(successSpy).not.toHaveBeenCalled()
       expect(errorSpy).toHaveBeenCalled()
 
-    it "does not trigger loaded until all of the associations are included", ->
+    it "does not resolve until all of the associations are included", ->
       base.data.enableExpectations()
 
       project = buildProject()
@@ -210,21 +216,20 @@ describe 'Brainstem Storage Manager', ->
         stub.results = [task]
         stub.associated.users = [user]
 
-      loadedSpy = jasmine.createSpy('loaded')
+      resolvedSpy = jasmine.createSpy('resolved')
 
       model = buildAndCacheTask(id: task.id)
-      model.on 'loaded', loadedSpy
-
-      base.data.loadModel "task", model.id, include: ['project': [{ 'tasks': ['assignees'] }]]
+      loader = base.data.loadModel "task", model.id, include: ['project': [{ 'tasks': ['assignees'] }]]
+      loader.done(resolvedSpy)
 
       taskExpectation.respond()
-      expect(loadedSpy).not.toHaveBeenCalled()
+      expect(resolvedSpy).not.toHaveBeenCalled()
 
       projectExpectation.respond()
-      expect(loadedSpy).not.toHaveBeenCalled()
+      expect(resolvedSpy).not.toHaveBeenCalled()
 
       taskWithAssigneesExpectation.respond()
-      expect(loadedSpy).toHaveBeenCalled()
+      expect(resolvedSpy).toHaveBeenCalled()
 
   describe 'loadCollection', ->
     it "loads a collection of models", ->

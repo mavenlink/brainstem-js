@@ -59,14 +59,6 @@ describe 'Loaders ModelLoader', ->
         loader.setup(opts)
         expect(loader.internalObject).toEqual loader.externalObject
 
-      it 'sets the externalObject to be not loaded', ->
-        opts.model ?= buildAndCacheTask(id: 1)
-        opts.model.setLoaded true
-        expect(opts.model.loaded).toEqual true
-
-        loader.setup(opts)
-        expect(opts.model.loaded).toEqual false
-
     describe '#_updateStorageManagerFromResponse', ->
       it 'calls parse on the internalObject with the response', ->
         loader.setup(opts)
@@ -76,16 +68,6 @@ describe 'Loaders ModelLoader', ->
         expect(loader.internalObject.parse).toHaveBeenCalledWith 'test response'
 
     describe '#_updateObject', ->
-      it 'triggers loaded on the object after the attributes have been set', ->
-        loadedSpy = jasmine.createSpy().andCallFake -> 
-          expect(this.get('foo')).toEqual 'bar' # make sure that the spy is called after the attribute has been set (tests the trigger: false)
-
-        loader.setup(opts)
-        loader.internalObject.listenTo loader.internalObject, 'loaded', loadedSpy
-
-        loader._updateObjects(loader.internalObject, foo: 'bar')
-        expect(loadedSpy).toHaveBeenCalled()
-
       it 'works with a Backbone.Model', ->
         loader.setup(opts)
         loader._updateObjects(loader.internalObject, new Backbone.Model(name: 'foo'))

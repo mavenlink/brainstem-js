@@ -118,33 +118,6 @@ describe 'Brainstem.Model', ->
         expect(base.data.storage('users').get(5).get('created_at')).toEqual(1361820357000)
         expect(base.data.storage('users').get(6).get('created_at')).toEqual(1359573957000)
 
-  describe 'setLoaded', ->
-    it "should set the values of @loaded", ->
-      model.setLoaded true
-      expect(model.loaded).toEqual(true)
-      model.setLoaded false
-      expect(model.loaded).toEqual(false)
-
-    it "triggers 'loaded' when becoming true", ->
-      spy = jasmine.createSpy()
-      model.bind "loaded", spy
-      model.setLoaded false
-      expect(spy).not.toHaveBeenCalled()
-      model.setLoaded true
-      expect(spy).toHaveBeenCalled()
-
-    it "doesn't trigger loaded if trigger: false is provided", ->
-      spy = jasmine.createSpy()
-      model.bind "loaded", spy
-      model.setLoaded true, trigger: false
-      expect(spy).not.toHaveBeenCalled()
-
-    it "returns self", ->
-      spy = jasmine.createSpy()
-      model.bind "loaded", spy
-      model.setLoaded true
-      expect(spy).toHaveBeenCalledWith(model)
-
   describe 'associations', ->
     describe 'associationDetails', ->
 
