@@ -47,10 +47,10 @@ describe 'Brainstem Storage Manager', ->
       loader = base.data.loadModel "time_entry", "333"
       expect(loader.getModel().id).toEqual "333"
 
-    it "calls Backbone.sync with a model", ->
+    it "calls Backbone.sync with the model from the loader", ->
       spyOn(Backbone, 'sync')
-      base.data.loadModel "time_entry", "333"
-      expect(Backbone.sync).toHaveBeenCalledWith 'read', jasmine.any(App.Models.TimeEntry), jasmine.any(Object)
+      loader = base.data.loadModel "time_entry", "333"
+      expect(Backbone.sync).toHaveBeenCalledWith 'read', loader.getModel(), loader._buildSyncOptions()
 
     it "loads a single model from the server, including associations", ->
       loaded = false
