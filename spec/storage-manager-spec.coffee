@@ -747,16 +747,6 @@ describe 'Brainstem Storage Manager', ->
       collection = base.data.createNewCollection("tasks", [buildTask(), buildTask()], loaded: true)
       expect(collection.loaded).toBe true
 
-  describe "_countRequiredServerRequests", ->
-    xit "should count the number of loads needed to get the date", ->
-      expect(base.data.dataLoader._countRequiredServerRequests(['a'])).toEqual 1
-      expect(base.data.dataLoader._countRequiredServerRequests(['a', 'b', 'c': []])).toEqual 1
-      expect(base.data.dataLoader._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e']])).toEqual 3
-      expect(base.data.dataLoader._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': []]])).toEqual 3
-      expect(base.data.dataLoader._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': ['f']]])).toEqual 4
-      expect(base.data.dataLoader._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': ['f', 'g': ['h']]]])).toEqual 5
-      expect(base.data.dataLoader._countRequiredServerRequests([{'a': ['d': ['h']]}, { 'b':['g'] }, 'c': ['e': ['f', 'i']]])).toEqual 6
-
   describe "error handling", ->
     describe "setting a storage manager default error handler", ->
       it "allows an error interceptor to be set on construction", ->
