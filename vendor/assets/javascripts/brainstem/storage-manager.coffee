@@ -96,6 +96,9 @@ class window.Brainstem.StorageManager
     else
       throw "You must call #enableExpectations on your instance of Brainstem.StorageManager before you can set expectations."
 
+  stubModel: (modelName, modelId, options = {}) ->
+    @stub(modelName, $.extend({}, options, only: modelId))
+
   stubImmediate: (collectionName, options) ->
     @stub collectionName, $.extend({}, options, immediate: true)
 
@@ -103,10 +106,8 @@ class window.Brainstem.StorageManager
     @expectations = []
 
   handleExpectations: (loader) ->
-    name = loader._getCollectionName()
-
     for expectation in @expectations
-      if expectation.optionsMatch(name, loader.originalOptions)
+      if expectation.loaderOptionsMatch(loader)
         expectation.recordRequest(loader)
         return
     throw "No expectation matched #{name} with #{JSON.stringify loader.originalOptions}"
