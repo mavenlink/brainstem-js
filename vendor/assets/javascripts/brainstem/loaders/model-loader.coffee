@@ -7,6 +7,9 @@ class Brainstem.ModelLoader extends Brainstem.AbstractLoader
   _getCollectionName: ->
     @loadOptions.name.pluralize()
 
+  _getExpectationName: ->
+    @loadOptions.name
+
   _createObjects: ->
     id = @loadOptions.only[0]
 

@@ -246,6 +246,13 @@ class Brainstem.AbstractLoader
     throw "Implement in your subclass"
 
   ###*
+   * Returns the name that expectations will be stubbed with (story or stories etc)
+   * @return {string} name of the stub
+  ###
+  _getExpectationName: ->
+    throw "Implement in your subclass"
+
+  ###*
    * This needs to return a constructor for the model that associations will be compared with.
    * This typically will be the current collection's model/current model constructor.
    * @return {Brainstem.Model}

@@ -7,6 +7,9 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
   _getCollectionName: ->
     @loadOptions.name
 
+  _getExpectationName: ->
+    @_getCollectionName()
+
   _createObjects: ->
     @internalObject = @storageManager.createNewCollection @loadOptions.name, []
 
