@@ -44,6 +44,7 @@ describe 'Brainstem.Model', ->
             model.parse(response)
             expect(base.data.storage('tasks').get(1)).not.toBeUndefined()
             expect(base.data.storage('tasks').get(1)).toEqual model
+            expect(base.data.storage('tasks').get(1).attributes).toEqual response.tasks[1]
 
         context 'model ID does not match response ID', ->
           # this only happens when an association has the same brainstemKey as the parent record
