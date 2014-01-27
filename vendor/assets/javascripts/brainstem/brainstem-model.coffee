@@ -77,6 +77,8 @@ class window.Brainstem.Model extends Backbone.Model
   #   model.associationsAreLoaded() # => true|false
   associationsAreLoaded: (associations) ->
     associations ||= _.keys(@constructor.associations)
+    associations = _.select associations, (association) => @constructor.associationDetails(association)
+
     _.all associations, (association) =>
       details = @constructor.associationDetails(association)
       if details.type == "BelongsTo"
