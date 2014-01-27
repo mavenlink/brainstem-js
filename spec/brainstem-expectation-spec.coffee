@@ -207,29 +207,112 @@ describe 'Brainstem Expectations', ->
   describe "optionsMatch", ->
     it "should ignore wrapping arrays", ->
       expectation = new Brainstem.Expectation("projects", { include: "workspaces" }, manager)
-      expect(expectation.optionsMatch("projects", { include: "workspaces" })).toBe true
-      expect(expectation.optionsMatch("projects", { include: ["workspaces"] })).toBe true
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+
+      loader.setup(name: "projects", include: "workspaces")
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
+
+      loader.setup(name: "projects", include: ["workspaces"])
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
 
     it "should treat * as an any match", ->
       expectation = new Brainstem.Expectation("projects", { include: "*" }, manager)
-      expect(expectation.optionsMatch("projects", { include: "workspaces" })).toBe true
-      expect(expectation.optionsMatch("projects", { include: ["anything"] })).toBe true
-      expect(expectation.optionsMatch("projects", {})).toBe true
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", include: "workspaces")
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", include: ["anything"])
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", {})
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
 
     it "should treat strings and numbers the same when appropriate", ->
       expectation = new Brainstem.Expectation("projects", { only: "1" }, manager)
-      expect(expectation.optionsMatch("projects", {only: 1})).toBe true
-      expect(expectation.optionsMatch("projects", {only: "1"})).toBe true
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", only: 1)
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", only: "1")
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
 
     it "should treat null, empty array, and empty object the same", ->
       expectation = new Brainstem.Expectation("projects", { filters: {} }, manager)
-      expect(expectation.optionsMatch("projects", { filters: null })).toBe true
-      expect(expectation.optionsMatch("projects", { filters: {} })).toBe true
-      expect(expectation.optionsMatch("projects", { })).toBe true
-      expect(expectation.optionsMatch("projects", { filters: { foo: "bar" } })).toBe false
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", filters: null)
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", filters: {})
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", {})
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", filters: { foo: "bar" })
+      expect(expectation.loaderOptionsMatch(loader)).toBe false
 
       expectation = new Brainstem.Expectation("projects", {}, manager)
-      expect(expectation.optionsMatch("projects", { filters: null })).toBe true
-      expect(expectation.optionsMatch("projects", { filters: {} })).toBe true
-      expect(expectation.optionsMatch("projects", { })).toBe true
-      expect(expectation.optionsMatch("projects", { filters: { foo: "bar" } })).toBe false
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", filters: null)
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", filters: {})
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", {})
+      expect(expectation.loaderOptionsMatch(loader)).toBe true
+
+      loader = new Brainstem.CollectionLoader(storageManager: manager)
+      loader.setup(name: "projects", filters: { foo: "bar" })
+      expect(expectation.loaderOptionsMatch(loader)).toBe false
+
+  describe 'stubbing models', ->
+    context 'a model that matches the load is already in the storage manager', ->
+      it 'updates that model', ->
+        project = buildAndCacheProject()
+
+        expectation = manager.stubModel 'project', project.id, response: (stub) ->
+          stub.result = buildProject(id: project.id, title: 'foobar')
+
+        loaderSpy = jasmine.createSpy('loader').andCallFake (model) ->
+          expect(model).toEqual project
+          expect(model.get('title')).toEqual 'foobar'
+
+        loader = manager.loadModel 'project', project.id
+        loader.done(loaderSpy)
+
+        expectation.respond()
+        expect(loaderSpy).toHaveBeenCalled()
+        expect(manager.storage('projects').length).toEqual 1
+
+    context 'a model is not already in the storage manager', ->
+      it 'adds the model from the loader to the storageManager', ->
+        project = buildProject()
+
+        expectation = manager.stubModel 'project', project.id, response: (stub) ->
+          stub.result = buildProject(id: project.id, title: 'foobar')
+
+        loader = manager.loadModel 'project', project.id
+
+        loaderSpy = jasmine.createSpy('loader').andCallFake (model) ->
+          expect(model).toEqual loader.getModel()
+          expect(manager.storage('projects').get(project.id)).toEqual loader.getModel()
+          expect(model.get('title')).toEqual 'foobar'
+
+        loader.done(loaderSpy)
+
+        expectation.respond()
+        expect(loaderSpy).toHaveBeenCalled()
+        expect(manager.storage('projects').length).toEqual 1

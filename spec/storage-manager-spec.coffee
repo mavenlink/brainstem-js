@@ -202,17 +202,17 @@ describe 'Brainstem Storage Manager', ->
 
       project.set('task_ids', [task.id, task2.id, task3.id])
 
-      taskExpectation = base.data.stub "tasks", include: ['project': [{ 'tasks': ['assignees'] }]], only: task.id, name: "task", response: (stub) ->
-        stub.results = [task]
+      taskExpectation = base.data.stubModel "task", task.id, include: ['project': [{ 'tasks': ['assignees'] }]], response: (stub) ->
+        stub.result = task
         stub.associated.project = [project]
         stub.recursive = true
 
-      projectExpectation = base.data.stub "projects", include: ['tasks': ['assignees']], only: project.id, name: "projects", response: (stub) ->
+      projectExpectation = base.data.stub "projects", only: project.id, include: ['tasks': ['assignees']], response: (stub) ->
         stub.results = [project]
         stub.associated.tasks = [task, task2, task3]
         stub.recursive = true
 
-      taskWithAssigneesExpectation = base.data.stub "tasks", only: [task.id, task2.id, task3.id], include: ['assignees'], name: "tasks", response: (stub) ->
+      taskWithAssigneesExpectation = base.data.stub "tasks", only: [task.id, task2.id, task3.id], include: ['assignees'], response: (stub) ->
         stub.results = [task]
         stub.associated.users = [user]
 
