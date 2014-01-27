@@ -269,17 +269,21 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       context 'there exists a cache with this cacheKey', ->
         beforeEach ->
           loader.storageManager.storage('tasks').add taskOne
-          loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc|foo:bar||||'] = [key: "tasks", id: taskOne.id]
+          loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc|||||'] = [key: "tasks", id: taskOne.id]
 
         context 'all of the cached models have their associations loaded', ->
+          beforeEach ->
+            taskOne.set('project_id', buildAndCacheProject().id)
+
           it 'calls #_onLoadSuccess with the models from the cache', ->
-            opts.filters = foo: 'bar'
+            opts.include = ['project']
             loader.setup(opts)
             loader._checkCacheForData()
             expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne])
 
         context 'all of the cached models do not have their associations loaded', ->
           it 'returns false and does not call #_onLoadSuccess', ->
+            opts.include = ['project']
             loader.setup(opts)
             notFound(loader, opts)
 
