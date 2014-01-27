@@ -36,7 +36,7 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
     for underscoredModelName in keys
       @storageManager.storage(underscoredModelName).update _(resp[underscoredModelName]).values()
 
-    unless @loadOptions.cache == false || @loadOptions.only?
+    if @loadOptions.cache && !@loadOptions.only?
       @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = results
 
     if @loadOptions.only?
