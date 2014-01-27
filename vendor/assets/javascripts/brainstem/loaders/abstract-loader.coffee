@@ -85,7 +85,7 @@ class Brainstem.AbstractLoader
         @_onLoadSuccess(_.map @loadOptions.only, (id) => @cachedCollection.get(id))
         return @externalObject
     else
-      # Check if we have, at some point, requested enough records with this this order and filter(s).
+      # Check if we have a cache for this request and if so make sure that all of the requested includes for this layer are loaded on those models.
       if @storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]
         subset = _(@storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
         if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.thisLayerInclude)))
