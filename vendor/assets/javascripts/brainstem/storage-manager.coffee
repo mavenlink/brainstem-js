@@ -89,7 +89,7 @@ class window.Brainstem.StorageManager
 
   # Expectations and stubbing
 
-  stub: (collectionName, options) ->
+  stub: (collectionName, options = {}) ->
     if @expectations?
       expectation = new Brainstem.Expectation(collectionName, options, @)
       @expectations.push expectation

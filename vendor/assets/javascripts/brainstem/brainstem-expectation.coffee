@@ -74,6 +74,8 @@ class window.Brainstem.Expectation
         @manager.storage(value.brainstemKey).update [value]
 
   _handleCollectionResults: (loader) ->
+    return if not @results
+
     for result in @results
       if result instanceof Brainstem.Model
         @manager.storage(result.brainstemKey).update [result]

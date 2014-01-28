@@ -117,6 +117,10 @@ describe 'Brainstem Expectations', ->
         expectation.respond()
         expect(errorSpy).not.toHaveBeenCalled()
 
+    it "should work without specifying results", ->
+      manager.stubImmediate "projects"
+      expect(-> manager.loadCollection("projects")).not.toThrow()
+
   describe "responding immediately", ->
     it "uses stubImmediate", ->
       expectation = manager.stubImmediate "projects", include: ["tasks"], response: (stub) ->
