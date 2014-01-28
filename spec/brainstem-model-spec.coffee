@@ -199,6 +199,28 @@ describe 'Brainstem.Model', ->
           expect(project.associationsAreLoaded(["time_entries"])).toBeTruthy()
           expect(project.associationsAreLoaded(["tasks"])).toBeFalsy()
 
+      describe "when supplying associations that do not exist", ->
+        class TestClass extends Brainstem.Model
+          @associations:
+            user: "users"
+
+        testClass = null
+
+        beforeEach ->
+          testClass = new TestClass()
+
+        it "returns true when supplying only an association that does not exist", ->
+          expect(testClass.associationsAreLoaded(['foobar'])).toBe true
+          expect(testClass.associationsAreLoaded(['user'])).toBe false
+
+        it "returns false when supplying both a real association that is not loaded and an association that does not exist", ->
+          expect(testClass.associationsAreLoaded(['user', 'foobar'])).toBe false
+
+        it "returns true when supplying a real association that is loaded and an association that does not exist", ->
+          testClass.set('user_id', buildAndCacheUser().id)
+          expect(testClass.associationsAreLoaded(['user'])).toBe true
+          expect(testClass.associationsAreLoaded(['user', 'foobar'])).toBe true
+
     describe "get", ->
       it "should delegate to Backbone.Model#get for anything that is not an association", ->
         timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2, title: "foo")
