@@ -300,14 +300,16 @@ describe 'Brainstem Expectations', ->
     context 'a model is not already in the storage manager', ->
       it 'adds the model from the loader to the storageManager', ->
         project = buildProject()
+        stubbedProject = buildProject(id: project.id, title: 'foobar')
 
         expectation = manager.stubModel 'project', project.id, response: (stub) ->
-          stub.result = buildProject(id: project.id, title: 'foobar')
+          stub.result = stubbedProject
 
         loader = manager.loadModel 'project', project.id
 
         loaderSpy = jasmine.createSpy('loader').andCallFake (model) ->
           expect(model).toEqual loader.getModel()
+          expect(model.attributes).toEqual stubbedProject.attributes
           expect(manager.storage('projects').get(project.id)).toEqual loader.getModel()
           expect(model.get('title')).toEqual 'foobar'
 

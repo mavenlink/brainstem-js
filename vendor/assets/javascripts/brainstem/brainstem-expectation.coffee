@@ -103,7 +103,8 @@ class window.Brainstem.Expectation
     existingModel = @manager.storage(key).get(attributes.id)
 
     unless existingModel
-      existingModel = @manager.storage(key).add(loader.getModel())
+      existingModel = loader.getModel()
+      @manager.storage(key).add(existingModel)
 
     existingModel.set(attributes)
     existingModel
