@@ -2,10 +2,6 @@
 
 # Extend Backbone.Model to include associations.
 class window.Brainstem.Model extends Backbone.Model
-  constructor: ->
-    super
-    @setLoaded false
-
   # Parse ISO8601 attribute strings into date objects
   @parse: (modelObject) ->
     for k,v of modelObject
@@ -15,7 +11,7 @@ class window.Brainstem.Model extends Backbone.Model
     return modelObject
 
   # Handle create and update responses with JSON root keys
-  parse: (resp, xhr) =>
+  parse: (resp, xhr) ->
     @updateStorageManager(resp)
     modelObject = @_parseResultsResponse(resp)
     super(@constructor.parse(modelObject), xhr)
@@ -38,7 +34,11 @@ class window.Brainstem.Model extends Backbone.Model
         if collectionModel
           collectionModel.set(attributes)
         else
-          collection.add(attributes)
+          if @brainstemKey == underscoredModelName && (@isNew() || @id == attributes.id)
+            @set(attributes)
+            collection.add(this)
+          else
+            collection.add(attributes)
 
   _parseResultsResponse: (resp) ->
     return resp unless resp['results']
@@ -75,8 +75,10 @@ class window.Brainstem.Model extends Backbone.Model
   # provided, all associations are assumed.
   #   model.associationsAreLoaded(["project", "task"]) # => true|false
   #   model.associationsAreLoaded() # => true|false
-  associationsAreLoaded: (associations) =>
+  associationsAreLoaded: (associations) ->
     associations ||= _.keys(@constructor.associations)
+    associations = _.select associations, (association) => @constructor.associationDetails(association)
+
     _.all associations, (association) =>
       details = @constructor.associationDetails(association)
       if details.type == "BelongsTo"
@@ -85,7 +87,7 @@ class window.Brainstem.Model extends Backbone.Model
         @attributes.hasOwnProperty(details.key) && _.all(@attributes[details.key], (id) -> base.data.storage(details.collectionName).get(id))
 
   # Override Model#get to access associations as well as fields.
-  get: (field, options = {}) =>
+  get: (field, options = {}) ->
     if details = @constructor.associationDetails(field)
       if details.type == "BelongsTo"
         id = @get(details.key) # project_id
@@ -111,7 +113,7 @@ class window.Brainstem.Model extends Backbone.Model
     else
       super(field)
 
-  className: =>
+  className: ->
     @paramRoot
 
   defaultJSONBlacklist: ->
@@ -123,7 +125,7 @@ class window.Brainstem.Model extends Backbone.Model
   updateJSONBlacklist: ->
     []
 
-  toServerJSON: (method, options) =>
+  toServerJSON: (method, options) ->
     json = @toJSON(options)
     blacklist = @defaultJSONBlacklist()
 
@@ -137,5 +139,3 @@ class window.Brainstem.Model extends Backbone.Model
       delete json[blacklistKey]
 
     json
-
-_.extend(Brainstem.Model.prototype, Brainstem.LoadingMixin);

@@ -4,10 +4,10 @@ class window.Brainstem.Utils
   @warn: (args...) ->
     console?.log "Error:", args...
 
-  @throwError: (message) =>
+  @throwError: (message) ->
     throw new Error("#{Backbone.history.getFragment()}: #{message}")
 
-  @matches: (obj1, obj2) =>
+  @matches: (obj1, obj2) ->
     if @empty(obj1) && @empty(obj2)
       true
     else if obj1 instanceof Array && obj2 instanceof Array
@@ -19,7 +19,7 @@ class window.Brainstem.Utils
     else
       String(obj1) == String(obj2)
 
-  @empty: (thing) =>
+  @empty: (thing) ->
     if thing == null || thing == undefined || thing == ""
       true
     if thing instanceof Array
@@ -29,7 +29,21 @@ class window.Brainstem.Utils
     else
       false
 
-  @extractArray: (option, options) =>
+  @extractArray: (option, options) ->
     result = options[option]
     result = [result] unless result instanceof Array
     _.compact(result)
+
+  @wrapObjects: (array) ->
+    output = []
+    _(array).each (elem) =>
+      if elem.constructor == Object
+        for key, value of elem
+          o = {}
+          o[key] = @wrapObjects(if value instanceof Array then value else [value])
+          output.push o
+      else
+        o = {}
+        o[elem] = []
+        output.push o
+    output

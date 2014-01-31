@@ -77,3 +77,24 @@ window.clearLiveEventBindings = ->
 
 window.context = describe
 window.xcontext = xdescribe
+
+# Shared Behaviors
+window.SharedBehaviors ?= {};
+
+window.registerSharedBehavior = (behaviorName, funct) ->
+  if not behaviorName
+    throw "Invalid shared behavior name"
+
+  if typeof funct != 'function'
+    throw "Invalid shared behavior, it must be a function"
+
+  window.SharedBehaviors[behaviorName] = funct
+
+window.itShouldBehaveLike = (behaviorName, context) ->
+  behavior = window.SharedBehaviors[behaviorName];
+  context ?= {}
+
+  if not behavior || typeof behavior != 'function'
+    throw "Shared behavior #{behaviorName} not found."
+  else
+    jasmine.getEnv().describe "#{behaviorName} (shared behavior)", -> behavior.call(this, context)

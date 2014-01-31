@@ -40,51 +40,107 @@ describe 'Brainstem Storage Manager', ->
       tasks = [buildTask(id: 2, title: "a task", project_id: 15)]
       projects = [buildProject(id: 15)]
       timeEntries = [buildTimeEntry(id: 1, task_id: 2, project_id: 15, title: "a time entry")]
-      respondWith server, "/api/time_entries?only=1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
-      respondWith server, "/api/time_entries?include=project%2Ctask&only=1", resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
-
-    it "uses a passed in model if present", ->
-      existingModel = buildTimeEntry(id: 55)
-
-      newModel = base.data.loadModel "time_entry", existingModel.id, model: existingModel, include: ["project", "task"]
-      expect(newModel).toEqual(existingModel)
-
-      newModel = base.data.loadModel "time_entry", existingModel.id, include: ["project", "task"]
-      expect(newModel).not.toEqual(existingModel)
+      respondWith server, "/api/time_entries/1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
+      respondWith server, "/api/time_entries/1?include=project%2Ctask", resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
 
     it "creates a new model with the supplied id", ->
-      newModel = base.data.loadModel "time_entry", "333"
-      expect(newModel.id).toEqual "333"
+      loader = base.data.loadModel "time_entry", "333"
+      expect(loader.getModel().id).toEqual "333"
 
-    it "calls loadCollection with the model", ->
-      spyOn(base.data, 'loadCollection')
-      newModel = base.data.loadModel "time_entry", "333"
-
-      expect(base.data.loadCollection).toHaveBeenCalled()
-      expect(base.data.loadCollection.mostRecentCall.args[1].model).toEqual newModel
-
-    it "calls Backbone.sync with the model", ->
+    it "calls Backbone.sync with the model from the loader", ->
       spyOn(Backbone, 'sync')
-      newModel = base.data.loadModel "time_entry", "333"
-      expect(Backbone.sync).toHaveBeenCalledWith 'read', newModel, jasmine.any(Object)
+      loader = base.data.loadModel "time_entry", "333"
+      expect(Backbone.sync).toHaveBeenCalledWith 'read', loader.getModel(), loader._buildSyncOptions()
 
     it "loads a single model from the server, including associations", ->
-      model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
-      expect(model.loaded).toBe false
+      loaded = false
+      loader = base.data.loadModel "time_entry", 1, include: ["project", "task"]
+      loader.done -> loaded = true
+      model = loader.getModel()
+
+      expect(loaded).toBe false
       server.respond()
-      expect(model.loaded).toBe true
+      expect(loaded).toBe true
       expect(model.id).toEqual "1"
       expect(model.get("title")).toEqual "a time entry"
       expect(model.get('task').get('title')).toEqual "a task"
       expect(model.get('project').id).toEqual "15"
 
+    it "works with complex associations", ->
+      mainProject = buildProject(title: "my project")
+      mainTask = buildTask(project_id: mainProject.id, title: "foo")
+      timeTask = buildTask(title: 'hello')
+      timeEntry = buildTimeEntry(project_id: mainProject.id, task_id: timeTask.id, time: 50)
+      mainProject.set('time_entry_ids', [timeEntry.id])
+
+      subTask = buildTask()
+      mainTask.set('sub_task_ids', [subTask.id])
+
+      mainTaskAssignee = buildUser(name: 'Kimbo')
+      mainTask.set('assignee_ids', [mainTaskAssignee.id])
+
+      subTaskAssignee = buildUser(name: 'Slice')
+      subTask.set('assignee_ids', [subTaskAssignee.id])
+
+      respondWith server, "/api/tasks/#{mainTask.id}?include=assignees%2Csub_tasks%2Cproject", resultsFrom: "tasks", data: { results: resultsArray("tasks", [mainTask]), tasks: resultsObject([mainTask, subTask]), projects: resultsObject([mainProject]), users: resultsObject([mainTaskAssignee]) }
+      respondWith server, "/api/tasks?include=assignees&only=#{subTask.id}", resultsFrom: "tasks", data: { results: resultsArray("tasks", [subTask]), tasks: resultsObject([subTask]), users: resultsObject([subTaskAssignee]) }
+      respondWith server, "/api/projects?include=time_entries&only=#{mainProject.id}", resultsFrom: "projects", data: { results: resultsArray("projects", [mainProject]), time_entries: resultsObject([timeEntry]), projects: resultsObject([mainProject]) }
+      respondWith server, "/api/time_entries?include=task&only=" + timeEntry.id, resultsFrom: "time_entries", data: { results: resultsArray("time_entries", [timeEntry]), time_entries: resultsObject([timeEntry]), tasks: resultsObject([timeTask]) }
+
+      loader = base.data.loadModel "task", mainTask.id, include: ["assignees", {"sub_tasks": ["assignees"]}, { "project" : [{ "time_entries": ["task"] }] }]
+      model = loader.getModel()
+
+      server.respond()
+
+      # check main model
+      expect(model.attributes).toEqual(mainTask.attributes)
+
+      # check assignees
+      expect(model.get('assignees').length).toEqual(1)
+      expect(model.get('assignees').first().get('name')).toEqual('Kimbo')
+
+      # check sub_tasks
+      subTasks = model.get('sub_tasks')
+      expect(subTasks.length).toEqual(1)
+
+      # check sub_tasks -> assignees
+      assignees = subTasks.at(0).get('assignees')
+      expect(assignees.length).toEqual(1)
+      expect(assignees.at(0).get('name')).toEqual('Slice')
+
+      # check project
+      project = model.get('project')
+      expect(project.get('title')).toEqual('my project')
+
+      # check project -> time_entries
+      timeEntries = project.get('time_entries')
+      expect(timeEntries.length).toEqual(1)
+
+      timeEntry = timeEntries.at(0)
+      expect(timeEntry.get('time')).toEqual(50)
+
+      # check project -> time_entries -> task
+      expect(timeEntry.get('task').get('title')).toEqual('hello')
+
+    it "uses the cache if it can", ->
+      task = buildAndCacheTask(id: 200)
+      spy = spyOn(Brainstem.AbstractLoader.prototype, '_loadFromServer')
+
+      loader = base.data.loadModel "task", task.id
+      model = loader.getModel()
+      expect(model.attributes).toEqual(task.attributes)
+      expect(spy).not.toHaveBeenCalled()
+
     it "works even when the server returned associations of the same type", ->
       posts = [buildPost(id: 2, reply: true), buildPost(id: 3, reply: true), buildPost(id: 1, reply: false, reply_ids: [2, 3])]
-      respondWith server, "/api/posts?include=replies&only=1", data: { results: [{ key: "posts", id: 1 }], posts: posts }
-      model = base.data.loadModel "post", 1, include: ["replies"]
-      expect(model.loaded).toBe false
+      respondWith server, "/api/posts/1?include=replies", data: { results: [{ key: "posts", id: 1 }], posts: posts }
+      loaded = false
+      loader = base.data.loadModel "post", 1, include: ["replies"]
+      loader.done -> loaded = true
+      model = loader.getModel()
+      expect(loaded).toBe false
       server.respond()
-      expect(model.loaded).toBe true
+      expect(loaded).toBe true
       expect(model.id).toEqual "1"
       expect(model.get("replies").pluck("id")).toEqual ["2", "3"]
 
@@ -97,39 +153,83 @@ describe 'Brainstem Storage Manager', ->
       expect(events).toEqual ["tasks", "time_entries"]
 
     it "triggers changes", ->
-      model = base.data.loadModel "time_entry", 1, include: ["project", "task"]
+      loaded = false
+      loader = base.data.loadModel "time_entry", 1, include: ["project", "task"]
+      loader.done -> loaded = true
+      model = loader.getModel()
       spy = jasmine.createSpy().andCallFake ->
-        expect(model.loaded).toBe true
         expect(model.get("title")).toEqual "a time entry"
         expect(model.get('task').get('title')).toEqual "a task"
         expect(model.get('project').id).toEqual "15"
       model.bind "change", spy
       expect(spy).not.toHaveBeenCalled()
+      expect(loaded).toBe false
       server.respond()
       expect(spy).toHaveBeenCalled()
       expect(spy.callCount).toEqual 1
+      expect(loaded).toBe true
 
     it "accepts a success function", ->
-      spy = jasmine.createSpy().andCallFake (model) ->
-        expect(model.loaded).toBe true
-      model = base.data.loadModel "time_entry", 1, success: spy
+      spy = jasmine.createSpy()
+      base.data.loadModel "time_entry", 1, success: spy
       server.respond()
       expect(spy).toHaveBeenCalled()
 
     it "can disable caching", ->
-      spy = spyOn(base.data, 'loadCollection')
-      model = base.data.loadModel "time_entry", 1, cache: false
-      expect(spy.mostRecentCall.args[1]['cache']).toBe(false)
+      spy = spyOn(Brainstem.ModelLoader.prototype, '_checkCacheForData').andCallThrough()
+      base.data.loadModel "time_entry", 1, cache: false
+      expect(spy).not.toHaveBeenCalled()
 
     it "invokes the error callback when the server responds with a 404", ->
       successSpy = jasmine.createSpy('successSpy')
       errorSpy = jasmine.createSpy('errorSpy')
-      respondWith server, "/api/time_entries?only=1337", data: { results: [] }, status: 404
+      respondWith server, "/api/time_entries/1337", data: { results: [] }, status: 404
       base.data.loadModel "time_entry", 1337, success: successSpy, error: errorSpy
 
       server.respond()
       expect(successSpy).not.toHaveBeenCalled()
       expect(errorSpy).toHaveBeenCalled()
+
+    it "does not resolve until all of the associations are included", ->
+      base.data.enableExpectations()
+
+      project = buildProject()
+      user = buildUser()
+
+      task = buildTask(title: 'foobar', project_id: project.id)
+      task2 = buildTask(project_id: project.id)
+      task3 = buildTask(project_id: project.id, assignee_ids: [user.id])
+
+      project.set('task_ids', [task.id, task2.id, task3.id])
+
+      taskExpectation = base.data.stubModel "task", task.id, include: ['project': [{ 'tasks': ['assignees'] }]], response: (stub) ->
+        stub.result = task
+        stub.associated.project = [project]
+        stub.recursive = true
+
+      projectExpectation = base.data.stub "projects", only: project.id, include: ['tasks': ['assignees']], response: (stub) ->
+        stub.results = [project]
+        stub.associated.tasks = [task, task2, task3]
+        stub.recursive = true
+
+      taskWithAssigneesExpectation = base.data.stub "tasks", only: [task.id, task2.id, task3.id], include: ['assignees'], response: (stub) ->
+        stub.results = [task]
+        stub.associated.users = [user]
+
+      resolvedSpy = jasmine.createSpy('resolved')
+
+      model = buildAndCacheTask(id: task.id)
+      loader = base.data.loadModel "task", model.id, include: ['project': [{ 'tasks': ['assignees'] }]]
+      loader.done(resolvedSpy)
+
+      taskExpectation.respond()
+      expect(resolvedSpy).not.toHaveBeenCalled()
+
+      projectExpectation.respond()
+      expect(resolvedSpy).not.toHaveBeenCalled()
+
+      taskWithAssigneesExpectation.respond()
+      expect(resolvedSpy).toHaveBeenCalled()
 
   describe 'loadCollection', ->
     it "loads a collection of models", ->
@@ -260,8 +360,8 @@ describe 'Brainstem Storage Manager', ->
           taskTwoSub = buildTask(project_id: projectTwo.id, parent_id: 11); taskTwoSubWithAssignees = buildTask(id: taskTwoSub.id, assignee_ids: [taskTwoAssignee.id], parent_id: 11)
           taskOne = buildTask(id: 10, project_id: projectOne.id, assignee_ids: [taskOneAssignee.id], sub_task_ids: [taskOneSub.id])
           taskTwo = buildTask(id: 11, project_id: projectTwo.id, assignee_ids: [taskTwoAssignee.id], sub_task_ids: [taskTwoSub.id])
-          respondWith server, "/api/tasks.json?include=assignees%2Cproject%2Csub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne, taskTwo]), tasks: resultsObject([taskOne, taskTwo, taskOneSub, taskTwoSub]), users: resultsObject([taskOneAssignee, taskTwoAssignee]), projects: resultsObject([projectOne, projectTwo]) }
-          respondWith server, "/api/tasks.json?include=assignees&only=#{taskOneSub.id}%2C#{taskTwoSub.id}", data: { results: resultsArray("tasks", [taskOneSub, taskTwoSub]), tasks: resultsObject([taskOneSubWithAssignees, taskTwoSubWithAssignees]), users: resultsObject([taskOneSubAssignee, taskTwoAssignee]) }
+          respondWith server, "/api/tasks?include=assignees%2Cproject%2Csub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne, taskTwo]), tasks: resultsObject([taskOne, taskTwo, taskOneSub, taskTwoSub]), users: resultsObject([taskOneAssignee, taskTwoAssignee]), projects: resultsObject([projectOne, projectTwo]) }
+          respondWith server, "/api/tasks?include=assignees&only=#{taskOneSub.id}%2C#{taskTwoSub.id}", data: { results: resultsArray("tasks", [taskOneSub, taskTwoSub]), tasks: resultsObject([taskOneSubWithAssignees, taskTwoSubWithAssignees]), users: resultsObject([taskOneSubAssignee, taskTwoAssignee]) }
           respondWith server, "/api/projects?include=time_entries&only=#{projectOne.id}%2C#{projectTwo.id}", data: { results: resultsArray("projects", [projectOne, projectTwo]), projects: resultsObject([projectOneWithTimeEntries, projectTwoWithTimeEntries]), time_entries: resultsObject([projectOneTimeEntry]) }
           respondWith server, "/api/time_entries?include=task&only=#{projectOneTimeEntry.id}", data: { results: resultsArray("time_entries", [projectOneTimeEntry]), time_entries: resultsObject([projectOneTimeEntryWithTask]), tasks: resultsObject([projectOneTimeEntryTask]) }
 
@@ -554,7 +654,7 @@ describe 'Brainstem Storage Manager', ->
 
       beforeEach ->
         item = buildTask()
-        respondWith server, "/api/tasks.json?per_page=20&page=1", resultsFrom: "tasks", data: { tasks: [item] }
+        respondWith server, "/api/tasks?per_page=20&page=1", resultsFrom: "tasks", data: { tasks: [item] }
 
       it "goes to server even if we have matching items in cache", ->
         syncSpy = spyOn(Backbone, 'sync')
@@ -591,13 +691,13 @@ describe 'Brainstem Storage Manager', ->
 
     describe "searching", ->
       it 'turns off caching', ->
-        spy = spyOn(base.data, '_loadCollectionWithFirstLayer')
+        spy = spyOn(Brainstem.AbstractLoader.prototype, '_checkCacheForData').andCallThrough()
         collection = base.data.loadCollection "tasks", search: "the meaning of life"
-        expect(spy.mostRecentCall.args[0]['cache']).toBe(false)
+        expect(spy).not.toHaveBeenCalled()
 
       it "returns the matching items with includes, triggering reset and success", ->
         task = buildTask()
-        respondWith server, "/api/tasks.json?per_page=20&page=1&search=go+go+gadget+search",
+        respondWith server, "/api/tasks?per_page=20&page=1&search=go+go+gadget+search",
                     data: { results: [{key: "tasks", id: task.id}], tasks: [task] }
         spy2 = jasmine.createSpy().andCallFake (collection) ->
           expect(collection.loaded).toBe true
@@ -612,12 +712,12 @@ describe 'Brainstem Storage Manager', ->
         expect(spy2).toHaveBeenCalled()
 
       it 'does not blow up when no results are returned', ->
-        respondWith server, "/api/tasks.json?per_page=20&page=1&search=go+go+gadget+search", data: { results: [], tasks: [] }
+        respondWith server, "/api/tasks?per_page=20&page=1&search=go+go+gadget+search", data: { results: [], tasks: [] }
         collection = base.data.loadCollection "tasks", search: "go go gadget search"
         server.respond()
 
       it 'acts as if no search options were passed if the search string is blank', ->
-        respondWith server, "/api/tasks.json?per_page=20&page=1", data: { results: [], tasks: [] }
+        respondWith server, "/api/tasks?per_page=20&page=1", data: { results: [], tasks: [] }
         collection = base.data.loadCollection "tasks", search: ""
         server.respond()
 
@@ -647,26 +747,6 @@ describe 'Brainstem Storage Manager', ->
       collection = base.data.createNewCollection("tasks", [buildTask(), buildTask()], loaded: true)
       expect(collection.loaded).toBe true
 
-  describe "_wrapObjects", ->
-    it "wraps elements in an array with objects unless they are already objects", ->
-      expect(base.data._wrapObjects([])).toEqual []
-      expect(base.data._wrapObjects(['a', 'b'])).toEqual [{a: []}, {b: []}]
-      expect(base.data._wrapObjects(['a', 'b': []])).toEqual [{a: []}, {b: []}]
-      expect(base.data._wrapObjects(['a', 'b': 'c'])).toEqual [{a: []}, {b: [{c: []}]}]
-      expect(base.data._wrapObjects([{'a':[], b: 'c', d: 'e' }])).toEqual [{a: []}, {b: [{c: []}]}, {d: [{e: []}]}]
-      expect(base.data._wrapObjects(['a', { b: 'c', d: 'e' }])).toEqual [{a: []}, {b: [{c: []}]}, {d: [{e: []}]}]
-      expect(base.data._wrapObjects([{'a': []}, {'b': ['c', d: []]}])).toEqual [{a: []}, {b: [{c: []}, {d: []}]}]
-
-  describe "_countRequiredServerRequests", ->
-    it "should count the number of loads needed to get the date", ->
-      expect(base.data._countRequiredServerRequests(['a'])).toEqual 1
-      expect(base.data._countRequiredServerRequests(['a', 'b', 'c': []])).toEqual 1
-      expect(base.data._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e']])).toEqual 3
-      expect(base.data._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': []]])).toEqual 3
-      expect(base.data._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': ['f']]])).toEqual 4
-      expect(base.data._countRequiredServerRequests([{'a': ['d']}, 'b', 'c': ['e': ['f', 'g': ['h']]]])).toEqual 5
-      expect(base.data._countRequiredServerRequests([{'a': ['d': ['h']]}, { 'b':['g'] }, 'c': ['e': ['f', 'i']]])).toEqual 6
-
   describe "error handling", ->
     describe "setting a storage manager default error handler", ->
       it "allows an error interceptor to be set on construction", ->
@@ -695,8 +775,8 @@ describe 'Brainstem Storage Manager', ->
         successHandler = jasmine.createSpy('successHandler')
         taskOne = buildTask(id: 10, sub_task_ids: [12])
         taskOneSub = buildTask(id: 12, parent_id: 10, sub_task_ids: [13], project_id: taskOne.get('workspace_id'))
-        respondWith server, "/api/tasks.json?include=sub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne]), tasks: resultsObject([taskOne, taskOneSub]) }
-        server.respondWith "GET", "/api/tasks.json?include=sub_tasks&only=12", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
+        respondWith server, "/api/tasks?include=sub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne]), tasks: resultsObject([taskOne, taskOneSub]) }
+        server.respondWith "GET", "/api/tasks?include=sub_tasks&only=12", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
         base.data.loadCollection("tasks", filters: { parents_only: "true" }, include: [ "sub_tasks": ["sub_tasks"] ], success: successHandler, error: errorHandler)
 
         expect(successHandler).not.toHaveBeenCalled()

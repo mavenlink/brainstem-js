@@ -22,55 +22,44 @@ class window.Brainstem.StorageManager
 
   # Access the cache for a particular collection.
   #    manager.storage("time_entries").get(12).get("title")
-  storage: (name) =>
+  storage: (name) ->
     @getCollectionDetails(name).storage
 
-  dataUsage: =>
+  dataUsage: ->
     sum = 0
     for dataType in @collectionNames()
       sum += @storage(dataType).length
     sum
 
-  reset: =>
+  reset: ->
     for name, attributes of @collections
       attributes.storage.reset []
       attributes.cache = {}
 
   # Access details of a collection.  An error will be thrown if the collection cannot be found.
-  getCollectionDetails: (name) =>
+  getCollectionDetails: (name) ->
     @collections[name] || @collectionError(name)
 
-  collectionNames: =>
+  collectionNames: ->
     _.keys(@collections)
 
-  collectionExists: (name) =>
+  collectionExists: (name) ->
     !!@collections[name]
 
-  setErrorInterceptor: (interceptor) =>
+  setErrorInterceptor: (interceptor) ->
     @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(jqXHR)
 
-  # Request a model to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
-  # when the load, and any dependent loads, are complete.
-  #     model = manager.loadModel "time_entry"
-  #     model = manager.loadModel "time_entry", fields: ["title", "notes"]
-  #     model = manager.loadModel "time_entry", include: ["project", "task"]
-  loadModel: (name, id, options) =>
-    options = _.clone(options || {})
-    oldSuccess = options.success
-    collectionName = name.pluralize()
-    
-    model = options.model || new (@getCollectionDetails(collectionName).modelKlass)(id: id)
-    model.setLoaded false, trigger: false
+  # Request a model to be loaded, optionally ensuring that associations be included as well.  A loader (which is a jQuery promise) is returned immediately and is resolved
+  # with the model from the StorageManager when the load, and any dependent loads, are complete.
+  #     loader = manager.loadModel "time_entry", 2
+  #     loader = manager.loadModel "time_entry", 2, fields: ["title", "notes"]
+  #     loader = manager.loadModel "time_entry", 2, include: ["project", "task"]
+  #     manager.loadModel("time_entry", 2, include: ["project", "task"]).done (model) -> console.log model
+  loadModel: (name, id, options = {}) ->
+    return if not id
 
-    @loadCollection collectionName, _.extend options,
-      only: id
-      model: model
-      success: (collection) ->
-        model.setLoaded true, trigger: false
-        model.set collection.get(id).attributes
-        model.setLoaded true
-        oldSuccess(model) if oldSuccess
-    model
+    loader = @loadObject(name, $.extend({}, options, only: id), isCollection: false)
+    loader
 
   # Request a set of data to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
   # when the load, and any dependent loads, are complete.
@@ -81,152 +70,76 @@ class window.Brainstem.StorageManager
   #     collection = manager.loadCollection "time_entries", include: ["project:title,description", "task:due_date"]
   #     collection = manager.loadCollection "tasks",      include: ["assets", { "assignees": "account" }, { "sub_tasks": ["assignees", "assets"] }]
   #     collection = manager.loadCollection "time_entries", filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
-  loadCollection: (name, options) =>
-    options = $.extend({}, options, name: name)
-    @_checkPageSettings options
-    include = @_wrapObjects(Brainstem.Utils.extractArray "include", options)
-    if options.search
-      options.cache = false
+  loadCollection: (name, options = {}) ->
+    loader = @loadObject(name, options)
+    loader.externalObject
 
-    collection = options.collection || @createNewCollection name, []
-    collection.setLoaded false
-    collection.reset([], silent: false) if options.reset
-    collection.lastFetchOptions = _.pick($.extend(true, {}, options), 'name', 'filters', 'include', 'page', 'perPage', 'limit', 'offset', 'order', 'search')
+  collectionError: (name) ->
+    Brainstem.Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")
+
+  createNewCollection: (collectionName, models = [], options = {}) ->
+    loaded = options.loaded
+    delete options.loaded
+    collection = new (@getCollectionDetails(collectionName).klass)(models, options)
+    collection.setLoaded(true, trigger: false) if loaded
+    collection
+
+  createNewModel: (modelName, options) ->
+    new (@getCollectionDetails(modelName.pluralize()).modelKlass)(options || {})
+
+  # Expectations and stubbing
+
+  stub: (collectionName, options = {}) ->
+    if @expectations?
+      expectation = new Brainstem.Expectation(collectionName, options, @)
+      @expectations.push expectation
+      expectation
+    else
+      throw "You must call #enableExpectations on your instance of Brainstem.StorageManager before you can set expectations."
+
+  stubModel: (modelName, modelId, options = {}) ->
+    @stub(modelName, $.extend({}, options, only: modelId))
+
+  stubImmediate: (collectionName, options) ->
+    @stub collectionName, $.extend({}, options, immediate: true)
+
+  enableExpectations: ->
+    @expectations = []
+
+  handleExpectations: (loader) ->
+    for expectation in @expectations
+      if expectation.loaderOptionsMatch(loader)
+        expectation.recordRequest(loader)
+        return
+    throw "No expectation matched #{name} with #{JSON.stringify loader.originalOptions}"
+
+  # Helpers
+  loadObject: (name, loadOptions, options = {}) ->
+    options = $.extend({}, { isCollection: true }, options)
+
+    successCallback = loadOptions.success
+    loadOptions = _.omit(loadOptions, 'success')
+    loadOptions = $.extend({}, loadOptions, name: name)
+
+    if options.isCollection
+      loaderClass = Brainstem.CollectionLoader
+    else
+      loaderClass = Brainstem.ModelLoader
+
+    @_checkPageSettings loadOptions
+
+    loader = new loaderClass(storageManager: this)
+    loader.setup(loadOptions)
+    loader.done(successCallback) if successCallback? && _.isFunction(successCallback)
 
     if @expectations?
-      @handleExpectations name, collection, options
+      @handleExpectations(loader)
     else
-      @_loadCollectionWithFirstLayer($.extend({}, options, include: include, success: ((firstLayerCollection) =>
-        expectedAdditionalLoads = @_countRequiredServerRequests(include) - 1
-        if expectedAdditionalLoads > 0
-          timesCalled = 0
-          @_handleNextLayer collection: firstLayerCollection, include: include, error: options.error, success: =>
-            timesCalled += 1
-            if timesCalled == expectedAdditionalLoads
-              @_success(options, collection, firstLayerCollection)
-        else
-          @_success(options, collection, firstLayerCollection)
-      )))
+      loader.load()
 
-    collection
-
-  _handleNextLayer: (options) =>
-    # Collection is a fully populated collection of tasks whose first layer of associations are loaded.
-    # include is a hierarchical list of associations on those tasks:
-    #   [{ 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }, { 'project': [] }]
-
-    _(options.include).each (hash) => # { 'time_entries': ['project': [], 'task': [{ 'assignees': []}]] }
-      association = _.keys(hash)[0] # time_entries
-      nextLevelInclude = hash[association] # ['project': [], 'task': [{ 'assignees': []}]]
-      if nextLevelInclude.length
-        association_ids = _(options.collection.models).chain().
-        map((m) -> if (a = m.get(association)) instanceof Backbone.Collection then a.models else a).
-        flatten().uniq().compact().pluck("id").sort().value()
-        newCollectionName = options.collection.model.associationDetails(association).collectionName
-        @_loadCollectionWithFirstLayer name: newCollectionName, only: association_ids, include: nextLevelInclude, error: options.error, success: (loadedAssociationCollection) =>
-          @_handleNextLayer(collection: loadedAssociationCollection, include: nextLevelInclude, error: options.error, success: options.success)
-          options.success()
-
-  _loadCollectionWithFirstLayer: (options) =>
-    options = $.extend({}, options)
-    name = options.name
-    only = if options.only then _.map((Brainstem.Utils.extractArray "only", options), (id) -> String(id)) else null
-    search = options.search
-    include = _(options.include).map((i) -> _.keys(i)[0]) # pull off the top layer of includes
-    filters = options.filters || {}
-    order = options.order || "updated_at:desc"
-    filterKeys = _.map(filters, (v, k) -> "#{k}:#{v}").join(',')
-    cacheKey = [order, filterKeys, options.page, options.perPage, options.limit, options.offset].join('|')
-
-    cachedCollection = @storage name
-    collection = @createNewCollection name, []
-
-    unless options.cache == false
-      if only?
-        alreadyLoadedIds = _.select only, (id) => cachedCollection.get(id)?.associationsAreLoaded(include)
-        if alreadyLoadedIds.length == only.length
-          # We've already seen every id that is being asked for and have all the associated data.
-          @_success options, collection, _.map only, (id) => cachedCollection.get(id)
-          return collection
-      else
-        # Check if we have, at some point, requested enough records with this this order and filter(s).
-        if @getCollectionDetails(name).cache[cacheKey]
-          subset = _(@getCollectionDetails(name).cache[cacheKey]).map (result) -> base.data.storage(result.key).get(result.id)
-          if (_.all(subset, (model) => model.associationsAreLoaded(include)))
-            @_success options, collection, subset
-            return collection
-
-    # If we haven't returned yet, we need to go to the server to load some missing data.
-    syncOptions =
-      data: {}
-      parse: true
-      error: options.error
-      success: (resp, status, xhr) =>
-        # The server response should look something like this:
-        #  {
-        #    count: 200,
-        #    results: [{ key: "tasks", id: 10 }, { key: "tasks", id: 11 }],
-        #    time_entries: [{ id: 2, title: "te1", project_id: 6, task_id: [10, 11] }]
-        #    projects: [{id: 6, title: "some project", time_entry_ids: [2] }]
-        #    tasks: [{id: 10, title: "some task" }, {id: 11, title: "some other task" }]
-        #  }
-        # Loop over all returned data types and update our local storage to represent any new data.
-
-        results = resp['results']
-        keys = _.reject(_.keys(resp), (key) -> key == 'count' || key == 'results')
-        unless _.isEmpty(results)
-          keys.splice(keys.indexOf(name), 1) if keys.indexOf(name) != -1
-          keys.push(name)
-
-        for underscoredModelName in keys
-          @storage(underscoredModelName).update _(resp[underscoredModelName]).values()
-
-        unless options.cache == false || only?
-          @getCollectionDetails(name).cache[cacheKey] = results
-
-        if only?
-          @_success options, collection, _.map(only, (id) -> cachedCollection.get(id))
-        else
-          @_success options, collection, _(results).map (result) -> base.data.storage(result.key).get(result.id)
-
-
-    syncOptions.data.include = include.join(",") if include.length
-    syncOptions.data.only = _.difference(only, alreadyLoadedIds).join(",") if only?
-    syncOptions.data.order = options.order if options.order?
-    _.extend(syncOptions.data, _(filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(filters).keys().length
-
-    unless only?
-      if options.limit? && options.offset?
-        syncOptions.data.limit = options.limit
-        syncOptions.data.offset = options.offset
-      else
-        syncOptions.data.per_page = options.perPage
-        syncOptions.data.page = options.page
-
-    syncOptions.data.search = search if search
-
-    modelOrCollection = collection
-    modelOrCollection = options.model if options.only && options.model
+    loader
     
-    jqXhr = Backbone.sync.call collection, 'read', modelOrCollection, syncOptions
-
-    if options.returnValues
-      options.returnValues.jqXhr = jqXhr
-
-    collection
-
-  _success: (options, collection, data) =>
-    if data
-      data = data.models if data.models?
-      collection.setLoaded true, trigger: false
-      if collection.length
-        collection.add data
-      else
-        collection.reset data
-    collection.setLoaded true
-    options.success(collection) if options.success?
-
-  _checkPageSettings: (options) =>
+  _checkPageSettings: (options) ->
     if options.limit? && options.limit != '' && options.offset? && options.offset != ''
       options.perPage = options.page = undefined
     else
@@ -234,7 +147,7 @@ class window.Brainstem.StorageManager
 
     @_setDefaultPageSettings(options)
 
-  _setDefaultPageSettings: (options) =>
+  _setDefaultPageSettings: (options) ->
     if options.limit? && options.offset?
       options.limit = 1 if options.limit < 1
       options.offset = 0 if options.offset < 0
@@ -243,63 +156,3 @@ class window.Brainstem.StorageManager
       options.perPage = 1 if options.perPage < 1
       options.page = options.page || 1
       options.page = 1 if options.page < 1
-
-  collectionError: (name) =>
-    Brainstem.Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")
-
-  createNewCollection: (collectionName, models = [], options = {}) =>
-    loaded = options.loaded
-    delete options.loaded
-    collection = new (@getCollectionDetails(collectionName).klass)(models, options)
-    collection.setLoaded(true, trigger: false) if loaded
-    collection
-
-  createNewModel: (modelName, options) =>
-    new (@getCollectionDetails(modelName.pluralize()).modelKlass)(options || {})
-
-  _wrapObjects: (array) =>
-    output = []
-    _(array).each (elem) =>
-      if elem.constructor == Object
-        for key, value of elem
-          o = {}
-          o[key] = @_wrapObjects(if value instanceof Array then value else [value])
-          output.push o
-      else
-        o = {}
-        o[elem] = []
-        output.push o
-    output
-
-  _countRequiredServerRequests: (array, wrapped = false) =>
-    if array?.length
-      array = @_wrapObjects(array) unless wrapped
-      sum = 1
-      _(array).each (elem) =>
-        sum += @_countRequiredServerRequests(_(elem).values()[0], true)
-      sum
-    else
-      0
-
-  # Expectations and stubbing
-
-  stub: (collectionName, options) =>
-    if @expectations?
-      expectation = new Brainstem.Expectation(collectionName, options, @)
-      @expectations.push expectation
-      expectation
-    else
-      throw "You must call #enableExpectations on your instance of Brainstem.StorageManager before you can set expectations."
-
-  stubImmediate: (collectionName, options) =>
-    @stub collectionName, $.extend({}, options, immediate: true)
-
-  enableExpectations: =>
-    @expectations = []
-
-  handleExpectations: (name, collection, options) =>
-    for expectation in @expectations
-      if expectation.optionsMatch(name, options)
-        expectation.recordRequest(collection, options)
-        return
-    throw "No expectation matched #{name} with #{JSON.stringify options}"

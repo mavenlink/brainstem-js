@@ -18,7 +18,7 @@ class window.Brainstem.Collection extends Backbone.Collection
       else
         Brainstem.Utils.warn "Unable to update collection with invalid model", model
 
-  loadNextPage: (options) =>
+  loadNextPage: (options) ->
     oldLength = @length
     pageSize = 0
     paginationOptions = {}
@@ -34,16 +34,16 @@ class window.Brainstem.Collection extends Backbone.Collection
       options.success(collection, collection.length == oldLength + pageSize) if options.success?
     base.data.loadCollection @lastFetchOptions.name, _.extend({}, @lastFetchOptions, options, paginationOptions, collection: this, success: success)
 
-  reload: (options) =>
+  reload: (options) ->
     base.data.reset()
     @reset [], silent: true
     @setLoaded false
     base.data.loadCollection @lastFetchOptions.name, _.extend({}, @lastFetchOptions, options, page: 1, collection: this)
 
-  getWithAssocation: (id) =>
+  getWithAssocation: (id) ->
     @get(id)
 
-  toServerJSON: (method) =>
+  toServerJSON: (method) ->
     @toJSON()
 
   @getComparatorWithIdFailover: (order) ->

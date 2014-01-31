@@ -1,13 +1,13 @@
 window.Brainstem ?= {}
 
 class window.Brainstem.Expectation
-  constructor: (collectionName, options, manager) ->
-    @collectionName = collectionName
+  constructor: (name, options, manager) ->
+    @name = name
     @manager = manager
     @manager._setDefaultPageSettings options
     @options = options
-    @results = []
     @matches = []
+    @recursive = false
     @triggerError = options.triggerError
     @immediate = options.immediate
     delete options.immediate
@@ -16,50 +16,100 @@ class window.Brainstem.Expectation
     @requestQueue = []
     @options.response(@) if @options.response?
 
-  remove: =>
+  remove: ->
     @disabled = true
 
-  recordRequest: (collection, callOptions) =>
+  recordRequest: (loader) ->
     if @immediate
-      @handleRequest collection: collection, callOptions: callOptions
+      @handleRequest(loader)
     else
-      @requestQueue.push collection: collection, callOptions: callOptions
+      @requestQueue.push(loader)
 
-  respond: =>
+  respond: ->
     for request in @requestQueue
       @handleRequest request
     @requestQueue = []
 
-  handleRequest: (options) =>
-    @matches.push options.callOptions
+  handleRequest: (loader) ->
+    @matches.push loader.originalOptions
+
+    unless @recursive
+      # we don't need to fetch additional things from the server in an expectation.
+      loader.loadOptions.include = []
 
     if @triggerError?
-      return @manager.errorInterceptor(options.callOptions.error, options.collection, options.callOptions, @triggerError)
+      return @manager.errorInterceptor(loader.originalOptions.error, loader.externalObject, loader.originalOptions, @triggerError)
 
+    @_handleAssociations(loader)
+
+    if loader instanceof Brainstem.CollectionLoader
+      returnedData = @_handleCollectionResults(loader)
+    else
+      returnedData = @_handleModelResults(loader)
+
+    loader._onLoadSuccess(returnedData)
+
+  loaderOptionsMatch: (loader) ->
+    return false if @disabled
+    return false if @name != loader._getExpectationName()
+
+    @manager._checkPageSettings(loader.originalOptions)
+
+    _.all ['include', 'only', 'order', 'filters', 'perPage', 'page', 'limit', 'offset', 'search'], (optionType) =>
+      return true if @options[optionType] == '*'
+
+      option = _.compact(_.flatten([loader.originalOptions[optionType]]))
+      expectedOption = _.compact(_.flatten([@options[optionType]]))
+
+      if optionType == 'include'
+        option = Brainstem.Utils.wrapObjects(option)
+        expectedOption = Brainstem.Utils.wrapObjects(expectedOption)
+
+      Brainstem.Utils.matches(option, expectedOption)
+
+  _handleAssociations: (_loader) ->
     for key, values of @associated
       values = [values] unless values instanceof Array
       for value in values
         @manager.storage(value.brainstemKey).update [value]
 
+  _handleCollectionResults: (loader) ->
+    return if not @results
+
     for result in @results
       if result instanceof Brainstem.Model
         @manager.storage(result.brainstemKey).update [result]
 
-    returnedModels = _(@results).map (result) =>
+    returnedModels = _.map @results, (result) =>
       if result instanceof Brainstem.Model
         @manager.storage(result.brainstemKey).get(result.id)
       else
         @manager.storage(result.key).get(result.id)
 
-    @manager._success(options.callOptions, options.collection, returnedModels)
+    returnedModels
 
-  optionsMatch: (name, options) =>
-    @manager._checkPageSettings options
-    if !@disabled && @collectionName == name
-      _(['include', 'only', 'order', 'filters', 'perPage', 'page', 'limit', 'offset', 'search']).all (optionType) =>
-        @options[optionType] == "*" || Brainstem.Utils.matches(_.compact(_.flatten([options[optionType]])), _.compact(_.flatten([@options[optionType]])))
+  _handleModelResults: (loader) ->
+    return if !@result
+
+    # Put main (loader) model in storage manager.
+    if @result instanceof Brainstem.Model
+      key = @result.brainstemKey
+      attributes = @result.attributes
     else
-      false
+      key = @result.key
+      attributes = _.omit @result, 'key'
+
+    if !key
+      throw 'Brainstem key is required on the result (brainstemKey on model or key in JSON)'
+
+    existingModel = @manager.storage(key).get(attributes.id)
+
+    unless existingModel
+      existingModel = loader.getModel()
+      @manager.storage(key).add(existingModel)
+
+    existingModel.set(attributes)
+    existingModel
 
   lastMatch: ->
     @matches[@matches.length - 1]

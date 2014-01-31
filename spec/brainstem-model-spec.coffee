@@ -28,6 +28,51 @@ describe 'Brainstem.Model', ->
       expect(base.data.storage('users').get(5).attributes).toEqual(response.users[5])
       expect(base.data.storage('users').get(6).attributes).toEqual(response.users[6])
 
+    describe 'adding new models to the storage manager', ->
+      context 'there is an ID on the model already', ->
+        # usually happens when fetching an existing model and not using StorageManager#loadModel
+        # new App.Models.Task(id: 5).fetch()
+
+        beforeEach ->
+          model.set('id', 1)
+
+        context 'model ID matches response ID', ->
+          it 'should add the parsing model to the storage manager', ->
+            response.tasks[1].id = 1
+            expect(base.data.storage('tasks').get(1)).toBeUndefined()
+
+            model.parse(response)
+            expect(base.data.storage('tasks').get(1)).not.toBeUndefined()
+            expect(base.data.storage('tasks').get(1)).toEqual model
+            expect(base.data.storage('tasks').get(1).attributes).toEqual response.tasks[1]
+
+        context 'model ID does not match response ID', ->
+          # this only happens when an association has the same brainstemKey as the parent record
+          # we want to add a new model to the storage manager and not worry about ourself
+
+          it 'should not add the parsing model to the storage manager', ->
+            response.tasks[1].id = 2345
+            expect(base.data.storage('tasks').get(1)).toBeUndefined()
+
+            model.parse(response)
+            expect(base.data.storage('tasks').get(1)).toBeUndefined()
+            expect(base.data.storage('tasks').get(2345)).not.toEqual model
+
+      context 'there is not an ID on the model instance already', ->
+        # usually happens when creating a new model:
+        # new App.Models.Task(title: 'test').save()
+
+        beforeEach ->
+          expect(model.id).toBeUndefined()
+
+        it 'should add the parsing model to the storage manager', ->
+          response.tasks[1].title = 'Hello'
+          expect(base.data.storage('tasks').get(1)).toBeUndefined()
+
+          model.parse(response)
+          expect(base.data.storage('tasks').get(1)).toEqual(model)
+          expect(base.data.storage('tasks').get(1).get('title')).toEqual('Hello')
+
     it 'should work with an empty response', ->
       expect( -> model.parse(tasks: {}, results: [], count: 0)).not.toThrow()
 
@@ -73,33 +118,6 @@ describe 'Brainstem.Model', ->
         expect(parsed.created_at).toEqual(1359141957000)
         expect(base.data.storage('users').get(5).get('created_at')).toEqual(1361820357000)
         expect(base.data.storage('users').get(6).get('created_at')).toEqual(1359573957000)
-
-  describe 'setLoaded', ->
-    it "should set the values of @loaded", ->
-      model.setLoaded true
-      expect(model.loaded).toEqual(true)
-      model.setLoaded false
-      expect(model.loaded).toEqual(false)
-
-    it "triggers 'loaded' when becoming true", ->
-      spy = jasmine.createSpy()
-      model.bind "loaded", spy
-      model.setLoaded false
-      expect(spy).not.toHaveBeenCalled()
-      model.setLoaded true
-      expect(spy).toHaveBeenCalled()
-
-    it "doesn't trigger loaded if trigger: false is provided", ->
-      spy = jasmine.createSpy()
-      model.bind "loaded", spy
-      model.setLoaded true, trigger: false
-      expect(spy).not.toHaveBeenCalled()
-
-    it "returns self", ->
-      spy = jasmine.createSpy()
-      model.bind "loaded", spy
-      model.setLoaded true
-      expect(spy).toHaveBeenCalledWith(model)
 
   describe 'associations', ->
     describe 'associationDetails', ->
@@ -180,6 +198,28 @@ describe 'Brainstem.Model', ->
           project = new App.Models.Project(id: 5, time_entry_ids: [])
           expect(project.associationsAreLoaded(["time_entries"])).toBeTruthy()
           expect(project.associationsAreLoaded(["tasks"])).toBeFalsy()
+
+      describe "when supplying associations that do not exist", ->
+        class TestClass extends Brainstem.Model
+          @associations:
+            user: "users"
+
+        testClass = null
+
+        beforeEach ->
+          testClass = new TestClass()
+
+        it "returns true when supplying only an association that does not exist", ->
+          expect(testClass.associationsAreLoaded(['foobar'])).toBe true
+          expect(testClass.associationsAreLoaded(['user'])).toBe false
+
+        it "returns false when supplying both a real association that is not loaded and an association that does not exist", ->
+          expect(testClass.associationsAreLoaded(['user', 'foobar'])).toBe false
+
+        it "returns true when supplying a real association that is loaded and an association that does not exist", ->
+          testClass.set('user_id', buildAndCacheUser().id)
+          expect(testClass.associationsAreLoaded(['user'])).toBe true
+          expect(testClass.associationsAreLoaded(['user', 'foobar'])).toBe true
 
     describe "get", ->
       it "should delegate to Backbone.Model#get for anything that is not an association", ->
