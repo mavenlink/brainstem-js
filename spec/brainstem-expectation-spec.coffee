@@ -13,7 +13,7 @@ describe 'Brainstem Expectations', ->
     it "should update returned collections", ->
       expectation = manager.stub "projects", response: (stub) ->
         stub.results = [project1, project2]
-      collection = manager.loadCollection "projects"
+      collection = manager.loadCollection("projects").getCollection()
       expect(collection.length).toEqual 0
       expectation.respond()
       expect(collection.length).toEqual 2
@@ -46,7 +46,7 @@ describe 'Brainstem Expectations', ->
       expectation = manager.stub "projects", response: (stub) ->
         stub.results = [{ key: "projects", id: 2 }, { key: "projects", id: 1 }]
         stub.associated.projects = [project1, project2]
-      collection = manager.loadCollection "projects"
+      collection = manager.loadCollection("projects").getCollection()
       expectation.respond()
       expect(collection.length).toEqual 2
       expect(collection.models[0]).toEqual project2
@@ -126,7 +126,7 @@ describe 'Brainstem Expectations', ->
       expectation = manager.stubImmediate "projects", include: ["tasks"], response: (stub) ->
         stub.results = [project1, project2]
         stub.associated.tasks = [task1]
-      collection = manager.loadCollection "projects", include: ["tasks"]
+      collection = manager.loadCollection("projects", include: ["tasks"]).getCollection()
       expect(collection.get(1).get("tasks").models).toEqual [task1]
 
   describe "multiple stubs", ->
@@ -137,9 +137,9 @@ describe 'Brainstem Expectations', ->
         stub.results = [project1, project2]
       manager.stubImmediate "projects", only: [2], response: (stub) ->
         stub.results = [project2]
-      expect(manager.loadCollection("projects", only: 1).models).toEqual [project1]
-      expect(manager.loadCollection("projects").models).toEqual [project1, project2]
-      expect(manager.loadCollection("projects", only: 2).models).toEqual [project2]
+      expect(manager.loadCollection("projects", only: 1).getCollection().models).toEqual [project1]
+      expect(manager.loadCollection("projects").getCollection().models).toEqual [project1, project2]
+      expect(manager.loadCollection("projects", only: 2).getCollection().models).toEqual [project2]
 
     it "should fail if it cannot find a specific match", ->
       manager.stubImmediate "projects", response: (stub) ->
@@ -147,25 +147,25 @@ describe 'Brainstem Expectations', ->
       manager.stubImmediate "projects", include: ["tasks"], filters: { something: "else" }, response: (stub) ->
         stub.results = [project1, project2]
         stub.associated.tasks = [task1]
-      expect(manager.loadCollection("projects", include: ["tasks"], filters: { something: "else" }).models).toEqual [project1, project2]
+      expect(manager.loadCollection("projects", include: ["tasks"], filters: { something: "else" }).getCollection().models).toEqual [project1, project2]
       expect(-> manager.loadCollection("projects", include: ["tasks"], filters: { something: "wrong" })).toThrow()
       expect(-> manager.loadCollection("projects", include: ["users"], filters: { something: "else" })).toThrow()
       expect(-> manager.loadCollection("projects", filters: { something: "else" })).toThrow()
       expect(-> manager.loadCollection("projects", include: ["users"])).toThrow()
-      expect(manager.loadCollection("projects").models).toEqual [project1]
+      expect(manager.loadCollection("projects").getCollection().models).toEqual [project1]
 
     it "should ignore empty arrays", ->
       manager.stubImmediate "projects", response: (stub) ->
         stub.results = [project1, project2]
-      expect(manager.loadCollection("projects", include: []).models).toEqual [project1, project2]
+      expect(manager.loadCollection("projects", include: []).getCollection().models).toEqual [project1, project2]
 
     it "should allow wildcard params", ->
       manager.stubImmediate "projects", include: '*', response: (stub) ->
         stub.results = [project1, project2]
         stub.associated.tasks = [task1]
-      expect(manager.loadCollection("projects", include: ["tasks"]).models).toEqual [project1, project2]
-      expect(manager.loadCollection("projects", include: ["users"]).models).toEqual [project1, project2]
-      expect(manager.loadCollection("projects").models).toEqual [project1, project2]
+      expect(manager.loadCollection("projects", include: ["tasks"]).getCollection().models).toEqual [project1, project2]
+      expect(manager.loadCollection("projects", include: ["users"]).getCollection().models).toEqual [project1, project2]
+      expect(manager.loadCollection("projects").getCollection().models).toEqual [project1, project2]
 
   describe "recording", ->
     it "should record options", ->
@@ -180,11 +180,11 @@ describe 'Brainstem Expectations', ->
         stub.results = [project1, project2]
         stub.associated.tasks = [task1]
 
-      collection = manager.loadCollection "projects", include: ["tasks"]
+      collection = manager.loadCollection("projects", include: ["tasks"]).getCollection()
       expectation.respond()
       expect(collection.get(1).get("tasks").models).toEqual [task1]
 
-      collection2 = manager.loadCollection "projects", include: ["tasks"]
+      collection2 = manager.loadCollection("projects", include: ["tasks"]).getCollection()
       expect(collection2.get(1)).toBeFalsy()
       expectation.respond()
       expect(collection2.get(1).get("tasks").models).toEqual [task1]

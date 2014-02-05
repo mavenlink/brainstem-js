@@ -61,8 +61,8 @@ class window.Brainstem.StorageManager
     loader = @loadObject(name, $.extend({}, options, only: id), isCollection: false)
     loader
 
-  # Request a set of data to be loaded, optionally ensuring that associations be included as well.  A collection is returned immediately and is reset
-  # when the load, and any dependent loads, are complete.
+  # Request a set of data to be loaded, optionally ensuring that associations be included as well.  A loader (which is a jQuery promise) is returned immediately and is resolved
+  # with a collection containing the results when the load, and any dependent loads, are complete.
   #     collection = manager.loadCollection "time_entries"
   #     collection = manager.loadCollection "time_entries", only: [2, 6]
   #     collection = manager.loadCollection "time_entries", fields: ["title", "notes"]
@@ -72,7 +72,7 @@ class window.Brainstem.StorageManager
   #     collection = manager.loadCollection "time_entries", filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
   loadCollection: (name, options = {}) ->
     loader = @loadObject(name, options)
-    loader.externalObject
+    loader
 
   collectionError: (name) ->
     Brainstem.Utils.throwError("Unknown collection #{name} in StorageManager.  Known collections: #{_(@collections).keys().join(", ")}")
