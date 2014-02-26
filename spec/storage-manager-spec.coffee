@@ -43,6 +43,9 @@ describe 'Brainstem Storage Manager', ->
       respondWith server, "/api/time_entries/1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
       respondWith server, "/api/time_entries/1?include=project%2Ctask", resultsFrom: "time_entries", data: { time_entries: timeEntries, tasks: tasks, projects: projects }
 
+    it 'returns an instance of a ModelLoader', ->
+      expect(base.data.loadModel("time_entry", 1) instanceof Brainstem.ModelLoader).toEqual true
+
     it "creates a new model with the supplied id", ->
       loader = base.data.loadModel "time_entry", "333"
       expect(loader.getModel().id).toEqual "333"
@@ -232,6 +235,9 @@ describe 'Brainstem Storage Manager', ->
       expect(resolvedSpy).toHaveBeenCalled()
 
   describe 'loadCollection', ->
+    it 'returns an instance of a CollectionLoader', ->
+      expect(base.data.loadCollection("time_entries") instanceof Brainstem.CollectionLoader).toEqual true
+
     it "loads a collection of models", ->
       timeEntries = [buildTimeEntry(), buildTimeEntry()]
       respondWith server, "/api/time_entries?per_page=20&page=1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
