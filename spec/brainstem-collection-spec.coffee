@@ -32,7 +32,8 @@ describe 'Brainstem.Collection', ->
       respondWith server, "/api/time_entries?per_page=2&page=1", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
       respondWith server, "/api/time_entries?per_page=2&page=2", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
       respondWith server, "/api/time_entries?per_page=2&page=3", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry()] }
-      collection = base.data.loadCollection "time_entries", perPage: 2
+
+      collection = base.data.loadCollection("time_entries", perPage: 2).getCollection()
       expect(collection.length).toEqual 0
       server.respond()
       expect(collection.length).toEqual 2
@@ -57,7 +58,7 @@ describe 'Brainstem.Collection', ->
       respondWith server, "/api/time_entries?limit=2&offset=0", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
       respondWith server, "/api/time_entries?limit=2&offset=2", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
       respondWith server, "/api/time_entries?limit=2&offset=4", resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry()] }
-      collection = base.data.loadCollection "time_entries", limit: 2, offset: 0
+      collection = base.data.loadCollection("time_entries", limit: 2, offset: 0).getCollection()
       expect(collection.length).toEqual 0
       server.respond()
       expect(collection.length).toEqual 2
@@ -81,7 +82,7 @@ describe 'Brainstem.Collection', ->
   describe "reload", ->
     it "reloads the collection with the original params", ->
       respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "old post", reply_ids: [])] }
-      collection = base.data.loadCollection "posts", include: ["replies"], filters: { parents_only: "true" }, perPage: 5
+      collection = base.data.loadCollection("posts", include: ["replies"], filters: { parents_only: "true" }, perPage: 5).getCollection()
       server.respond()
       expect(collection.lastFetchOptions.page).toEqual 1
       expect(collection.lastFetchOptions.perPage).toEqual 5
