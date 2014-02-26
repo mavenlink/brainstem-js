@@ -606,7 +606,7 @@ describe 'Brainstem Storage Manager', ->
           expect(collection2.get(3).get('project').id).toEqual "11"
           expect(collection2.length).toEqual 2
 
-        it "returns an empty collection when passed in an empty array", ->
+        it "resolves with an empty collection when passed in an empty array", ->
           timeEntries = [buildTimeEntry(task_id: 2, project_id: 15, id: 1), buildTimeEntry(project_id: 10, id: 2)]
           respondWith server, "/api/time_entries?per_page=20&page=1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
           collection = base.data.loadCollection("time_entries", only: []).getCollection()
