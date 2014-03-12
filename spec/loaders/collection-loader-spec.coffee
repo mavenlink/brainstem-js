@@ -98,11 +98,10 @@ describe 'Loaders CollectionLoader', ->
     describe '#_updateStorageManagerFromResponse', ->
       # TODO: everything that is not tested here is tested right now through integration tests for StorageManager.
 
-      it 'caches the count from the response in the cacheObject', ->
-        loader.setup(opts)
-        expect(loader.getCacheObject()).toBeUndefined()
+      fakeResponse = null
 
-        resp =
+      beforeEach ->
+        fakeResponse = 
           count: 5
           results: [
             { key: "tasks", id: 1 }
@@ -112,12 +111,31 @@ describe 'Loaders CollectionLoader', ->
             { key: "tasks", id: 5 }
           ]
 
-        loader._updateStorageManagerFromResponse(resp)
+      describe 'updating the cache', ->
+        it 'caches the count from the response in the cacheObject', ->
+          loader.setup(opts)
+          expect(loader.getCacheObject()).toBeUndefined()
 
-        cacheObject = loader.getCacheObject()
-        expect(cacheObject).not.toBeUndefined()
-        expect(cacheObject.count).toEqual resp.count
-        expect(cacheObject.results).toEqual resp.results
+          loader._updateStorageManagerFromResponse(fakeResponse)
+          cacheObject = loader.getCacheObject()
+          expect(cacheObject).not.toBeUndefined()
+          expect(cacheObject.count).toEqual fakeResponse.count
+          expect(cacheObject.results).toEqual fakeResponse.results
+
+        describe 'cache option', ->
+          it 'updates the cache when true', ->
+            loader.setup(_.extend(opts, cache: true))
+            expect(loader.getCacheObject()).toBeUndefined()
+
+            loader._updateStorageManagerFromResponse(fakeResponse)
+            expect(loader.getCacheObject()).not.toBeUndefined()
+
+          it 'updates the cache when false', ->
+            loader.setup(_.extend(opts, cache: false))
+            expect(loader.getCacheObject()).toBeUndefined()
+
+            loader._updateStorageManagerFromResponse(fakeResponse)
+            expect(loader.getCacheObject()).not.toBeUndefined()
 
     describe '#_updateObject', ->
       it 'triggers loaded on the object after the attributes have been set', ->
