@@ -281,7 +281,12 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       context 'there exists a cache with this cacheKey', ->
         beforeEach ->
           loader.storageManager.storage('tasks').add taskOne
-          loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc|||||'] = [key: "tasks", id: taskOne.id]
+
+          fakeCacheObject =
+            count: 1
+            results: [key: "tasks", id: taskOne.id]
+
+          loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc|||||'] = fakeCacheObject
 
         context 'all of the cached models have their associations loaded', ->
           beforeEach ->

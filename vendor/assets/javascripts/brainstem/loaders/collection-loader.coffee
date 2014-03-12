@@ -40,7 +40,11 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
       @storageManager.storage(underscoredModelName).update _(resp[underscoredModelName]).values()
 
     if @loadOptions.cache && !@loadOptions.only?
-      @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = results
+      cachedData =
+        count: resp.count
+        results: results
+
+      @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = cachedData
 
     if @loadOptions.only?
       data = _.map(@loadOptions.only, (id) => @cachedCollection.get(id))

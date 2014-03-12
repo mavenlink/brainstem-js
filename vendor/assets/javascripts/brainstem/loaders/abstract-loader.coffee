@@ -92,7 +92,7 @@ class Brainstem.AbstractLoader
       cacheObject = @getCacheObject()
 
       if cacheObject
-        subset = _.map cacheObject, (result) => @storageManager.storage(result.key).get(result.id)
+        subset = _.map cacheObject.results, (result) => @storageManager.storage(result.key).get(result.id)
         if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.thisLayerInclude)))
           @_onLoadSuccess(subset)
           return @externalObject
