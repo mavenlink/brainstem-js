@@ -72,6 +72,9 @@ class Brainstem.AbstractLoader
     else
       @_loadFromServer()
 
+  getCacheObject: ->
+    @storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]
+
   ###*
    * Checks to see if the current requested data is available in the caching layer.
    * If it is available then update the externalObject with that data (via `_onLoadSuccess`).
@@ -86,8 +89,10 @@ class Brainstem.AbstractLoader
         return @externalObject
     else
       # Check if we have a cache for this request and if so make sure that all of the requested includes for this layer are loaded on those models.
-      if @storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]
-        subset = _(@storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
+      cacheObject = @getCacheObject()
+
+      if cacheObject
+        subset = _.map cacheObject, (result) => @storageManager.storage(result.key).get(result.id)
         if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.thisLayerInclude)))
           @_onLoadSuccess(subset)
           return @externalObject
