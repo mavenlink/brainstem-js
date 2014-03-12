@@ -90,6 +90,7 @@ describe 'Loaders CollectionLoader', ->
 
         expect(loader.externalObject.lastFetchOptions.name).toEqual 'tasks'
         expect(loader.externalObject.lastFetchOptions.include).toEqual 'parent'
+        expect(loader.externalObject.lastFetchOptions.cacheKey).toEqual loader.loadOptions.cacheKey
 
         for e in list
           expect(loader.externalObject.lastFetchOptions[e]).toEqual true

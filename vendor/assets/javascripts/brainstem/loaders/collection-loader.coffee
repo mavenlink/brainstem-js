@@ -16,7 +16,7 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
     @externalObject = @loadOptions.collection || @storageManager.createNewCollection @loadOptions.name, []
     @externalObject.setLoaded false
     @externalObject.reset([], silent: false) if @loadOptions.reset
-    @externalObject.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), 'name', 'filters', 'page', 'perPage', 'limit', 'offset', 'order', 'search')
+    @externalObject.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), 'name', 'filters', 'page', 'perPage', 'limit', 'offset', 'order', 'search', 'cacheKey')
     @externalObject.lastFetchOptions.include = @originalOptions.include
 
   _updateStorageManagerFromResponse: (resp) ->
