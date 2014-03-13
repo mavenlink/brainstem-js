@@ -43,6 +43,10 @@ class window.Brainstem.Collection extends Backbone.Collection
   getWithAssocation: (id) ->
     @get(id)
 
+  getServerCount: ->
+    if @lastFetchOptions
+      base.data.getCollectionDetails(@lastFetchOptions.name)?.cache[@lastFetchOptions.cacheKey]?.count
+
   toServerJSON: (method) ->
     @toJSON()
 

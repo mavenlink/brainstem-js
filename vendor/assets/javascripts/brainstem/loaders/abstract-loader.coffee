@@ -53,7 +53,6 @@ class Brainstem.AbstractLoader
    * Sets up both the `internalObject` and `externalObject`.
    * In the case of models the `internalObject` and `externalObject` are the same.
    * In the case of collections the `internalObject` is a proxy object that updates the `externalObject` when all loading is completed.
-   * @return {[type]} [description]
   ###
   _createObjects: ->
     throw "Implement in your subclass"
@@ -73,6 +72,13 @@ class Brainstem.AbstractLoader
       @_loadFromServer()
 
   ###*
+   * Returns the cache object from the storage manager.
+   * @return {object} Object containing `count` and `results` that were cached.
+  ###
+  getCacheObject: ->
+    @storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]
+
+  ###*
    * Checks to see if the current requested data is available in the caching layer.
    * If it is available then update the externalObject with that data (via `_onLoadSuccess`).
    * @return {[boolean|object]} returns false if not found otherwise returns the externalObject.
@@ -86,8 +92,10 @@ class Brainstem.AbstractLoader
         return @externalObject
     else
       # Check if we have a cache for this request and if so make sure that all of the requested includes for this layer are loaded on those models.
-      if @storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]
-        subset = _(@storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]).map (result) => @storageManager.storage(result.key).get(result.id)
+      cacheObject = @getCacheObject()
+
+      if cacheObject
+        subset = _.map cacheObject.results, (result) => @storageManager.storage(result.key).get(result.id)
         if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.thisLayerInclude)))
           @_onLoadSuccess(subset)
           return @externalObject

@@ -16,7 +16,7 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
     @externalObject = @loadOptions.collection || @storageManager.createNewCollection @loadOptions.name, []
     @externalObject.setLoaded false
     @externalObject.reset([], silent: false) if @loadOptions.reset
-    @externalObject.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), 'name', 'filters', 'page', 'perPage', 'limit', 'offset', 'order', 'search')
+    @externalObject.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), 'name', 'filters', 'page', 'perPage', 'limit', 'offset', 'order', 'search', 'cacheKey')
     @externalObject.lastFetchOptions.include = @originalOptions.include
 
   _updateStorageManagerFromResponse: (resp) ->
@@ -39,8 +39,12 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
     for underscoredModelName in keys
       @storageManager.storage(underscoredModelName).update _(resp[underscoredModelName]).values()
 
-    if @loadOptions.cache && !@loadOptions.only?
-      @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = results
+    if !@loadOptions.only?
+      cachedData =
+        count: resp.count
+        results: results
+
+      @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = cachedData
 
     if @loadOptions.only?
       data = _.map(@loadOptions.only, (id) => @cachedCollection.get(id))

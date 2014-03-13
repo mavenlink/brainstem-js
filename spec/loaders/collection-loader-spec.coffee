@@ -90,12 +90,52 @@ describe 'Loaders CollectionLoader', ->
 
         expect(loader.externalObject.lastFetchOptions.name).toEqual 'tasks'
         expect(loader.externalObject.lastFetchOptions.include).toEqual 'parent'
+        expect(loader.externalObject.lastFetchOptions.cacheKey).toEqual loader.loadOptions.cacheKey
 
         for e in list
           expect(loader.externalObject.lastFetchOptions[e]).toEqual true
 
-    # describe '#_updateStorageManagerFromResponse', ->
-      # TODO: test this, it's tested right now through integration tests.
+    describe '#_updateStorageManagerFromResponse', ->
+      # TODO: everything that is not tested here is tested right now through integration tests for StorageManager.
+
+      fakeResponse = null
+
+      beforeEach ->
+        fakeResponse = 
+          count: 5
+          results: [
+            { key: "tasks", id: 1 }
+            { key: "tasks", id: 2 }
+            { key: "tasks", id: 3 }
+            { key: "tasks", id: 4 }
+            { key: "tasks", id: 5 }
+          ]
+
+      describe 'updating the cache', ->
+        it 'caches the count from the response in the cacheObject', ->
+          loader.setup(opts)
+          expect(loader.getCacheObject()).toBeUndefined()
+
+          loader._updateStorageManagerFromResponse(fakeResponse)
+          cacheObject = loader.getCacheObject()
+          expect(cacheObject).not.toBeUndefined()
+          expect(cacheObject.count).toEqual fakeResponse.count
+          expect(cacheObject.results).toEqual fakeResponse.results
+
+        describe 'cache option', ->
+          it 'updates the cache when true', ->
+            loader.setup(_.extend(opts, cache: true))
+            expect(loader.getCacheObject()).toBeUndefined()
+
+            loader._updateStorageManagerFromResponse(fakeResponse)
+            expect(loader.getCacheObject()).not.toBeUndefined()
+
+          it 'updates the cache when false', ->
+            loader.setup(_.extend(opts, cache: false))
+            expect(loader.getCacheObject()).toBeUndefined()
+
+            loader._updateStorageManagerFromResponse(fakeResponse)
+            expect(loader.getCacheObject()).not.toBeUndefined()
 
     describe '#_updateObject', ->
       it 'triggers loaded on the object after the attributes have been set', ->

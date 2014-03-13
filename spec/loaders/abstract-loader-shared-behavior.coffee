@@ -225,6 +225,18 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       loader._parseLoadOptions(opts)
       expect(loader.cachedCollection).toEqual loader.storageManager.storage(loader.loadOptions.name)
 
+  describe '#getCacheObject', ->
+    it 'returns the object', ->
+      loader = createLoader()
+      opts = defaultLoadOptions()
+      loader.setup(opts)
+      cacheKey = loader.loadOptions.cacheKey
+      
+      expect(loader.getCacheObject()).toBeUndefined()
+      fakeCache = [key: "tasks", id: 5]
+      loader.storageManager.getCollectionDetails(loader._getCollectionName()).cache[cacheKey] = fakeCache
+      expect(loader.getCacheObject()).toEqual fakeCache
+
   describe '#_checkCacheForData', ->
     opts = null
     taskOne = taskTwo = null
@@ -269,7 +281,12 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       context 'there exists a cache with this cacheKey', ->
         beforeEach ->
           loader.storageManager.storage('tasks').add taskOne
-          loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc|||||'] = [key: "tasks", id: taskOne.id]
+
+          fakeCacheObject =
+            count: 1
+            results: [key: "tasks", id: taskOne.id]
+
+          loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc|||||'] = fakeCacheObject
 
         context 'all of the cached models have their associations loaded', ->
           beforeEach ->
