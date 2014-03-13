@@ -53,7 +53,6 @@ class Brainstem.AbstractLoader
    * Sets up both the `internalObject` and `externalObject`.
    * In the case of models the `internalObject` and `externalObject` are the same.
    * In the case of collections the `internalObject` is a proxy object that updates the `externalObject` when all loading is completed.
-   * @return {[type]} [description]
   ###
   _createObjects: ->
     throw "Implement in your subclass"
@@ -72,6 +71,10 @@ class Brainstem.AbstractLoader
     else
       @_loadFromServer()
 
+  ###*
+   * Returns the cache object from the storage manager.
+   * @return {object} Object containing `count` and `results` that were cached.
+  ###
   getCacheObject: ->
     @storageManager.getCollectionDetails(@_getCollectionName()).cache[@loadOptions.cacheKey]
 
