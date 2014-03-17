@@ -695,6 +695,20 @@ describe 'Brainstem Storage Manager', ->
         collection = base.data.loadCollection "tasks", search: "the meaning of life"
         expect(spy).not.toHaveBeenCalled()
 
+      it 'does not overwrite the existing non-search cache', ->
+        fakeCache =
+          count: 2
+          results: [{ key: "task", id: 1 }, { key: "task", id: 2 }]
+
+        loader = base.data.loadObject "tasks"
+        base.data.collections.tasks.cache[loader.loadOptions.cacheKey] = fakeCache
+        expect(loader.getCacheObject()).toEqual fakeCache
+
+        searchLoader = base.data.loadObject "tasks", search: "foobar"
+        searchLoader._updateStorageManagerFromResponse(count: 0, results: [])
+
+        expect(loader.getCacheObject()).toEqual fakeCache
+
       it "returns the matching items with includes, triggering reset and success", ->
         task = buildTask()
         respondWith server, "/api/tasks?per_page=20&page=1&search=go+go+gadget+search",

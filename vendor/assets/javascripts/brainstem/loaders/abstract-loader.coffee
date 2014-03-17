@@ -43,7 +43,7 @@ class Brainstem.AbstractLoader
 
     # Build cache key
     filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
-    @loadOptions.cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, @loadOptions.page, @loadOptions.perPage, @loadOptions.limit, @loadOptions.offset].join('|')
+    @loadOptions.cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, @loadOptions.page, @loadOptions.perPage, @loadOptions.limit, @loadOptions.offset, @loadOptions.search].join('|')
 
     @cachedCollection = @storageManager.storage @_getCollectionName()
 
