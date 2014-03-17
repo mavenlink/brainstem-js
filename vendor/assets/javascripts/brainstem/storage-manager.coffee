@@ -114,7 +114,7 @@ class window.Brainstem.StorageManager
     throw "No expectation matched #{name} with #{JSON.stringify loader.originalOptions}"
 
   # Helpers
-  loadObject: (name, loadOptions, options = {}) ->
+  loadObject: (name, loadOptions = {}, options = {}) ->
     options = $.extend({}, { isCollection: true }, options)
 
     successCallback = loadOptions.success
