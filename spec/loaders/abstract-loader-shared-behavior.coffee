@@ -216,10 +216,11 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         perPage: 200
         limit: 50
         offset: 0
+        search: 'foobar'
 
       opts = _.extend(opts, myOpts)
       loadOptions = loader._parseLoadOptions(opts)
-      expect(loadOptions.cacheKey).toEqual 'myOrder|key1:value1,key2:value2|1|200|50|0'
+      expect(loadOptions.cacheKey).toEqual 'myOrder|key1:value1,key2:value2|1|200|50|0|foobar'
 
     it 'sets the cachedCollection on the loader from the storageManager', ->
       loader._parseLoadOptions(opts)
@@ -286,7 +287,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
             count: 1
             results: [key: "tasks", id: taskOne.id]
 
-          loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc|||||'] = fakeCacheObject
+          loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc||||||'] = fakeCacheObject
 
         context 'all of the cached models have their associations loaded', ->
           beforeEach ->
