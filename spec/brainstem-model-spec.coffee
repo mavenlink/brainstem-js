@@ -239,9 +239,17 @@ describe 'Brainstem.Model', ->
           timeEntry = new App.Models.TimeEntry(id: 5, task_id: 2)
           expect(timeEntry.get("project")).toBeFalsy()
 
-        it "should throw when we have an association id but it cannot be found", ->
-          timeEntry = new App.Models.TimeEntry(id: 5, task_id: 2)
-          expect(-> timeEntry.get("task")).toThrow()
+        describe "throwing exceptions when we have an association id that cannot be found" ,->
+          it "should throw when silent is not supplied or falsy", ->
+            timeEntry = new App.Models.TimeEntry(id: 5, task_id: 2)
+            expect(-> timeEntry.get("task")).toThrow()
+            expect(-> timeEntry.get("task", silent: false)).toThrow()
+            expect(-> timeEntry.get("task", silent: null)).toThrow()
+
+          it "should not throw when silent is true", ->
+            timeEntry = new App.Models.TimeEntry(id: 5, task_id: 2)
+            cb = -> timeEntry.get("task", silent: true)
+            expect(cb).not.toThrow()
 
       describe "HasMany associations", ->
         it "should return HasMany associations", ->
@@ -256,9 +264,17 @@ describe 'Brainstem.Model', ->
           project = new App.Models.Project(id: 5)
           expect(project.get("time_entries").models).toEqual []
 
-        it "should throw when we have an association id but it cannot be found", ->
-          project = new App.Models.Project(id: 5, time_entry_ids: [2, 5])
-          expect(-> project.get("time_entries")).toThrow()
+        describe "throwing exceptions when we have an association id but it cannot be found", ->
+          it "should throw when silent is falsy", ->
+            project = new App.Models.Project(id: 5, time_entry_ids: [2, 5])
+            expect(-> project.get("time_entries")).toThrow()
+            expect(-> project.get("time_entries", silent: false)).toThrow()
+            expect(-> project.get("time_entries", silent: null)).toThrow()
+
+          it "should not throw when silent is truthy", ->
+            project = new App.Models.Project(id: 5, time_entry_ids: [2, 5])
+            cb = -> project.get("time_entries", silent: true)
+            expect(cb).not.toThrow()
 
         it "should apply a sort order to has many associations if it is provided at time of get", ->
           task = buildAndCacheTask(id: 5, sub_task_ids: [103, 77, 99])

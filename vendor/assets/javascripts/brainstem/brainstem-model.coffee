@@ -92,7 +92,12 @@ class window.Brainstem.Model extends Backbone.Model
       if details.type == "BelongsTo"
         id = @get(details.key) # project_id
         if id?
-          base.data.storage(details.collectionName).get(id) || (Brainstem.Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}"))
+          model = base.data.storage(details.collectionName).get(id)
+
+          if not model && not options.silent
+            Brainstem.Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
+
+          model
       else
         ids = @get(details.key) # time_entry_ids
         models = []
@@ -102,7 +107,7 @@ class window.Brainstem.Model extends Backbone.Model
             model = base.data.storage(details.collectionName).get(id)
             models.push(model)
             notFoundIds.push(id) unless model
-          if notFoundIds.length
+          if notFoundIds.length && not options.silent
             Brainstem.Utils.throwError("Unable to find #{field} with ids #{notFoundIds.join(", ")} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
         if options.order
           comparator = base.data.getCollectionDetails(details.collectionName).klass.getComparatorWithIdFailover(options.order)
