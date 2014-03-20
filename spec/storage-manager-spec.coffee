@@ -47,6 +47,41 @@ describe 'Brainstem Storage Manager', ->
       expect(base.data.storage("projects").length).toEqual 0
       expect(base.data.storage("tasks").length).toEqual 0
 
+  describe "complete callback", ->
+    describe "loadModel", ->
+      it "fires when there is an error", ->
+        completeSpy = jasmine.createSpy('completeSpy')
+        respondWith server, "/api/time_entries/1337", data: { results: [] }, status: 404
+        base.data.loadModel "time_entry", 1337, complete: completeSpy
+
+        server.respond()
+        expect(completeSpy).toHaveBeenCalled()
+
+      it "fires on success", ->
+        completeSpy = jasmine.createSpy('completeSpy')
+        respondWith server, "/api/time_entries/1337", data: { results: [] }
+        base.data.loadModel "time_entry", 1337, complete: completeSpy
+
+        server.respond()
+        expect(completeSpy).toHaveBeenCalled()
+
+    describe "loadCollection", ->
+      it "fires when there is an error", ->
+        completeSpy = jasmine.createSpy('completeSpy')
+        respondWith server, "/api/time_entries?per_page=20&page=1", data: { results: [] }, status: 404
+        base.data.loadCollection "time_entries", complete: completeSpy
+
+        server.respond()
+        expect(completeSpy).toHaveBeenCalled()
+
+      it "fires on success", ->
+        completeSpy = jasmine.createSpy('completeSpy')
+        respondWith server, "/api/time_entries?per_page=20&page=1", data: { results: [] }
+        base.data.loadCollection "time_entries", complete: completeSpy
+
+        server.respond()
+        expect(completeSpy).toHaveBeenCalled()
+
   describe "loadModel", ->
     beforeEach ->
       tasks = [buildTask(id: 2, title: "a task", project_id: 15)]

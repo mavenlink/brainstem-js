@@ -122,8 +122,11 @@ class window.Brainstem.StorageManager
   loadObject: (name, loadOptions = {}, options = {}) ->
     options = $.extend({}, { isCollection: true }, options)
 
+    completeCallback = loadOptions.complete
     successCallback = loadOptions.success
-    loadOptions = _.omit(loadOptions, 'success')
+    errorCallback = loadOptions.error
+
+    loadOptions = _.omit(loadOptions, 'success', 'error', 'complete')
     loadOptions = $.extend({}, loadOptions, name: name)
 
     if options.isCollection
@@ -135,7 +138,15 @@ class window.Brainstem.StorageManager
 
     loader = new loaderClass(storageManager: this)
     loader.setup(loadOptions)
-    loader.done(successCallback) if successCallback? && _.isFunction(successCallback)
+
+    if completeCallback? && _.isFunction(completeCallback)
+      loader.always(completeCallback)
+
+    if successCallback? && _.isFunction(successCallback)
+      loader.done(successCallback)
+
+    if errorCallback? && _.isFunction(errorCallback)
+      loader.fail(errorCallback)
 
     if @expectations?
       @handleExpectations(loader)
