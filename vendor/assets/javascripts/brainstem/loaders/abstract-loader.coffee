@@ -142,6 +142,15 @@ class Brainstem.AbstractLoader
     @_onLoadSuccess(data)
 
   ###*
+   * Called when the Backbone.sync has errored.
+   * @param  {object} jqXhr
+   * @param  {string} textStatus 
+   * @param  {string} errorThrown
+  ###
+  _onServerLoadError: (jqXHR, textStatus, errorThrown) =>
+    @_deferred.reject.apply(this, arguments)
+
+  ###*
    * Called when the server responds with data and needs to be persisted to the storageManager.
    * @param  {object} resp JSON data from the server
    * @return {[array|object]} array of models or model that was parsed.
@@ -197,7 +206,7 @@ class Brainstem.AbstractLoader
       loadOptions =
         only: association.ids
         include: association.include
-        error: @loadOptions.error
+        error: @_onServerLoadError
 
       promises.push(@storageManager.loadObject(collectionName, loadOptions))
 
@@ -232,7 +241,7 @@ class Brainstem.AbstractLoader
     syncOptions =
       data: {}
       parse: true
-      error: @loadOptions.error
+      error: @_onServerLoadError
       success: @_onServerLoadSuccess
 
     syncOptions.data.include = @loadOptions.thisLayerInclude.join(",") if @loadOptions.thisLayerInclude.length

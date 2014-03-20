@@ -380,9 +380,8 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     it 'sets parse to true', ->
       expect(getSyncOptions(loader, opts).parse).toEqual(true)
 
-    it 'sets error as loadOptions.error', ->
-      opts.error = spy = jasmine.createSpy()
-      expect(getSyncOptions(loader, opts).error).toEqual spy
+    it 'sets error as #_onServerLoadError', ->
+      expect(getSyncOptions(loader, opts).error).toEqual(loader._onServerLoadError)
 
     it 'sets success as #_onServerLoadSuccess', ->
       expect(getSyncOptions(loader, opts).success).toEqual(loader._onServerLoadSuccess)
