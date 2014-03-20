@@ -206,11 +206,12 @@ class Brainstem.AbstractLoader
       loadOptions =
         only: association.ids
         include: association.include
-        error: @_onServerLoadError
 
       promises.push(@storageManager.loadObject(collectionName, loadOptions))
 
-    $.when.apply($, promises).done(@_onLoadingCompleted)
+    $.when.apply($, promises)
+      .done(@_onLoadingCompleted)
+      .fail(@_onServerLoadError)
 
   ###*
    * Called when all loading (including nested loads) are complete.
