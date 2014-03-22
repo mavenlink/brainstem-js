@@ -129,6 +129,19 @@ describe 'Brainstem.Collection', ->
         collection = base.data.createNewCollection 'tasks'
         expect(collection.getServerCount()).toBeUndefined()
 
+  describe '#invalidateCache', ->
+    it 'invalidates the cache object', ->
+      posts = (buildPost(message: "old post", reply_ids: []) for i in [1..5])
+      respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1", resultsFrom: "posts", data: { count: posts.length, posts: posts }
+      loader = base.data.loadObject "posts", include: ["replies"], filters: { parents_only: "true" }, perPage: 5
+      
+      expect(loader.getCacheObject()).toBeUndefined()
+      server.respond()
+
+      expect(loader.getCacheObject().valid).toEqual true
+      loader.getCollection().invalidateCache()
+      expect(loader.getCacheObject().valid).toEqual false
+
   describe 'setLoaded', ->
     it "should set the values of @loaded", ->
       collection.setLoaded true

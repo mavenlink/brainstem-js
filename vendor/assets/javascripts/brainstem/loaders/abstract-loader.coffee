@@ -94,7 +94,7 @@ class Brainstem.AbstractLoader
       # Check if we have a cache for this request and if so make sure that all of the requested includes for this layer are loaded on those models.
       cacheObject = @getCacheObject()
 
-      if cacheObject
+      if cacheObject && cacheObject.valid
         subset = _.map cacheObject.results, (result) => @storageManager.storage(result.key).get(result.id)
         if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.thisLayerInclude)))
           @_onLoadSuccess(subset)

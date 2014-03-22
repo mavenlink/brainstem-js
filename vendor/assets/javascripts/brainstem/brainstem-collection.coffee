@@ -44,11 +44,17 @@ class window.Brainstem.Collection extends Backbone.Collection
     @get(id)
 
   getServerCount: ->
-    if @lastFetchOptions
-      base.data.getCollectionDetails(@lastFetchOptions.name)?.cache[@lastFetchOptions.cacheKey]?.count
+    @_getCacheObject()?.count
+
+  invalidateCache: ->
+    @_getCacheObject()?.valid = false
 
   toServerJSON: (method) ->
     @toJSON()
+
+  _getCacheObject: ->
+    if @lastFetchOptions
+      base.data.getCollectionDetails(@lastFetchOptions.name)?.cache[@lastFetchOptions.cacheKey]
 
   @getComparatorWithIdFailover: (order) ->
     [field, direction] = order.split(":")

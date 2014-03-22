@@ -43,6 +43,7 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
       cachedData =
         count: resp.count
         results: results
+        valid: true
 
       @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = cachedData
 
