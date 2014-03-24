@@ -283,25 +283,41 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         beforeEach ->
           loader.storageManager.storage('tasks').add taskOne
 
-          fakeCacheObject =
-            count: 1
-            results: [key: "tasks", id: taskOne.id]
-
-          loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc||||||'] = fakeCacheObject
-
-        context 'all of the cached models have their associations loaded', ->
+        context 'cache is valid', ->
           beforeEach ->
-            taskOne.set('project_id', buildAndCacheProject().id)
+            fakeCacheObject =
+              count: 1
+              results: [key: "tasks", id: taskOne.id]
+              valid: true
 
-          it 'calls #_onLoadSuccess with the models from the cache', ->
-            opts.include = ['project']
-            loader.setup(opts)
-            loader._checkCacheForData()
-            expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne])
+            loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc||||||'] = fakeCacheObject
 
-        context 'all of the cached models do not have their associations loaded', ->
+          context 'all of the cached models have their associations loaded', ->
+            beforeEach ->
+              taskOne.set('project_id', buildAndCacheProject().id)
+
+            it 'calls #_onLoadSuccess with the models from the cache', ->
+              opts.include = ['project']
+              loader.setup(opts)
+              loader._checkCacheForData()
+              expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne])
+
+          context 'all of the cached models do not have their associations loaded', ->
+            it 'returns false and does not call #_onLoadSuccess', ->
+              opts.include = ['project']
+              loader.setup(opts)
+              notFound(loader, opts)
+
+        context 'cache is invalid', ->
+          beforeEach ->
+            fakeCacheObject =
+              count: 1
+              results: [key: "tasks", id: taskOne.id]
+              valid: false
+
+            loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc||||||'] = fakeCacheObject
+
           it 'returns false and does not call #_onLoadSuccess', ->
-            opts.include = ['project']
             loader.setup(opts)
             notFound(loader, opts)
 
