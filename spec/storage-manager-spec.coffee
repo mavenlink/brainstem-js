@@ -629,14 +629,6 @@ describe 'Brainstem Storage Manager', ->
           collection2 = base.data.loadCollection "time_entries", include: ["project"], only: [2, 3], success: spy
           expect(spy).toHaveBeenCalled()
 
-        it "does not cache only queries", ->
-          respondWith server, "/api/time_entries?include=project%2Ctask&only=2%2C3",
-                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
-          collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
-          expect(Object.keys base.data.getCollectionDetails("time_entries")["cache"]).toEqual []
-          server.respond()
-          expect(Object.keys base.data.getCollectionDetails("time_entries")["cache"]).toEqual []
-
         it "does go to the server on a repeat request if an association is missing", ->
           respondWith server, "/api/time_entries?include=project&only=2",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 6)], projects: [buildProject(id: 10)] }

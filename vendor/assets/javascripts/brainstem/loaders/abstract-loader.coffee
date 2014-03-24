@@ -40,14 +40,30 @@ class Brainstem.AbstractLoader
     # Determine whether or not we should look at the cache
     @loadOptions.cache ?= true
     @loadOptions.cache = false if @loadOptions.search
-
-    # Build cache key
-    filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
-    @loadOptions.cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, @loadOptions.page, @loadOptions.perPage, @loadOptions.limit, @loadOptions.offset, @loadOptions.search].join('|')
+    @loadOptions.cacheKey = @_buildCacheKey()
 
     @cachedCollection = @storageManager.storage @_getCollectionName()
 
     @loadOptions
+
+  ###*
+   * Builds a cache key to represent this object
+   * @return {string} cache key
+  ###
+  _buildCacheKey: ->
+    filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
+    onlyIds = (@loadOptions.only || []).sort().join(',')
+
+    @loadOptions.cacheKey = [
+      @loadOptions.order || "updated_at:desc"
+      filterKeys
+      onlyIds
+      @loadOptions.page
+      @loadOptions.perPage
+      @loadOptions.limit
+      @loadOptions.offset
+      @loadOptions.search
+    ].join('|')
 
   ###*
    * Sets up both the `internalObject` and `externalObject`.
