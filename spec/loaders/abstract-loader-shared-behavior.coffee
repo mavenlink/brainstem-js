@@ -401,10 +401,9 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           beforeEach ->
             spyOn(loader, '_shouldUseOnly').andReturn(true)
 
-          it 'sets data.only to be the difference between the only query and the already loaded ids', ->
-            loader.alreadyLoadedIds = ['1', '2']
+          it 'sets data.only to comma separated ids', ->
             opts.only = [1, 2, 3, 4]
-            expect(getSyncOptions(loader, opts).data.only).toEqual '3,4'
+            expect(getSyncOptions(loader, opts).data.only).toEqual '1,2,3,4'
 
         context '#_shouldUseOnly returns false', ->
           beforeEach ->
