@@ -45,13 +45,7 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
       valid: true
 
     @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = cachedData
-
-    if @loadOptions.only?
-      data = _.map(@loadOptions.only, (id) => @cachedCollection.get(id))
-    else
-      data = _.map(results, (result) => @storageManager.storage(result.key).get(result.id))
-
-    data
+    _.map(results, (result) => @storageManager.storage(result.key).get(result.id))
 
   _updateObjects: (object, data, silent = false) ->
     object.setLoaded true, trigger: false
