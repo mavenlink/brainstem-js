@@ -216,11 +216,12 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         perPage: 200
         limit: 50
         offset: 0
+        only: [3, 1, 2]
         search: 'foobar'
 
       opts = _.extend(opts, myOpts)
       loadOptions = loader._parseLoadOptions(opts)
-      expect(loadOptions.cacheKey).toEqual 'myOrder|key1:value1,key2:value2|1|200|50|0|foobar'
+      expect(loadOptions.cacheKey).toEqual 'myOrder|key1:value1,key2:value2|1,2,3|1|200|50|0|foobar'
 
     it 'sets the cachedCollection on the loader from the storageManager', ->
       loader._parseLoadOptions(opts)
@@ -290,7 +291,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
               results: [key: "tasks", id: taskOne.id]
               valid: true
 
-            loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc||||||'] = fakeCacheObject
+            loader.storageManager.getCollectionDetails('tasks').cache['updated_at:desc|||||||'] = fakeCacheObject
 
           context 'all of the cached models have their associations loaded', ->
             beforeEach ->
@@ -400,10 +401,9 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           beforeEach ->
             spyOn(loader, '_shouldUseOnly').andReturn(true)
 
-          it 'sets data.only to be the difference between the only query and the already loaded ids', ->
-            loader.alreadyLoadedIds = ['1', '2']
+          it 'sets data.only to comma separated ids', ->
             opts.only = [1, 2, 3, 4]
-            expect(getSyncOptions(loader, opts).data.only).toEqual '3,4'
+            expect(getSyncOptions(loader, opts).data.only).toEqual '1,2,3,4'
 
         context '#_shouldUseOnly returns false', ->
           beforeEach ->

@@ -39,20 +39,13 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
     for underscoredModelName in keys
       @storageManager.storage(underscoredModelName).update _(resp[underscoredModelName]).values()
 
-    if !@loadOptions.only?
-      cachedData =
-        count: resp.count
-        results: results
-        valid: true
+    cachedData =
+      count: resp.count
+      results: results
+      valid: true
 
-      @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = cachedData
-
-    if @loadOptions.only?
-      data = _.map(@loadOptions.only, (id) => @cachedCollection.get(id))
-    else
-      data = _.map(results, (result) => @storageManager.storage(result.key).get(result.id))
-
-    data
+    @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = cachedData
+    _.map(results, (result) => @storageManager.storage(result.key).get(result.id))
 
   _updateObjects: (object, data, silent = false) ->
     object.setLoaded true, trigger: false
