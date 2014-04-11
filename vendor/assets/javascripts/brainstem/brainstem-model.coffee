@@ -120,8 +120,8 @@ class window.Brainstem.Model extends Backbone.Model
 
   invalidateCache: ->
     for cacheKey, cacheObject of base.data.getCollectionDetails(@brainstemKey).cache
-      if _.find(cacheObject.results, (result) -> result.id == @id)
-          cacheObject.valid = false
+      if _.find(cacheObject.results, (result) => result.id == @id)
+        cacheObject.valid = false
 
   className: ->
     @paramRoot

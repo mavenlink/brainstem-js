@@ -300,6 +300,7 @@ describe 'Brainstem.Model', ->
   describe 'invalidateCache', ->
     it 'invalidates all cache objects that a model is a result in', ->
       cache = base.data.getCollectionDetails(model.brainstemKey).cache
+      model = buildTask()
 
       cacheKey = {
         matching1: 'foo|bar'
