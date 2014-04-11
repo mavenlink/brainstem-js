@@ -12,6 +12,18 @@ describe 'Brainstem Storage Manager', ->
     it "raises an error if the named collection doesn't exist", ->
       expect(-> manager.getCollectionDetails('foo')).toThrow()
 
+    it "binds to the collection for remove and calls invalidateCache on the model", ->
+      manager.addCollection 'time_entries', App.Collections.TimeEntries
+
+      timeEntry = buildTimeEntry()
+      spyOn(timeEntry, 'invalidateCache')
+
+      base.data.storage('time_entries').add(timeEntry)
+
+      expect(timeEntry.invalidateCache).not.toHaveBeenCalled()
+      timeEntry.collection.remove(timeEntry)
+      expect(timeEntry.invalidateCache).toHaveBeenCalled()
+
   describe "storage", ->
     beforeEach ->
       manager.addCollection 'time_entries', App.Collections.TimeEntries
