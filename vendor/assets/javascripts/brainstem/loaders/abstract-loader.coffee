@@ -40,14 +40,30 @@ class Brainstem.AbstractLoader
     # Determine whether or not we should look at the cache
     @loadOptions.cache ?= true
     @loadOptions.cache = false if @loadOptions.search
-
-    # Build cache key
-    filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
-    @loadOptions.cacheKey = [@loadOptions.order || "updated_at:desc", filterKeys, @loadOptions.page, @loadOptions.perPage, @loadOptions.limit, @loadOptions.offset, @loadOptions.search].join('|')
+    @loadOptions.cacheKey = @_buildCacheKey()
 
     @cachedCollection = @storageManager.storage @_getCollectionName()
 
     @loadOptions
+
+  ###*
+   * Builds a cache key to represent this object
+   * @return {string} cache key
+  ###
+  _buildCacheKey: ->
+    filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
+    onlyIds = (@loadOptions.only || []).sort().join(',')
+
+    @loadOptions.cacheKey = [
+      @loadOptions.order || "updated_at:desc"
+      filterKeys
+      onlyIds
+      @loadOptions.page
+      @loadOptions.perPage
+      @loadOptions.limit
+      @loadOptions.offset
+      @loadOptions.search
+    ].join('|')
 
   ###*
    * Sets up both the `internalObject` and `externalObject`.
@@ -85,8 +101,8 @@ class Brainstem.AbstractLoader
   ###
   _checkCacheForData: ->
     if @loadOptions.only?
-      @alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.thisLayerInclude)
-      if @alreadyLoadedIds.length == @loadOptions.only.length
+      alreadyLoadedIds = _.select @loadOptions.only, (id) => @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.thisLayerInclude)
+      if alreadyLoadedIds.length == @loadOptions.only.length
         # We've already seen every id that is being asked for and have all the associated data.
         @_onLoadSuccess(_.map @loadOptions.only, (id) => @cachedCollection.get(id))
         return @externalObject
@@ -222,7 +238,7 @@ class Brainstem.AbstractLoader
     syncOptions.data.include = @loadOptions.thisLayerInclude.join(",") if @loadOptions.thisLayerInclude.length
 
     if @loadOptions.only && @_shouldUseOnly()
-      syncOptions.data.only = _.difference(@loadOptions.only, @alreadyLoadedIds).join(",")
+      syncOptions.data.only = @loadOptions.only.join(",")
 
     syncOptions.data.order = @loadOptions.order if @loadOptions.order?
     _.extend(syncOptions.data, _(@loadOptions.filters).omit('include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search')) if _(@loadOptions.filters).keys().length

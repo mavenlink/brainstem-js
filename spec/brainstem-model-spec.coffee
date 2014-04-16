@@ -297,6 +297,41 @@ describe 'Brainstem.Model', ->
           expect(subTasks.at(1).get('id')).toEqual("103")
           expect(subTasks.at(2).get('id')).toEqual("99")
 
+  describe 'invalidateCache', ->
+    it 'invalidates all cache objects that a model is a result in', ->
+      cache = base.data.getCollectionDetails(model.brainstemKey).cache
+      model = buildTask()
+
+      cacheKey = {
+        matching1: 'foo|bar'
+        matching2: 'foo|bar|filter'
+        notMatching: 'bar|bar'
+      }
+
+      cache[cacheKey.matching1] =
+        results: [{ id: model.id }, { id: buildTask().id }, { id: buildTask().id }]
+        valid: true
+
+      cache[cacheKey.notMatching] =
+        results: [{ id: buildTask().id }, { id: buildTask().id }, { id: buildTask().id }]
+        valid: true
+
+      cache[cacheKey.matching2] =
+        results: [{ id: model.id }, { id: buildTask().id }, { id: buildTask().id }]
+        valid: true
+
+      # all cache objects should be valid
+      expect(cache[cacheKey.matching1].valid).toEqual true
+      expect(cache[cacheKey.matching2].valid).toEqual true
+      expect(cache[cacheKey.notMatching].valid).toEqual true
+
+      model.invalidateCache()
+
+      # matching cache objects should be invalid
+      expect(cache[cacheKey.matching1].valid).toEqual false
+      expect(cache[cacheKey.matching2].valid).toEqual false
+      expect(cache[cacheKey.notMatching].valid).toEqual true
+
   describe "toServerJSON", ->
     it "calls toJSON", ->
       spy = spyOn(model, "toJSON").andCallThrough()

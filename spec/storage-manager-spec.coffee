@@ -12,6 +12,18 @@ describe 'Brainstem Storage Manager', ->
     it "raises an error if the named collection doesn't exist", ->
       expect(-> manager.getCollectionDetails('foo')).toThrow()
 
+    it "binds to the collection for remove and calls invalidateCache on the model", ->
+      manager.addCollection 'time_entries', App.Collections.TimeEntries
+
+      timeEntry = buildTimeEntry()
+      spyOn(timeEntry, 'invalidateCache')
+
+      base.data.storage('time_entries').add(timeEntry)
+
+      expect(timeEntry.invalidateCache).not.toHaveBeenCalled()
+      timeEntry.collection.remove(timeEntry)
+      expect(timeEntry.invalidateCache).toHaveBeenCalled()
+
   describe "storage", ->
     beforeEach ->
       manager.addCollection 'time_entries', App.Collections.TimeEntries
@@ -549,11 +561,11 @@ describe 'Brainstem Storage Manager', ->
           expect(spy).toHaveBeenCalled()
           expect(spy2).toHaveBeenCalled()
 
-        it "only requests ids that we don't already have", ->
+        it "requests all ids even onces that that we already have", ->
           respondWith server, "/api/time_entries?include=project%2Ctask&only=2",
                       resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(task_id: null, project_id: 10, id: 2)], tasks: [], projects: [buildProject(id: 10)] }
-          respondWith server, "/api/time_entries?include=project%2Ctask&only=3",
-                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(task_id: null, project_id: 11, id: 3)], tasks: [], projects: [buildProject(id: 11)] }
+          respondWith server, "/api/time_entries?include=project%2Ctask&only=2%2C3",
+                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(task_id: null, project_id: 10, id: 2), buildTimeEntry(task_id: null, project_id: 11, id: 3)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
 
           collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: 2
           expect(collection.loaded).toBe false
@@ -567,25 +579,6 @@ describe 'Brainstem Storage Manager', ->
           expect(collection2.length).toEqual 2
           expect(collection2.get(2).get('project').id).toEqual "10"
           expect(collection2.get(3).get('project').id).toEqual "11"
-
-        it "does request ids from the server again when they don't have all associations loaded yet", ->
-          respondWith server, "/api/time_entries?include=project&only=2",
-                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 5)], projects: [buildProject(id: 10)] }
-          respondWith server, "/api/time_entries?include=project%2Ctask&only=2",
-                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: 5)], tasks: [buildTask(id: 5)], projects: [buildProject(id: 10)] }
-          respondWith server, "/api/time_entries?include=project%2Ctask&only=3",
-                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 11)] }
-
-          base.data.loadCollection "time_entries", include: ["project"], only: 2
-          server.respond()
-          base.data.loadCollection "time_entries", include: ["project", "task"], only: 3
-          server.respond()
-          collection2 = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
-          expect(collection2.loaded).toBe false
-          server.respond()
-          expect(collection2.loaded).toBe true
-          expect(collection2.get(2).get('task').id).toEqual "5"
-          expect(collection2.length).toEqual 2
 
         it "doesn't go to the server if it doesn't need to", ->
           respondWith server, "/api/time_entries?include=project%2Ctask&only=2%2C3",
@@ -628,14 +621,6 @@ describe 'Brainstem Storage Manager', ->
             expect(collection.get(3).get('project').id).toEqual "11"
           collection2 = base.data.loadCollection "time_entries", include: ["project"], only: [2, 3], success: spy
           expect(spy).toHaveBeenCalled()
-
-        it "does not cache only queries", ->
-          respondWith server, "/api/time_entries?include=project%2Ctask&only=2%2C3",
-                      resultsFrom: "time_entries", data: { time_entries: [buildTimeEntry(project_id: 10, id: 2, task_id: null), buildTimeEntry(project_id: 11, id: 3, task_id: null)], tasks: [], projects: [buildProject(id: 10), buildProject(id: 11)] }
-          collection = base.data.loadCollection "time_entries", include: ["project", "task"], only: [2, 3]
-          expect(Object.keys base.data.getCollectionDetails("time_entries")["cache"]).toEqual []
-          server.respond()
-          expect(Object.keys base.data.getCollectionDetails("time_entries")["cache"]).toEqual []
 
         it "does go to the server on a repeat request if an association is missing", ->
           respondWith server, "/api/time_entries?include=project&only=2",
