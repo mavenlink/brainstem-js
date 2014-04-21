@@ -6,7 +6,7 @@ Backbone.sync = (method, model, options) ->
     delete: 'DELETE'
     read:   'GET'
 
-  type = methodMap[method];
+  type = methodMap[method]
 
   # Default options, unless specified.
   _.defaults(options || (options = {}), {
@@ -18,7 +18,7 @@ Backbone.sync = (method, model, options) ->
   params = { type: type, dataType: 'json' }
 
   # Ensure that we have a URL.
-  if (!options.url)
+  unless options.url
     params.url = _.result(model, 'url') || urlError()
 
   # Ensure that we have the appropriate request data.
@@ -38,6 +38,9 @@ Backbone.sync = (method, model, options) ->
 
     data.include = Brainstem.Utils.extractArray("include", options).join(",")
     data.filters = Brainstem.Utils.extractArray("filters", options).join(",")
+
+    _.extend data, options.params or {}
+
     params.data = JSON.stringify(data)
 
   # For older servers, emulate JSON by encoding the request into an HTML-form.
