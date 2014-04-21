@@ -21,6 +21,11 @@ describe "Brainstem.Sync", ->
       model.save({}, include: ['creator', 'story'])
       expect(ajaxSpy.mostRecentCall.args[0].data).toMatch(/"include":"creator,story"/)
 
+    it "should include additional 'params' from options", ->
+      model = buildTimeEntry()
+      model.save({}, params: { test: true })
+      expect(ajaxSpy.mostRecentCall.args[0].data).toMatch(/"test":true/)
+
     it "should setup param roots when models have a paramRoot set", ->
       model = buildTimeEntry()
       model.save({})
