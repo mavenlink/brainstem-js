@@ -9,7 +9,6 @@ window.Brainstem ?= {}
 class window.Brainstem.StorageManager
   constructor: (options = {}) ->
     @collections = {}
-    @setErrorInterceptor(options.errorInterceptor)
 
   # Add a collection to the StorageManager.  All collections that will be loaded or used in associations must be added.
   #    manager.addCollection "time_entries", App.Collections.TimeEntries
@@ -50,9 +49,6 @@ class window.Brainstem.StorageManager
 
   collectionExists: (name) ->
     !!@collections[name]
-
-  setErrorInterceptor: (interceptor) ->
-    @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(jqXHR)
 
   # Request a model to be loaded, optionally ensuring that associations be included as well.  A loader (which is a jQuery promise) is returned immediately and is resolved
   # with the model from the StorageManager when the load, and any dependent loads, are complete.
