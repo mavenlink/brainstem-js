@@ -9,7 +9,6 @@ window.Brainstem ?= {}
 class window.Brainstem.StorageManager
   constructor: (options = {}) ->
     @collections = {}
-    @setErrorInterceptor(options.errorInterceptor)
 
   # Add a collection to the StorageManager.  All collections that will be loaded or used in associations must be added.
   #    manager.addCollection "time_entries", App.Collections.TimeEntries
@@ -50,9 +49,6 @@ class window.Brainstem.StorageManager
 
   collectionExists: (name) ->
     !!@collections[name]
-
-  setErrorInterceptor: (interceptor) ->
-    @errorInterceptor = interceptor || (handler, modelOrCollection, options, jqXHR, requestParams) -> handler?(jqXHR)
 
   # Request a model to be loaded, optionally ensuring that associations be included as well.  A loader (which is a jQuery promise) is returned immediately and is resolved
   # with the model from the StorageManager when the load, and any dependent loads, are complete.
@@ -122,8 +118,11 @@ class window.Brainstem.StorageManager
   loadObject: (name, loadOptions = {}, options = {}) ->
     options = $.extend({}, { isCollection: true }, options)
 
+    completeCallback = loadOptions.complete
     successCallback = loadOptions.success
-    loadOptions = _.omit(loadOptions, 'success')
+    errorCallback = loadOptions.error
+
+    loadOptions = _.omit(loadOptions, 'success', 'error', 'complete')
     loadOptions = $.extend({}, loadOptions, name: name)
 
     if options.isCollection
@@ -135,7 +134,15 @@ class window.Brainstem.StorageManager
 
     loader = new loaderClass(storageManager: this)
     loader.setup(loadOptions)
-    loader.done(successCallback) if successCallback? && _.isFunction(successCallback)
+
+    if completeCallback? && _.isFunction(completeCallback)
+      loader.always(completeCallback)
+
+    if successCallback? && _.isFunction(successCallback)
+      loader.done(successCallback)
+
+    if errorCallback? && _.isFunction(errorCallback)
+      loader.fail(errorCallback)
 
     if @expectations?
       @handleExpectations(loader)

@@ -47,6 +47,41 @@ describe 'Brainstem Storage Manager', ->
       expect(base.data.storage("projects").length).toEqual 0
       expect(base.data.storage("tasks").length).toEqual 0
 
+  describe "complete callback", ->
+    describe "loadModel", ->
+      it "fires when there is an error", ->
+        completeSpy = jasmine.createSpy('completeSpy')
+        respondWith server, "/api/time_entries/1337", data: { results: [] }, status: 404
+        base.data.loadModel "time_entry", 1337, complete: completeSpy
+
+        server.respond()
+        expect(completeSpy).toHaveBeenCalled()
+
+      it "fires on success", ->
+        completeSpy = jasmine.createSpy('completeSpy')
+        respondWith server, "/api/time_entries/1337", data: { results: [] }
+        base.data.loadModel "time_entry", 1337, complete: completeSpy
+
+        server.respond()
+        expect(completeSpy).toHaveBeenCalled()
+
+    describe "loadCollection", ->
+      it "fires when there is an error", ->
+        completeSpy = jasmine.createSpy('completeSpy')
+        respondWith server, "/api/time_entries?per_page=20&page=1", data: { results: [] }, status: 404
+        base.data.loadCollection "time_entries", complete: completeSpy
+
+        server.respond()
+        expect(completeSpy).toHaveBeenCalled()
+
+      it "fires on success", ->
+        completeSpy = jasmine.createSpy('completeSpy')
+        respondWith server, "/api/time_entries?per_page=20&page=1", data: { results: [] }
+        base.data.loadCollection "time_entries", complete: completeSpy
+
+        server.respond()
+        expect(completeSpy).toHaveBeenCalled()
+
   describe "loadModel", ->
     beforeEach ->
       tasks = [buildTask(id: 2, title: "a task", project_id: 15)]
@@ -747,20 +782,6 @@ describe 'Brainstem Storage Manager', ->
       expect(collection.loaded).toBe true
 
   describe "error handling", ->
-    describe "setting a storage manager default error handler", ->
-      it "allows an error interceptor to be set on construction", ->
-        interceptor = (handler, modelOrCollection, options, jqXHR, requestParams) -> 5
-        manager = new Brainstem.StorageManager(errorInterceptor: interceptor)
-        expect(manager.errorInterceptor).toEqual interceptor
-
-      it "allows an error interceptor to be set later", ->
-        spy = jasmine.createSpy()
-        base.data.setErrorInterceptor (handler, modelOrCollection, options, jqXHR) -> spy(modelOrCollection, jqXHR)
-        server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
-        base.data.loadCollection 'time_entries'
-        server.respond()
-        expect(spy).toHaveBeenCalled()
-
     describe "passing in a custom error handler when loading a collection", ->
       it "gets called when there is an error", ->
         customHandler = jasmine.createSpy('customHandler')
@@ -784,15 +805,3 @@ describe 'Brainstem Storage Manager', ->
         expect(successHandler).not.toHaveBeenCalled()
         expect(errorHandler).toHaveBeenCalled()
         expect(errorHandler.callCount).toEqual(1)
-
-    describe "when no storage manager error interceptor is given", ->
-      it "has a default error interceptor", ->
-        manager = new Brainstem.StorageManager()
-        expect(manager.errorInterceptor).not.toBeUndefined()
-
-      it "does nothing on unhandled errors", ->
-        spyOn(sinon, 'logError').andCallThrough()
-        server.respondWith "GET", "/api/time_entries?per_page=20&page=1", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
-        base.data.loadCollection 'time_entries'
-        server.respond()
-        expect(sinon.logError).not.toHaveBeenCalled()

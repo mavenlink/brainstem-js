@@ -74,10 +74,6 @@ Backbone.sync = (method, model, options) ->
   if params.type == 'PATCH' && window.ActiveXObject && !(window.external && window.external.msActiveXFilteringEnabled)
     params.xhr = -> new ActiveXObject("Microsoft.XMLHTTP")
 
-  if base?.data?.errorInterceptor?
-    errorHandler = options.error
-    options.error = (jqXHR, textStatus, errorThrown) -> base.data.errorInterceptor(errorHandler, model, options, jqXHR, params)
-
   # Make the request, allowing the user to override any Ajax options.
   xhr = options.xhr = Backbone.ajax(_.extend(params, options))
   model.trigger 'request', model, xhr, options

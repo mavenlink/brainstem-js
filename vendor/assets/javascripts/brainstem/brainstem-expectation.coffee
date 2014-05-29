@@ -38,7 +38,7 @@ class window.Brainstem.Expectation
       loader.loadOptions.include = []
 
     if @triggerError?
-      return @manager.errorInterceptor(loader.originalOptions.error, loader.externalObject, loader.originalOptions, @triggerError)
+      loader._onServerLoadError(@triggerError)
 
     @_handleAssociations(loader)
 
