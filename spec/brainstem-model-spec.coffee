@@ -128,15 +128,16 @@ describe 'Brainstem.Model', ->
           my_user: "users"
           user: "users"
           users: ["users"]
+          activity: ["photos", "posts"]
 
       it "returns a hash containing the key, type and plural of the association", ->
-        testClass = new TestClass()
-        expect(TestClass.associationDetails('my_users')).toEqual key: "my_user_ids", type: "HasMany",    collectionName: "storage_system_collection_name"
+        expect(TestClass.associationDetails('my_users')).toEqual key: "my_user_ids", type: "HasMany", collectionName: "storage_system_collection_name"
         expect(TestClass.associationDetails('my_user')).toEqual  key: "my_user_id",  type: "BelongsTo",  collectionName: "users"
         expect(TestClass.associationDetails('user')).toEqual     key: "user_id",     type: "BelongsTo",  collectionName: "users"
         expect(TestClass.associationDetails('users')).toEqual    key: "user_ids",    type: "HasMany",    collectionName: "users"
-
-        expect(testClass.constructor.associationDetails('users')).toEqual   key: "user_ids",    type: "HasMany",    collectionName: "users"
+      
+      it 'returns the correct association details for polymorphic associations', ->        
+        expect(TestClass.associationDetails('activity')).toEqual key: "activity_ref", type: "BelongsTo", collectionName: ["photos", "posts"], polymorphic: true
 
       it "is cached on the class for speed", ->
         original = TestClass.associationDetails('my_users')
@@ -222,80 +223,152 @@ describe 'Brainstem.Model', ->
           expect(testClass.associationsAreLoaded(['user', 'foobar'])).toBe true
 
     describe "get", ->
-      it "should delegate to Backbone.Model#get for anything that is not an association", ->
-        timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2, title: "foo")
-        expect(timeEntry.get("title")).toEqual "foo"
-        expect(timeEntry.get("missing")).toBeUndefined()
+      timeEntry = null
 
-      describe "BelongsTo associations", ->
-        it "should return associations", ->
-          timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2)
-          expect(-> timeEntry.get("project")).toThrow()
-          base.data.storage("projects").add { id: 10, title: "a project!" }
-          expect(timeEntry.get("project").get("title")).toEqual "a project!"
-          expect(timeEntry.get("project")).toEqual base.data.storage("projects").get(10)
+      afterEach ->
+        base.data.reset()
 
-        it "should return null when we don't have an association id", ->
+      describe "attributes not defined as associations", ->
+        beforeEach ->
+          timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2, title: "foo")
+
+        context "when attribute exists", ->
+          it "should delegate to Backbone.Model#get", ->
+            getSpy = spyOn(Backbone.Model.prototype, 'get')
+
+            timeEntry.get("title")
+
+            expect(getSpy).toHaveBeenCalledWith "title"
+
+          it "returns correct value", ->
+            expect(timeEntry.get("title")).toEqual "foo"
+
+        context "does attribute does not exist", ->
+          it "returns undefined", ->
+            expect(timeEntry.get("missing")).toBeUndefined()
+
+      describe "attributes defined as associations", ->
+        beforeEach ->          
           timeEntry = new App.Models.TimeEntry(id: 5, task_id: 2)
-          expect(timeEntry.get("project")).toBeFalsy()
 
-        describe "throwing exceptions when we have an association id that cannot be found" ,->
+        context 'when an association id and association exists', ->
+          beforeEach ->
+            base.data.storage("tasks").add buildTask(id: 2, title: "second time entry")
+
+          it "returns correct value", ->
+            expect(timeEntry.get("task")).toEqual base.data.storage("tasks").get(2)            
+
+        context "when we have an association id that cannot be found", ->
+          beforeEach ->
+            expect(base.data.storage("tasks").get(2)).toBeFalsy()
+
           it "should throw when silent is not supplied or falsy", ->
-            timeEntry = new App.Models.TimeEntry(id: 5, task_id: 2)
             expect(-> timeEntry.get("task")).toThrow()
-            expect(-> timeEntry.get("task", silent: false)).toThrow()
             expect(-> timeEntry.get("task", silent: null)).toThrow()
+            expect(-> timeEntry.get("task", silent: undefined)).toThrow()
+            expect(-> timeEntry.get("task", silent: false)).toThrow()
 
           it "should not throw when silent is true", ->
-            timeEntry = new App.Models.TimeEntry(id: 5, task_id: 2)
-            cb = -> timeEntry.get("task", silent: true)
-            expect(cb).not.toThrow()
+            expect(-> timeEntry.get("task", silent: true)).not.toThrow()           
+
+      describe "BelongsTo associations", ->
+        beforeEach ->
+          base.data.storage("projects").add { id: 10, title: "a project!" }
+
+        describe "when association is a non-polymorphic", ->
+          beforeEach ->
+            timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, title: "foo")
+
+          context "when association id is not present", ->
+            it "should return undefined", ->
+              expect(timeEntry.get("task")).toBeUndefined()
+
+          context "when association id is present", ->
+            it "should delegate to Backbone.Model#get", ->
+              getSpy = spyOn(Backbone.Model.prototype, 'get')
+
+              timeEntry.get("project")
+
+              expect(getSpy).toHaveBeenCalledWith "project_id"
+
+            it "should return association", ->
+              expect(timeEntry.get("project")).toEqual base.data.storage("projects").get(10)
+
+        describe 'when association is polymorphic', ->
+          post = null
+
+          context "when association reference is not present", ->
+            beforeEach ->
+              post = new App.Models.Post(id: 5)
+
+            it "should return undefined", ->
+              expect(post.get("subject")).toBeUndefined()
+
+          context "when association reference is present", ->
+            beforeEach ->
+              post = new App.Models.Post(id: 5, subject_ref: { id: "10", key: "projects" })
+
+            it "should delegate to Backbone.Model#get", ->
+              getSpy = spyOn(Backbone.Model.prototype, 'get')
+
+              post.get("subject")
+
+              expect(getSpy).toHaveBeenCalledWith "subject_ref"
+
+            it "should return association", ->
+              expect(post.get("subject")).toEqual base.data.storage("projects").get(10)
 
       describe "HasMany associations", ->
-        it "should return HasMany associations", ->
-          project = new App.Models.Project(id: 5, time_entry_ids: [2, 5])
-          expect(-> project.get("time_entries")).toThrow()
-          base.data.storage("time_entries").add buildTimeEntry(id: 2, project_id: 5, title: "first time entry")
-          base.data.storage("time_entries").add buildTimeEntry(id: 5, project_id: 5, title: "second time entry")
-          expect(project.get("time_entries").get(2).get("title")).toEqual "first time entry"
-          expect(project.get("time_entries").get(5).get("title")).toEqual "second time entry"
+        project = null
 
-        it "should return null when we don't have any association ids", ->
-          project = new App.Models.Project(id: 5)
-          expect(project.get("time_entries").models).toEqual []
+        beforeEach ->
+          base.data.storage("tasks").add { id: 10, title: "First Task" }
+          base.data.storage("tasks").add { id: 11, title: "Second Task" }
+          project = new App.Models.Project(id: 25, task_ids: [10, 11])
 
-        describe "throwing exceptions when we have an association id but it cannot be found", ->
-          it "should throw when silent is falsy", ->
-            project = new App.Models.Project(id: 5, time_entry_ids: [2, 5])
-            expect(-> project.get("time_entries")).toThrow()
-            expect(-> project.get("time_entries", silent: false)).toThrow()
-            expect(-> project.get("time_entries", silent: null)).toThrow()
+        context "when association ids is not present", ->
+          it "returns an empty collection", ->
+            expect(project.get("time_entries").models).toEqual []
 
-          it "should not throw when silent is truthy", ->
-            project = new App.Models.Project(id: 5, time_entry_ids: [2, 5])
-            cb = -> project.get("time_entries", silent: true)
-            expect(cb).not.toThrow()
+        context "when association ids is present", ->
+          it "should delegate to Backbone.Model#get", ->
+            getSpy = spyOn(Backbone.Model.prototype, 'get')
 
-        it "should apply a sort order to has many associations if it is provided at time of get", ->
-          task = buildAndCacheTask(id: 5, sub_task_ids: [103, 77, 99])
-          buildAndCacheTask(id:103 , position: 3, updated_at: 845785)
-          buildAndCacheTask(id:77 , position: 2, updated_at: 995785)
-          buildAndCacheTask(id:99 , position: 1, updated_at: 635785)
+            project.get("tasks")
 
-          subTasks = task.get("sub_tasks")
-          expect(subTasks.at(0).get('position')).toEqual(3)
-          expect(subTasks.at(1).get('position')).toEqual(2)
-          expect(subTasks.at(2).get('position')).toEqual(1)
+            expect(getSpy).toHaveBeenCalledWith "task_ids"
 
-          subTasks = task.get("sub_tasks", order: "position:asc")
-          expect(subTasks.at(0).get('position')).toEqual(1)
-          expect(subTasks.at(1).get('position')).toEqual(2)
-          expect(subTasks.at(2).get('position')).toEqual(3)
+          it "should return association", ->
+            tasks = project.get("tasks")
 
-          subTasks = task.get("sub_tasks", order: "updated_at:desc")
-          expect(subTasks.at(0).get('id')).toEqual("77")
-          expect(subTasks.at(1).get('id')).toEqual("103")
-          expect(subTasks.at(2).get('id')).toEqual("99")
+            expect(tasks.get(10)).toEqual base.data.storage("tasks").get(10)
+            expect(tasks.get(11)).toEqual base.data.storage("tasks").get(11)
+
+          context 'sort order', ->
+            task = null
+
+            beforeEach ->
+              buildAndCacheTask(id:103 , position: 3, updated_at: 845785)
+              buildAndCacheTask(id:77 , position: 2, updated_at: 995785)
+              buildAndCacheTask(id:99 , position: 1, updated_at: 635785)
+
+              task = buildAndCacheTask(id: 5, sub_task_ids: [103, 77, 99])
+
+            context 'not explicitly specified', ->
+              it "applies the default sort order", ->
+                subTasks = task.get("sub_tasks")
+                
+                expect(subTasks.at(0).get('position')).toEqual(3)
+                expect(subTasks.at(1).get('position')).toEqual(2)
+                expect(subTasks.at(2).get('position')).toEqual(1)
+
+            context 'is explicitly specified', ->
+              it "applies the specified sort order", ->            
+                subTasks = task.get("sub_tasks", order: "position:asc")
+
+                expect(subTasks.at(0).get('position')).toEqual(1)
+                expect(subTasks.at(1).get('position')).toEqual(2)
+                expect(subTasks.at(2).get('position')).toEqual(3)
 
   describe 'invalidateCache', ->
     it 'invalidates all cache objects that a model is a result in', ->

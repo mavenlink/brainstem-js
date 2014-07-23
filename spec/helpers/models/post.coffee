@@ -8,6 +8,8 @@ class App.Models.Post extends Brainstem.Model
     project:            "projects"
     task:               "tasks"
     user:               "users"
+    subject:            ["tasks", "projects"]
+
 
 class App.Collections.Posts extends Brainstem.Collection
   model: App.Models.Post

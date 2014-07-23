@@ -58,16 +58,25 @@ class window.Brainstem.Model extends Backbone.Model
     @associationDetailsCache ||= {}
     if @associations && @associations[association]
       @associationDetailsCache[association] ||= do =>
-        if @associations[association] instanceof Array
+        associator = @associations[association]
+        isArray = _.isArray associator
+        if isArray && associator.length > 1
+          {
+            type: "BelongsTo"
+            collectionName: associator
+            key: "#{association}_ref"
+            polymorphic: true
+          }
+        else if isArray
           {
             type: "HasMany"
-            collectionName: @associations[association][0]
+            collectionName: associator[0]
             key: "#{association.singularize()}_ids"
           }
         else
           {
             type: "BelongsTo"
-            collectionName: @associations[association]
+            collectionName: associator
             key: "#{association}_id"
           }
 
@@ -82,24 +91,34 @@ class window.Brainstem.Model extends Backbone.Model
     _.all associations, (association) =>
       details = @constructor.associationDetails(association)
       if details.type == "BelongsTo"
-        @attributes.hasOwnProperty(details.key) && (@attributes[details.key] == null || base.data.storage(details.collectionName).get(@attributes[details.key]))
+        @attributes.hasOwnProperty(details.key) &&
+        (@attributes[details.key] == null ||
+        base.data.storage(details.collectionName).get(@attributes[details.key]))
       else
-        @attributes.hasOwnProperty(details.key) && _.all(@attributes[details.key], (id) -> base.data.storage(details.collectionName).get(id))
+        @attributes.hasOwnProperty(details.key) && _.all(@attributes[details.key], (id) ->
+          base.data.storage(details.collectionName).get(id))
 
   # Override Model#get to access associations as well as fields.
   get: (field, options = {}) ->
     if details = @constructor.associationDetails(field)
       if details.type == "BelongsTo"
-        id = @get(details.key) # project_id
-        if id?
-          model = base.data.storage(details.collectionName).get(id)
+        value = super(details.key) # project_id
+        if value?
+          if details.polymorphic
+            id = value.id
+            collectionName = value.key
+          else
+            id = value
+            collectionName = details.collectionName
+
+          model = base.data.storage(collectionName).get(id)
 
           if not model && not options.silent
             Brainstem.Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
 
           model
       else
-        ids = @get(details.key) # time_entry_ids
+        ids = super(details.key) # time_entry_ids
         models = []
         notFoundIds = []
         if ids
