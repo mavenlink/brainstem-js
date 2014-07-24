@@ -329,6 +329,13 @@ describe 'Brainstem.Model', ->
         it "returns true", ->
           expect(testClass.associationsAreLoaded(['non_association'])).toBe true
 
+      describe "when given association is empty", ->
+        beforeEach ->
+          testClass = new TestClass()
+
+        it "returns true", ->
+          expect(testClass.associationsAreLoaded([])).toBe true
+
     describe "get", ->
       timeEntry = null
 
