@@ -120,107 +120,214 @@ describe 'Brainstem.Model', ->
         expect(base.data.storage('users').get(6).get('created_at')).toEqual(1359573957000)
 
   describe 'associations', ->
+    
+    class TestClass extends Brainstem.Model
+      @associations:
+        user: "users"
+        project: "projects"
+        users: ["users"]
+        projects: ["projects"]
+        activity: ["tasks", "posts"]
+
     describe 'associationDetails', ->
-
-      class TestClass extends Brainstem.Model
-        @associations:
-          my_users: ["storage_system_collection_name"]
-          my_user: "users"
-          user: "users"
-          users: ["users"]
-          activity: ["photos", "posts"]
-
       it "returns a hash containing the key, type and plural of the association", ->
-        expect(TestClass.associationDetails('my_users')).toEqual key: "my_user_ids", type: "HasMany", collectionName: "storage_system_collection_name"
-        expect(TestClass.associationDetails('my_user')).toEqual  key: "my_user_id",  type: "BelongsTo",  collectionName: "users"
-        expect(TestClass.associationDetails('user')).toEqual     key: "user_id",     type: "BelongsTo",  collectionName: "users"
-        expect(TestClass.associationDetails('users')).toEqual    key: "user_ids",    type: "HasMany",    collectionName: "users"
+        expect(TestClass.associationDetails('user')).toEqual
+          key: "user_id"
+          type: "BelongsTo"
+          collectionName: "users"
+        
+        expect(TestClass.associationDetails('users')).toEqual
+          key: "user_ids"
+          type: "HasMany"
+          collectionName: "users"
       
-      it 'returns the correct association details for polymorphic associations', ->        
-        expect(TestClass.associationDetails('activity')).toEqual key: "activity_ref", type: "BelongsTo", collectionName: ["photos", "posts"], polymorphic: true
+      it 'returns the correct association details for polymorphic associations', ->
+        expect(TestClass.associationDetails('activity')).toEqual
+          key: "activity_ref"
+          type: "BelongsTo"
+          collectionName: ["tasks", "posts"]
+          polymorphic: true
 
       it "is cached on the class for speed", ->
-        original = TestClass.associationDetails('my_users')
-        TestClass.associations.my_users = "something_else"
-        expect(TestClass.associationDetails('my_users')).toEqual original
+        original = TestClass.associationDetails('users')
+        TestClass.associations.users = "something_else"
+        
+        expect(TestClass.associationDetails('users')).toEqual original
 
       it "returns falsy if the association cannot be found", ->
         expect(TestClass.associationDetails("I'mNotAThing")).toBeFalsy()
 
     describe 'associationsAreLoaded', ->
-      describe "with BelongsTo associations", ->
-        it "should return true when all provided associations are loaded for the model", ->
-          timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2)
-          expect(timeEntry.associationsAreLoaded(["project", "task"])).toBeFalsy()
-          buildAndCacheProject( id: 10, title: "a project!")
-          expect(timeEntry.associationsAreLoaded(["project", "task"])).toBeFalsy()
-          expect(timeEntry.associationsAreLoaded(["project"])).toBeTruthy()
-          buildAndCacheTask(id: 2, title: "a task!")
-          expect(timeEntry.associationsAreLoaded(["project", "task"])).toBeTruthy()
-          expect(timeEntry.associationsAreLoaded(["project"])).toBeTruthy()
-          expect(timeEntry.associationsAreLoaded(["task"])).toBeTruthy()
+      testClass = null
+      
+      describe "when association is of type 'BelongsTo'", ->
+        context "and is not polymorphic", ->
+          beforeEach ->
+            testClass = new TestClass(id: 10, user_id: 20, project_id: 30)
 
-        it "should default to all of the associations defined on the model", ->
-          timeEntry = new App.Models.TimeEntry(id: 5, project_id: 10, task_id: 2, user_id: 666)
-          expect(timeEntry.associationsAreLoaded()).toBeFalsy()
-          buildAndCacheProject(id: 10, title: "a project!")
-          expect(timeEntry.associationsAreLoaded()).toBeFalsy()
-          buildAndCacheTask(id: 2, title: "a task!")
-          expect(timeEntry.associationsAreLoaded()).toBeFalsy()
-          buildAndCacheUser(id:666)
-          expect(timeEntry.associationsAreLoaded()).toBeTruthy()
+          context 'when association is loaded', ->
+            beforeEach ->
+              buildAndCacheUser(id: 20)
 
-        it "should appear loaded when an association is null, but not loaded when the key is missing", ->
-          timeEntry = buildAndCacheTimeEntry()
-          delete timeEntry.attributes.project_id
-          expect(timeEntry.associationsAreLoaded(["project"])).toBeFalsy()
-          timeEntry = new App.Models.TimeEntry(id: 5, project_id: null)
-          expect(timeEntry.associationsAreLoaded(["project"])).toBeTruthy()
-          timeEntry = new App.Models.TimeEntry(id: 5, project_id: 2)
-          expect(timeEntry.associationsAreLoaded(["project"])).toBeFalsy()
+            it 'returns true', ->
+              expect(testClass.associationsAreLoaded(["user"])).toBe true
 
-      describe "with HasMany associations", ->
-        it "should return true when all provided associations are loaded", ->
-          project = new App.Models.Project(id: 5, time_entry_ids: [10, 11], task_ids: [2, 3])
-          expect(project.associationsAreLoaded(["time_entries", "tasks"])).toBeFalsy()
-          buildAndCacheTimeEntry(id: 10)
-          expect(project.associationsAreLoaded(["time_entries"])).toBeFalsy()
-          buildAndCacheTimeEntry(id: 11)
-          expect(project.associationsAreLoaded(["time_entries"])).toBeTruthy()
-          expect(project.associationsAreLoaded(["time_entries", "tasks"])).toBeFalsy()
-          expect(project.associationsAreLoaded(["tasks"])).toBeFalsy()
-          buildAndCacheTask(id: 2)
-          expect(project.associationsAreLoaded(["tasks"])).toBeFalsy()
-          buildAndCacheTask(id: 3)
-          expect(project.associationsAreLoaded(["tasks"])).toBeTruthy()
-          expect(project.associationsAreLoaded(["tasks", "time_entries"])).toBeTruthy()
+            context 'when association is requested with another association described on model class', ->
+              context 'when other association is loaded', ->
+                beforeEach ->
+                  buildAndCacheProject(id: 30)
 
-        it "should appear loaded when an association is an empty array, but not loaded when the key is missing", ->
-          project = new App.Models.Project(id: 5, time_entry_ids: [])
-          expect(project.associationsAreLoaded(["time_entries"])).toBeTruthy()
-          expect(project.associationsAreLoaded(["tasks"])).toBeFalsy()
+                it "returns true", ->
+                  expect(testClass.associationsAreLoaded(["user", "project"])).toBe true
 
-      describe "when supplying associations that do not exist", ->
-        class TestClass extends Brainstem.Model
-          @associations:
-            user: "users"
+              context "when other association is not loaded", ->
+                it "returns false", ->
+                  expect(testClass.associationsAreLoaded(["user", "project"])).toBe false
 
-        testClass = null
+            context "when association is requested with a association not described on model class", ->
+              it "returns true", ->
+                expect(testClass.associationsAreLoaded(["user", "non_association"])).toBe true
 
+          context "when association is not loaded", ->
+            beforeEach ->
+              expect(base.data.storage("users").get(20)).toBeFalsy()
+
+            it 'returns false', ->
+              expect(testClass.associationsAreLoaded(["user"])).toBe false
+
+            context 'when association is requested with another association described on model class', ->
+              context 'when other association is loaded', ->
+                beforeEach ->
+                  buildAndCacheProject(id: 30)
+
+                it "returns false", ->
+                  expect(testClass.associationsAreLoaded(["user", "project"])).toBe false
+
+              context "when other association is not loaded", ->
+                it "returns false", ->
+                  expect(testClass.associationsAreLoaded(["user", "project"])).toBe false
+
+            context "when association is requested with a association not described on model class", ->
+              it "returns false", ->
+                expect(testClass.associationsAreLoaded(["user", "non_association"])).toBe false
+
+        context "and is polymorphic", ->
+          beforeEach ->
+            testClass = new TestClass(id: 10, activity_ref: { id: 40, key: "posts" }, project_id: 30)
+
+          context 'when association is loaded', ->
+            beforeEach ->
+              buildAndCachePost(id: 40)
+
+            it 'returns true', ->
+              expect(testClass.associationsAreLoaded(["activity"])).toBe true
+
+            context 'when association is requested with another association described on model class', ->
+              context 'when other association is loaded', ->
+                beforeEach ->
+                  buildAndCacheProject(id: 30)
+
+                it "returns true", ->
+                  expect(testClass.associationsAreLoaded(["activity", "project"])).toBe true
+
+              context "when other association is not loaded", ->
+                it "returns false", ->
+                  expect(testClass.associationsAreLoaded(["activity", "project"])).toBe false
+
+            context "when association is requested with a association not described on model class", ->
+              it "returns true", ->
+                expect(testClass.associationsAreLoaded(["activity", "non_association"])).toBe true
+
+          context "when association is not loaded", ->
+            beforeEach ->
+              expect(base.data.storage("posts").get(20)).toBeFalsy()
+
+            it 'returns false', ->
+              expect(testClass.associationsAreLoaded(["activity"])).toBe false
+
+            context 'when association is requested with another association described on model class', ->
+              context 'when other association is loaded', ->
+                beforeEach ->
+                  buildAndCacheProject(id: 30)
+
+                it "returns false", ->
+                  expect(testClass.associationsAreLoaded(["activity", "project"])).toBe false
+
+              context "when other association is not loaded", ->
+                it "returns false", ->
+                  expect(testClass.associationsAreLoaded(["activity", "project"])).toBe false
+
+            context "when association is requested with a association not described on model class", ->
+              it "returns false", ->
+                expect(testClass.associationsAreLoaded(["activity", "non_association"])).toBe false
+
+      describe "when association is of type 'HasMany'", ->
+        beforeEach ->
+          testClass = new TestClass(id: 10, user_ids: [20, 30], project_ids: [40, 50])
+
+        context 'when association is partially loaded', ->
+          beforeEach ->
+            buildAndCacheUser(id: 20)
+
+          it 'returns false', ->
+            expect(testClass.associationsAreLoaded(["users"])).toBe false
+
+        context 'when association is loaded', ->
+          beforeEach ->
+            buildAndCacheUser(id: 20)
+            buildAndCacheUser(id: 30)
+
+          it 'returns true', ->
+            expect(testClass.associationsAreLoaded(["users"])).toBe true
+
+          context 'when association is requested with another association described on model class', ->
+            context 'when other association is loaded', ->
+              beforeEach ->
+                buildAndCacheProject(id: 40)
+                buildAndCacheProject(id: 50)
+
+              it "returns true", ->
+                expect(testClass.associationsAreLoaded(["users", "projects"])).toBe true
+
+            context "when other association is not loaded", ->
+              it "returns false", ->
+                expect(testClass.associationsAreLoaded(["users", "projects"])).toBe false
+
+          context "when association is requested with a association not described on model class", ->
+            it "returns true", ->
+              expect(testClass.associationsAreLoaded(["users", "non_associations"])).toBe true
+
+        context "when association is not loaded", ->
+          beforeEach ->
+            expect(base.data.storage("users").get(20)).toBeFalsy()
+            expect(base.data.storage("users").get(30)).toBeFalsy()
+
+          it 'returns false', ->
+            expect(testClass.associationsAreLoaded(["users"])).toBe false
+
+          context 'when association is requested with another association described on model class', ->
+            context 'when other association is loaded', ->
+              beforeEach ->
+                buildAndCacheProject(id: 40)
+                buildAndCacheProject(id: 50)
+
+              it "returns false", ->
+                expect(testClass.associationsAreLoaded(["users", "projects"])).toBe false
+
+            context "when other association is not loaded", ->
+              it "returns false", ->
+                expect(testClass.associationsAreLoaded(["users", "projects"])).toBe false
+
+          context "when association is requested with a association not described on model class", ->
+            it "returns false", ->
+              expect(testClass.associationsAreLoaded(["users", "non_associations"])).toBe false
+
+      describe "when given association does not exist", ->
         beforeEach ->
           testClass = new TestClass()
 
-        it "returns true when supplying only an association that does not exist", ->
-          expect(testClass.associationsAreLoaded(['foobar'])).toBe true
-          expect(testClass.associationsAreLoaded(['user'])).toBe false
-
-        it "returns false when supplying both a real association that is not loaded and an association that does not exist", ->
-          expect(testClass.associationsAreLoaded(['user', 'foobar'])).toBe false
-
-        it "returns true when supplying a real association that is loaded and an association that does not exist", ->
-          testClass.set('user_id', buildAndCacheUser().id)
-          expect(testClass.associationsAreLoaded(['user'])).toBe true
-          expect(testClass.associationsAreLoaded(['user', 'foobar'])).toBe true
+        it "returns true", ->
+          expect(testClass.associationsAreLoaded(['non_association'])).toBe true
 
     describe "get", ->
       timeEntry = null
