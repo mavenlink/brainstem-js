@@ -54,8 +54,9 @@ Once you have a StorageManager, you should setup some `Brainstem.Models` and `Br
 	  urlRoot: '/api/v1/widgets'
 	
 	  @associations:
-	    features: ["features"]
-	    location: "locations"
+	    features: ["features"] # Has many
+	    location: "locations" # Belongs to
+	    parent: ["sprocket", "widget"] # Belongs to (polymorphic)
 	
 	class Collections.Widgets extends Brainstem.Collection
 	  model: Models.Widget

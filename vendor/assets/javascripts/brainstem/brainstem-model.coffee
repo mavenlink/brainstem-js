@@ -58,16 +58,25 @@ class window.Brainstem.Model extends Backbone.Model
     @associationDetailsCache ||= {}
     if @associations && @associations[association]
       @associationDetailsCache[association] ||= do =>
-        if @associations[association] instanceof Array
+        associator = @associations[association]
+        isArray = _.isArray associator
+        if isArray && associator.length > 1
+          {
+            type: "BelongsTo"
+            collectionName: associator
+            key: "#{association}_ref"
+            polymorphic: true
+          }
+        else if isArray
           {
             type: "HasMany"
-            collectionName: @associations[association][0]
+            collectionName: associator[0]
             key: "#{association.singularize()}_ids"
           }
         else
           {
             type: "BelongsTo"
-            collectionName: @associations[association]
+            collectionName: associator
             key: "#{association}_id"
           }
 
@@ -77,29 +86,48 @@ class window.Brainstem.Model extends Backbone.Model
   #   model.associationsAreLoaded() # => true|false
   associationsAreLoaded: (associations) ->
     associations ||= _.keys(@constructor.associations)
-    associations = _.select associations, (association) => @constructor.associationDetails(association)
+    associations = _.filter associations, (association) => @constructor.associationDetails(association)
 
     _.all associations, (association) =>
-      details = @constructor.associationDetails(association)
+      details = @constructor.associationDetails association
+      key = details.key
+
+      return false unless _(@attributes).has key
+
+      pointer = @attributes[key]
+
       if details.type == "BelongsTo"
-        @attributes.hasOwnProperty(details.key) && (@attributes[details.key] == null || base.data.storage(details.collectionName).get(@attributes[details.key]))
+        if pointer == null
+          true
+        else if details.polymorphic
+          base.data.storage(pointer.key).get(pointer.id)
+        else
+          base.data.storage(details.collectionName).get(pointer)
       else
-        @attributes.hasOwnProperty(details.key) && _.all(@attributes[details.key], (id) -> base.data.storage(details.collectionName).get(id))
+        _.all pointer, (id) ->
+          base.data.storage(details.collectionName).get(id)
 
   # Override Model#get to access associations as well as fields.
   get: (field, options = {}) ->
     if details = @constructor.associationDetails(field)
       if details.type == "BelongsTo"
-        id = @get(details.key) # project_id
-        if id?
-          model = base.data.storage(details.collectionName).get(id)
+        pointer = super(details.key) # project_id
+        if pointer?
+          if details.polymorphic
+            id = pointer.id
+            collectionName = pointer.key
+          else
+            id = pointer
+            collectionName = details.collectionName
+
+          model = base.data.storage(collectionName).get(pointer)
 
           if not model && not options.silent
             Brainstem.Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
 
           model
       else
-        ids = @get(details.key) # time_entry_ids
+        ids = super(details.key) # time_entry_ids
         models = []
         notFoundIds = []
         if ids

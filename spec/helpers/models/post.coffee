@@ -4,10 +4,12 @@ class App.Models.Post extends Brainstem.Model
   urlRoot: '/api/posts'
 
   @associations:
-    replies:            ["posts"]
-    project:            "projects"
-    task:               "tasks"
-    user:               "users"
+    replies:  ["posts"]
+    project:  "projects"
+    task:     "tasks"
+    user:     "users"
+    subject:  ["tasks", "projects"]
+
 
 class App.Collections.Posts extends Brainstem.Collection
   model: App.Models.Post
