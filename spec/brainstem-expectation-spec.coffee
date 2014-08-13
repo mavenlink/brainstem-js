@@ -208,7 +208,7 @@ describe 'Brainstem Expectations', ->
         stub.results = []
       expect(expectation.lastMatch()).toBeUndefined()
 
-  describe "optionsMatch", ->
+  describe "loaderOptionsMatch", ->
     it "should ignore wrapping arrays", ->
       expectation = new Brainstem.Expectation("projects", { include: "workspaces" }, manager)
       loader = new Brainstem.CollectionLoader(storageManager: manager)

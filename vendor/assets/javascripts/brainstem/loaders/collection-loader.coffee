@@ -1,8 +1,18 @@
 window.Brainstem ?= {}
 
 class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
+
+  #
+  # Accessors
+
   getCollection: ->
     @externalObject
+
+
+  #
+  # Private
+
+  # Accessors
 
   _getCollectionName: ->
     @loadOptions.name
@@ -10,14 +20,37 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
   _getExpectationName: ->
     @_getCollectionName()
 
+  _getModel: ->
+    @internalObject.model
+
+  _getModelsForAssociation: (association) ->
+    @internalObject.map (m) => @_modelsOrObj(m.get(association))
+
+
+  # Control
+
   _createObjects: ->
+    keys = ['name', 'filters', 'page', 'perPage', 'limit', 'offset', 'order', 'search', 'cacheKey']
+
     @internalObject = @storageManager.createNewCollection @loadOptions.name, []
 
     @externalObject = @loadOptions.collection || @storageManager.createNewCollection @loadOptions.name, []
     @externalObject.setLoaded false
     @externalObject.reset([], silent: false) if @loadOptions.reset
-    @externalObject.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), 'name', 'filters', 'page', 'perPage', 'limit', 'offset', 'order', 'search', 'cacheKey')
+    @externalObject.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), keys)
     @externalObject.lastFetchOptions.include = @originalOptions.include
+
+  _updateObjects: (object, data, silent = false) ->
+    object.setLoaded true, trigger: false
+
+    if data
+      data = data.models if data.models?
+      if object.length
+        object.add data
+      else
+        object.reset data
+
+    object.setLoaded true unless silent
 
   _updateStorageManagerFromResponse: (resp) ->
     # The server response should look something like this:
@@ -47,20 +80,3 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
     @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = cachedData
     _.map(results, (result) => @storageManager.storage(result.key).get(result.id))
 
-  _updateObjects: (object, data, silent = false) ->
-    object.setLoaded true, trigger: false
-
-    if data
-      data = data.models if data.models?
-      if object.length
-        object.add data
-      else
-        object.reset data
-
-    object.setLoaded true unless silent
-
-  _getModel: ->
-    @internalObject.model
-
-  _getModelsForAssociation: (association) ->
-    @internalObject.map (m) => @_modelsOrObj(m.get(association))

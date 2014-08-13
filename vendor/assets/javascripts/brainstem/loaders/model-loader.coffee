@@ -1,8 +1,18 @@
 window.Brainstem ?= {}
 
 class Brainstem.ModelLoader extends Brainstem.AbstractLoader
+
+  #
+  # Accessors
+
   getModel: ->
     @externalObject
+
+
+  #
+  # Private
+
+  # Accessors
 
   _getCollectionName: ->
     @loadOptions.name.pluralize()
@@ -10,10 +20,20 @@ class Brainstem.ModelLoader extends Brainstem.AbstractLoader
   _getExpectationName: ->
     @loadOptions.name
 
+  _getModel: ->
+    @internalObject.constructor
+
+  _getModelsForAssociation: (association) ->
+    @_modelsOrObj(@internalObject.get(association))
+
+
+  # Control
+
   _createObjects: ->
     id = @loadOptions.only[0]
 
-    @internalObject = @storageManager.storage(@_getCollectionName()).get(id) || @storageManager.createNewModel(@loadOptions.name, id: id)
+    @internalObject = @storageManager.storage(@_getCollectionName()).get(id) ||
+                      @storageManager.createNewModel(@loadOptions.name, id: id)
     @externalObject = @internalObject
 
   _updateStorageManagerFromResponse: (resp) ->
@@ -27,9 +47,3 @@ class Brainstem.ModelLoader extends Brainstem.AbstractLoader
       data = data.attributes
 
     object.set(data)
-
-  _getModel: ->
-    @internalObject.constructor
-
-  _getModelsForAssociation: (association) ->
-    @_modelsOrObj(@internalObject.get(association))

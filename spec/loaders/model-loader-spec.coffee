@@ -35,6 +35,21 @@ describe 'Loaders ModelLoader', ->
         loader.setup(opts)
         expect(loader._getCollectionName()).toEqual 'tasks'
 
+    describe '#_getModel', ->
+      it 'returns the constructor of the internalObject', ->
+        loader.setup(opts)
+        expect(loader._getModel()).toEqual App.Models.Task
+
+    describe '#_getModelsForAssociation', ->
+      it 'returns the models from the internalObject for a given association', ->
+        loader.setup(opts)
+        user = buildAndCacheUser()
+        loader.internalObject.set('assignee_ids', [user.id])
+
+        expect(loader._getModelsForAssociation('assignees')).toEqual [user] # Association with a model in it
+        expect(loader._getModelsForAssociation('parent')).toEqual [] # Association without any models
+        expect(loader._getModelsForAssociation('adfasfa')).toEqual [] # Association that does not exist
+
     describe '#_createObjects', ->
       model = null
 
@@ -67,7 +82,7 @@ describe 'Loaders ModelLoader', ->
         loader._updateStorageManagerFromResponse('test response')
         expect(loader.internalObject.parse).toHaveBeenCalledWith 'test response'
 
-    describe '#_updateObject', ->
+    describe '#_updateObjects', ->
       it 'works with a Backbone.Model', ->
         loader.setup(opts)
         loader._updateObjects(loader.internalObject, new Backbone.Model(name: 'foo'))
@@ -82,18 +97,3 @@ describe 'Loaders ModelLoader', ->
         loader.setup(opts)
         loader._updateObjects(loader.internalObject, [name: 'foo'])
         expect(loader.internalObject.get('name')).toEqual 'foo'
-
-    describe '#_getModel', ->
-      it 'returns the constructor of the internalObject', ->
-        loader.setup(opts)
-        expect(loader._getModel()).toEqual App.Models.Task
-
-    describe '#_getModelsForAssociation', ->
-      it 'returns the models from the internalObject for a given association', ->
-        loader.setup(opts)
-        user = buildAndCacheUser()
-        loader.internalObject.set('assignee_ids', [user.id])
-
-        expect(loader._getModelsForAssociation('assignees')).toEqual [user] # Association with a model in it
-        expect(loader._getModelsForAssociation('parent')).toEqual [] # Association without any models
-        expect(loader._getModelsForAssociation('adfasfa')).toEqual [] # Association that does not exist
