@@ -34,6 +34,24 @@ describe 'Loaders CollectionLoader', ->
         loader.setup(opts)
         expect(loader._getCollectionName()).toEqual 'tasks'
 
+    describe '#_getModel', ->
+      it 'returns the model from the internal collection', ->
+        loader.setup(opts)
+        expect(loader._getModel()).toEqual App.Models.Task
+
+    describe '#_getModelsForAssociation', ->
+      it 'returns the models for a given association from all of the models in the internal collection', ->
+        loader.setup(opts)
+        user = buildAndCacheUser()
+        user2 = buildAndCacheUser()
+
+        loader.internalObject.add(new App.Models.Task(assignee_ids: [user.id]))
+        loader.internalObject.add(new App.Models.Task(assignee_ids: [user2.id]))
+
+        expect(loader._getModelsForAssociation('assignees')).toEqual [[user], [user2]] # Association with a model in it
+        expect(loader._getModelsForAssociation('parent')).toEqual [[], []] # Association without any models
+        expect(loader._getModelsForAssociation('adfasfa')).toEqual [[], []] # Association that does not exist
+
     describe '#_createObjects', ->
       collection = null
 
@@ -95,6 +113,36 @@ describe 'Loaders CollectionLoader', ->
         for e in list
           expect(loader.externalObject.lastFetchOptions[e]).toEqual true
 
+    describe '#_updateObject', ->
+      it 'triggers loaded on the object after the attributes have been set', ->
+        loadedSpy = jasmine.createSpy().andCallFake -> 
+          expect(this.length).toEqual 1 # make sure that the spy is called after the models have been added (tests the trigger: false)
+
+        loader.setup(opts)
+        loader.internalObject.listenTo loader.internalObject, 'loaded', loadedSpy
+
+        loader._updateObjects(loader.internalObject, [{foo: 'bar'}])
+        expect(loadedSpy).toHaveBeenCalled()
+
+      it 'works with a Backbone.Collection', ->
+        loader.setup(opts)
+        loader._updateObjects(loader.internalObject, new Backbone.Collection([new Backbone.Model(name: 'foo')]))
+        expect(loader.internalObject.length).toEqual 1
+
+      it 'works with an array of models', ->
+        loader.setup(opts)
+        loader._updateObjects(loader.internalObject, [new Backbone.Model(name: 'foo'), new Backbone.Model(name: 'test')])
+        expect(loader.internalObject.length).toEqual 2
+
+      it 'works with a single model', ->
+        loader.setup(opts)
+        spy = jasmine.createSpy()
+        loader.internalObject.listenTo loader.internalObject, 'reset', spy
+
+        loader._updateObjects(loader.internalObject, new Backbone.Model(name: 'foo'))
+        expect(loader.internalObject.length).toEqual 1
+        expect(spy).toHaveBeenCalled()
+
     describe '#_updateStorageManagerFromResponse', ->
       # TODO: everything that is not tested here is tested right now through integration tests for StorageManager.
 
@@ -136,51 +184,3 @@ describe 'Loaders CollectionLoader', ->
 
             loader._updateStorageManagerFromResponse(fakeResponse)
             expect(loader.getCacheObject()).not.toBeUndefined()
-
-    describe '#_updateObject', ->
-      it 'triggers loaded on the object after the attributes have been set', ->
-        loadedSpy = jasmine.createSpy().andCallFake -> 
-          expect(this.length).toEqual 1 # make sure that the spy is called after the models have been added (tests the trigger: false)
-
-        loader.setup(opts)
-        loader.internalObject.listenTo loader.internalObject, 'loaded', loadedSpy
-
-        loader._updateObjects(loader.internalObject, [{foo: 'bar'}])
-        expect(loadedSpy).toHaveBeenCalled()
-
-      it 'works with a Backbone.Collection', ->
-        loader.setup(opts)
-        loader._updateObjects(loader.internalObject, new Backbone.Collection([new Backbone.Model(name: 'foo')]))
-        expect(loader.internalObject.length).toEqual 1
-
-      it 'works with an array of models', ->
-        loader.setup(opts)
-        loader._updateObjects(loader.internalObject, [new Backbone.Model(name: 'foo'), new Backbone.Model(name: 'test')])
-        expect(loader.internalObject.length).toEqual 2
-
-      it 'works with a single model', ->
-        loader.setup(opts)
-        spy = jasmine.createSpy()
-        loader.internalObject.listenTo loader.internalObject, 'reset', spy
-
-        loader._updateObjects(loader.internalObject, new Backbone.Model(name: 'foo'))
-        expect(loader.internalObject.length).toEqual 1
-        expect(spy).toHaveBeenCalled()
-
-    describe '#_getModel', ->
-      it 'returns the model from the internal collection', ->
-        loader.setup(opts)
-        expect(loader._getModel()).toEqual App.Models.Task
-
-    describe '#_getModelsForAssociation', ->
-      it 'returns the models for a given association from all of the models in the internal collection', ->
-        loader.setup(opts)
-        user = buildAndCacheUser()
-        user2 = buildAndCacheUser()
-
-        loader.internalObject.add(new App.Models.Task(assignee_ids: [user.id]))
-        loader.internalObject.add(new App.Models.Task(assignee_ids: [user2.id]))
-
-        expect(loader._getModelsForAssociation('assignees')).toEqual [[user], [user2]] # Association with a model in it
-        expect(loader._getModelsForAssociation('parent')).toEqual [[], []] # Association without any models
-        expect(loader._getModelsForAssociation('adfasfa')).toEqual [[], []] # Association that does not exist

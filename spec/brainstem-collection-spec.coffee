@@ -5,6 +5,29 @@ describe 'Brainstem.Collection', ->
     collection = new Brainstem.Collection([{id: 2, title: "1"}, {id: 3, title: "2"}, {title: "3"}])
     updateArray = [{id: 2, title: "1 new"}, {id: 4, title: "this is new"}]
 
+  describe "#getServerCount", ->
+    context 'lastFetchOptions are set', ->
+      it 'returns the cached count', ->
+        posts = (buildPost(message: "old post", reply_ids: []) for i in [1..5])
+        respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1", resultsFrom: "posts", data: { count: posts.length, posts: posts }
+        loader = base.data.loadObject "posts", include: ["replies"], filters: { parents_only: "true" }, perPage: 5
+        
+        expect(loader.getCollection().getServerCount()).toBeUndefined()
+        server.respond()
+        expect(loader.getCacheObject().count).toEqual posts.length
+        expect(loader.getCollection().getServerCount()).toEqual posts.length
+
+    context 'lastFetchOptions are not set', ->
+      it 'returns undefined', ->
+        collection = base.data.createNewCollection 'tasks'
+        expect(collection.getServerCount()).toBeUndefined()
+
+  describe "getWithAssocation", ->
+    it "defaults to the regular get", ->
+      spyOn(collection, 'get')
+      collection.getWithAssocation(10)
+      expect(collection.get).toHaveBeenCalledWith(10)
+
   describe 'update', ->
     it "works with an array", ->
       collection.update updateArray
@@ -26,6 +49,34 @@ describe 'Brainstem.Collection', ->
       collection.update updateArray
       expect(model.get('title')).toEqual "1 new"
       expect(spy).toHaveBeenCalled()
+
+  describe "reload", ->
+    it "reloads the collection with the original params", ->
+      respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "old post", reply_ids: [])] }
+      collection = base.data.loadCollection "posts", include: ["replies"], filters: { parents_only: "true" }, perPage: 5
+      server.respond()
+      expect(collection.lastFetchOptions.page).toEqual 1
+      expect(collection.lastFetchOptions.perPage).toEqual 5
+      expect(collection.lastFetchOptions.include).toEqual ["replies"]
+      server.responses = []
+      respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "new post", reply_ids: [])] }
+      expect(collection.models[0].get("message")).toEqual "old post"
+      resetCounter = jasmine.createSpy("resetCounter")
+      loadedCounter = jasmine.createSpy("loadedCounter")
+      callback = jasmine.createSpy("callback spy")
+      collection.bind "reset", resetCounter
+      collection.bind "loaded", loadedCounter
+
+      collection.reload success: callback
+
+      expect(collection.loaded).toBe false
+      expect(collection.length).toEqual 0
+      server.respond()
+      expect(collection.length).toEqual 1
+      expect(collection.models[0].get("message")).toEqual "new post"
+      expect(resetCounter.callCount).toEqual 1
+      expect(loadedCounter.callCount).toEqual 1
+      expect(callback).toHaveBeenCalledWith(collection)
 
   describe "loadNextPage", ->
     it "loads the next page of data for a collection that has previously been loaded in the storage manager, returns the collection and whether it thinks there is another page or not", ->
@@ -78,57 +129,6 @@ describe 'Brainstem.Collection', ->
       expect(collection.lastFetchOptions.offset).toEqual 4
       expect(collection.length).toEqual 5
 
-  describe "reload", ->
-    it "reloads the collection with the original params", ->
-      respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "old post", reply_ids: [])] }
-      collection = base.data.loadCollection "posts", include: ["replies"], filters: { parents_only: "true" }, perPage: 5
-      server.respond()
-      expect(collection.lastFetchOptions.page).toEqual 1
-      expect(collection.lastFetchOptions.perPage).toEqual 5
-      expect(collection.lastFetchOptions.include).toEqual ["replies"]
-      server.responses = []
-      respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1", resultsFrom: "posts", data: { posts: [buildPost(message: "new post", reply_ids: [])] }
-      expect(collection.models[0].get("message")).toEqual "old post"
-      resetCounter = jasmine.createSpy("resetCounter")
-      loadedCounter = jasmine.createSpy("loadedCounter")
-      callback = jasmine.createSpy("callback spy")
-      collection.bind "reset", resetCounter
-      collection.bind "loaded", loadedCounter
-
-      collection.reload success: callback
-
-      expect(collection.loaded).toBe false
-      expect(collection.length).toEqual 0
-      server.respond()
-      expect(collection.length).toEqual 1
-      expect(collection.models[0].get("message")).toEqual "new post"
-      expect(resetCounter.callCount).toEqual 1
-      expect(loadedCounter.callCount).toEqual 1
-      expect(callback).toHaveBeenCalledWith(collection)
-
-  describe "getWithAssocation", ->
-    it "defaults to the regular get", ->
-      spyOn(collection, 'get')
-      collection.getWithAssocation(10)
-      expect(collection.get).toHaveBeenCalledWith(10)
-
-  describe "#getServerCount", ->
-    context 'lastFetchOptions are set', ->
-      it 'returns the cached count', ->
-        posts = (buildPost(message: "old post", reply_ids: []) for i in [1..5])
-        respondWith server, "/api/posts?include=replies&parents_only=true&per_page=5&page=1", resultsFrom: "posts", data: { count: posts.length, posts: posts }
-        loader = base.data.loadObject "posts", include: ["replies"], filters: { parents_only: "true" }, perPage: 5
-        
-        expect(loader.getCollection().getServerCount()).toBeUndefined()
-        server.respond()
-        expect(loader.getCacheObject().count).toEqual posts.length
-        expect(loader.getCollection().getServerCount()).toEqual posts.length
-
-    context 'lastFetchOptions are not set', ->
-      it 'returns undefined', ->
-        collection = base.data.createNewCollection 'tasks'
-        expect(collection.getServerCount()).toBeUndefined()
-
   describe '#invalidateCache', ->
     it 'invalidates the cache object', ->
       posts = (buildPost(message: "old post", reply_ids: []) for i in [1..5])
@@ -141,6 +141,12 @@ describe 'Brainstem.Collection', ->
       expect(loader.getCacheObject().valid).toEqual true
       loader.getCollection().invalidateCache()
       expect(loader.getCacheObject().valid).toEqual false
+
+  describe "toServerJSON", ->
+    it "calls through to toJSON", ->
+      spy = spyOn(collection, 'toJSON')
+      collection.toServerJSON()
+      expect(spy).toHaveBeenCalled()
 
   describe 'setLoaded', ->
     it "should set the values of @loaded", ->
@@ -168,12 +174,6 @@ describe 'Brainstem.Collection', ->
       collection.bind "loaded", spy
       collection.setLoaded true
       expect(spy).toHaveBeenCalledWith(collection)
-
-  describe "toServerJSON", ->
-    it "calls through to toJSON", ->
-      spy = spyOn(collection, 'toJSON')
-      collection.toServerJSON()
-      expect(spy).toHaveBeenCalled()
 
   describe "ordering and filtering", ->
     beforeEach ->

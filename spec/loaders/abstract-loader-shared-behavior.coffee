@@ -85,6 +85,18 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       externalObject = loader.setup()
       expect(externalObject).toEqual(loader.externalObject)
 
+  describe '#getCacheObject', ->
+    it 'returns the object', ->
+      loader = createLoader()
+      opts = defaultLoadOptions()
+      loader.setup(opts)
+      cacheKey = loader.loadOptions.cacheKey
+      
+      expect(loader.getCacheObject()).toBeUndefined()
+      fakeCache = [key: "tasks", id: 5]
+      loader.storageManager.getCollectionDetails(loader._getCollectionName()).cache[cacheKey] = fakeCache
+      expect(loader.getCacheObject()).toEqual fakeCache
+
   describe '#load', ->
     describe 'sanity checking loadOptions', ->
       funct = null
@@ -141,6 +153,27 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           loader.setup()
           loader.load()
           expect(loader._loadFromServer).toHaveBeenCalled()
+
+  describe '#_getIdsForAssociation', ->
+    it 'returns the flattened, unique, sorted, and non-null IDs from the models that are returned from #_getModelsForAssociation', ->
+      loader = createLoader()
+      expect(loader._getIdsForAssociation('foo')).toEqual [1, 2, 4, 5, 6]
+
+  describe '#_updateObjects', ->
+    fakeObj = null
+
+    beforeEach ->
+      loader = createLoader()
+      fakeObj = setLoaded: jasmine.createSpy()
+      loader._updateObjects.andCallThrough()
+
+    it 'sets the object to loaded if silent is false', ->
+      loader._updateObjects(fakeObj, {})
+      expect(fakeObj.setLoaded).toHaveBeenCalled()
+
+    it 'does not set the object to loaded if silent is true', ->
+      loader._updateObjects(fakeObj, {}, true)
+      expect(fakeObj.setLoaded).not.toHaveBeenCalled()
 
   describe '#_parseLoadOptions', ->
     opts = null
@@ -226,18 +259,6 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     it 'sets the cachedCollection on the loader from the storageManager', ->
       loader._parseLoadOptions(opts)
       expect(loader.cachedCollection).toEqual loader.storageManager.storage(loader.loadOptions.name)
-
-  describe '#getCacheObject', ->
-    it 'returns the object', ->
-      loader = createLoader()
-      opts = defaultLoadOptions()
-      loader.setup(opts)
-      cacheKey = loader.loadOptions.cacheKey
-      
-      expect(loader.getCacheObject()).toBeUndefined()
-      fakeCache = [key: "tasks", id: 5]
-      loader.storageManager.getCollectionDetails(loader._getCollectionName()).cache[cacheKey] = fakeCache
-      expect(loader.getCacheObject()).toEqual fakeCache
 
   describe '#_checkCacheForData', ->
     opts = null
@@ -355,16 +376,55 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       ret = loader._loadFromServer()
       expect(ret).toEqual loader.externalObject
 
-  describe '#_shouldUseOnly', ->
-    it 'returns true if internalObject is an instance of a Backbone.Collection', ->
-      loader = createLoader()
-      loader.internalObject = new Backbone.Collection()
-      expect(loader._shouldUseOnly()).toEqual true
+  describe '#_calculateAdditionalIncludes', ->
+    opts = null
 
-    it 'returns false if internalObject is not an instance of a Backbone.Collection', ->
+    beforeEach ->
       loader = createLoader()
-      loader.internalObject = new Backbone.Model()
-      expect(loader._shouldUseOnly()).toEqual false
+      opts = defaultLoadOptions()
+
+      spyOn(loader, '_getIdsForAssociation').andReturn [1, 2]
+
+    it 'adds each additional (sub) include to the additionalIncludes array', ->
+      opts.include = fakeNestedInclude
+      loader.setup(opts)
+
+      loader._calculateAdditionalIncludes()
+      expect(loader.additionalIncludes.length).toEqual 2
+      expect(loader.additionalIncludes).toEqual [
+        { name: 'project', ids: [1, 2], include: [participants: []] }
+        { name: 'assignees', ids: [1, 2], include: [something_else: []] }
+      ]
+
+  describe '#_loadAdditionalIncludes', ->
+    opts = null
+
+    beforeEach ->
+      loader = createLoader()
+      opts = defaultLoadOptions()
+      opts.include = fakeNestedInclude
+
+      loader.setup(opts)
+      loader._calculateAdditionalIncludes()
+
+      spyOn(loader, '_onLoadingCompleted')
+
+    it 'creates a request for each additional include and calls #_onLoadingCompleted when they all are done', ->
+      promises = []
+      spyOn(loader.storageManager, 'loadObject').andCallFake ->
+        promise = $.Deferred()
+        promises.push(promise)
+        promise
+
+      loader._loadAdditionalIncludes()
+      expect(loader.storageManager.loadObject.callCount).toEqual 2
+      expect(promises.length).toEqual 2
+      expect(loader._onLoadingCompleted).not.toHaveBeenCalled()
+
+      for promise in promises
+        promise.resolve()
+
+      expect(loader._onLoadingCompleted).toHaveBeenCalled()
 
   describe '#_buildSyncOptions', ->
     syncOptions = opts = null
@@ -487,6 +547,35 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         opts.search = 'term'
         expect(getSyncOptions(loader, opts).data.search).toEqual 'term'
 
+  describe '#_shouldUseOnly', ->
+    it 'returns true if internalObject is an instance of a Backbone.Collection', ->
+      loader = createLoader()
+      loader.internalObject = new Backbone.Collection()
+      expect(loader._shouldUseOnly()).toEqual true
+
+    it 'returns false if internalObject is not an instance of a Backbone.Collection', ->
+      loader = createLoader()
+      loader.internalObject = new Backbone.Model()
+      expect(loader._shouldUseOnly()).toEqual false
+
+  describe '#_modelsOrObj', ->
+    beforeEach ->
+      loader = createLoader()
+
+    context 'obj is a Backbone.Collection', ->
+      it 'returns the models from the collection', ->
+        collection = new Backbone.Collection()
+        collection.add([new Backbone.Model(), new Backbone.Model])
+        expect(loader._modelsOrObj(collection)).toEqual(collection.models)
+
+    context 'obj is not a Backbone.Collection', ->
+      it 'returns the obj or an empty array', ->
+        obj = []
+        expect(loader._modelsOrObj(obj)).toEqual(obj)
+
+        obj = null
+        expect(loader._modelsOrObj(obj)).toEqual([])
+
   describe '#_onServerLoadSuccess', ->
     beforeEach ->
       loader = createLoader()
@@ -501,26 +590,6 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
       loader._onServerLoadSuccess()
       expect(loader._onLoadSuccess).toHaveBeenCalledWith 'data'
-
-  describe '#_calculateAdditionalIncludes', ->
-    opts = null
-
-    beforeEach ->
-      loader = createLoader()
-      opts = defaultLoadOptions()
-
-      spyOn(loader, '_getIdsForAssociation').andReturn [1, 2]
-
-    it 'adds each additional (sub) include to the additionalIncludes array', ->
-      opts.include = fakeNestedInclude
-      loader.setup(opts)
-
-      loader._calculateAdditionalIncludes()
-      expect(loader.additionalIncludes.length).toEqual 2
-      expect(loader.additionalIncludes).toEqual [
-        { name: 'project', ids: [1, 2], include: [participants: []] }
-        { name: 'assignees', ids: [1, 2], include: [something_else: []] }
-      ]
 
   describe '#_onLoadSuccess', ->
     beforeEach ->
@@ -566,72 +635,3 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
       loader._onLoadingCompleted()
       expect(spy).toHaveBeenCalledWith(loader.externalObject)
-
-  describe '#_updateObjects', ->
-    fakeObj = null
-
-    beforeEach ->
-      loader = createLoader()
-      fakeObj = setLoaded: jasmine.createSpy()
-      loader._updateObjects.andCallThrough()
-
-    it 'sets the object to loaded if silent is false', ->
-      loader._updateObjects(fakeObj, {})
-      expect(fakeObj.setLoaded).toHaveBeenCalled()
-
-    it 'does not set the object to loaded if silent is true', ->
-      loader._updateObjects(fakeObj, {}, true)
-      expect(fakeObj.setLoaded).not.toHaveBeenCalled()
-
-  describe '#_loadAdditionalIncludes', ->
-    opts = null
-
-    beforeEach ->
-      loader = createLoader()
-      opts = defaultLoadOptions()
-      opts.include = fakeNestedInclude
-
-      loader.setup(opts)
-      loader._calculateAdditionalIncludes()
-
-      spyOn(loader, '_onLoadingCompleted')
-
-    it 'creates a request for each additional include and calls #_onLoadingCompleted when they all are done', ->
-      promises = []
-      spyOn(loader.storageManager, 'loadObject').andCallFake ->
-        promise = $.Deferred()
-        promises.push(promise)
-        promise
-
-      loader._loadAdditionalIncludes()
-      expect(loader.storageManager.loadObject.callCount).toEqual 2
-      expect(promises.length).toEqual 2
-      expect(loader._onLoadingCompleted).not.toHaveBeenCalled()
-
-      for promise in promises
-        promise.resolve()
-
-      expect(loader._onLoadingCompleted).toHaveBeenCalled()
-
-  describe '#_getIdsForAssociation', ->
-    it 'returns the flattened, unique, sorted, and non-null IDs from the models that are returned from #_getModelsForAssociation', ->
-      loader = createLoader()
-      expect(loader._getIdsForAssociation('foo')).toEqual [1, 2, 4, 5, 6]
-
-  describe '#_modelsOrObj', ->
-    beforeEach ->
-      loader = createLoader()
-
-    context 'obj is a Backbone.Collection', ->
-      it 'returns the models from the collection', ->
-        collection = new Backbone.Collection()
-        collection.add([new Backbone.Model(), new Backbone.Model])
-        expect(loader._modelsOrObj(collection)).toEqual(collection.models)
-
-    context 'obj is not a Backbone.Collection', ->
-      it 'returns the obj or an empty array', ->
-        obj = []
-        expect(loader._modelsOrObj(obj)).toEqual(obj)
-
-        obj = null
-        expect(loader._modelsOrObj(obj)).toEqual([])

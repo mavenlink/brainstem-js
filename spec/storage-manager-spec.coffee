@@ -4,6 +4,17 @@ describe 'Brainstem Storage Manager', ->
   beforeEach ->
     manager = new Brainstem.StorageManager()
 
+  describe "storage", ->
+    beforeEach ->
+      manager.addCollection 'time_entries', App.Collections.TimeEntries
+
+    it "accesses a cached collection of the appropriate type", ->
+      expect(manager.storage('time_entries') instanceof App.Collections.TimeEntries).toBeTruthy()
+      expect(manager.storage('time_entries').length).toBe 0
+
+    it "raises an error if the named collection doesn't exist", ->
+      expect(-> manager.storage('foo')).toThrow()
+
   describe 'addCollection and getCollectionDetails', ->
     it "tracks a named collection", ->
       manager.addCollection 'time_entries', App.Collections.TimeEntries
@@ -23,17 +34,6 @@ describe 'Brainstem Storage Manager', ->
       expect(timeEntry.invalidateCache).not.toHaveBeenCalled()
       timeEntry.collection.remove(timeEntry)
       expect(timeEntry.invalidateCache).toHaveBeenCalled()
-
-  describe "storage", ->
-    beforeEach ->
-      manager.addCollection 'time_entries', App.Collections.TimeEntries
-
-    it "accesses a cached collection of the appropriate type", ->
-      expect(manager.storage('time_entries') instanceof App.Collections.TimeEntries).toBeTruthy()
-      expect(manager.storage('time_entries').length).toBe 0
-
-    it "raises an error if the named collection doesn't exist", ->
-      expect(-> manager.storage('foo')).toThrow()
 
   describe "reset", ->
     it "should clear all storage and sort lengths", ->
@@ -81,6 +81,16 @@ describe 'Brainstem Storage Manager', ->
 
         server.respond()
         expect(completeSpy).toHaveBeenCalled()
+
+  describe "createNewCollection", ->
+    it "makes a new collection of the appropriate type", ->
+      expect(base.data.createNewCollection("tasks", [buildTask(), buildTask()]) instanceof App.Collections.Tasks).toBe true
+
+    it "can accept a 'loaded' flag", ->
+      collection = base.data.createNewCollection("tasks", [buildTask(), buildTask()])
+      expect(collection.loaded).toBe false
+      collection = base.data.createNewCollection("tasks", [buildTask(), buildTask()], loaded: true)
+      expect(collection.loaded).toBe true
 
   describe "loadModel", ->
     beforeEach ->
@@ -770,16 +780,6 @@ describe 'Brainstem Storage Manager', ->
           funct = returnValues.jqXhr[functionName]
           expect(funct).not.toBeUndefined()
           expect(funct.toString()).toEqual(baseXhr[functionName].toString())
-
-  describe "createNewCollection", ->
-    it "makes a new collection of the appropriate type", ->
-      expect(base.data.createNewCollection("tasks", [buildTask(), buildTask()]) instanceof App.Collections.Tasks).toBe true
-
-    it "can accept a 'loaded' flag", ->
-      collection = base.data.createNewCollection("tasks", [buildTask(), buildTask()])
-      expect(collection.loaded).toBe false
-      collection = base.data.createNewCollection("tasks", [buildTask(), buildTask()], loaded: true)
-      expect(collection.loaded).toBe true
 
   describe "error handling", ->
     describe "passing in a custom error handler when loading a collection", ->

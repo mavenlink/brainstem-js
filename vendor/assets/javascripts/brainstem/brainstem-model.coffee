@@ -2,54 +2,6 @@
 
 # Extend Backbone.Model to include associations.
 class window.Brainstem.Model extends Backbone.Model
-  # Parse ISO8601 attribute strings into date objects
-  @parse: (modelObject) ->
-    for k,v of modelObject
-      # Date.parse will parse ISO 8601 in ECMAScript 5, but we include a shim for now
-      if /\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}/.test(v)
-        modelObject[k] = Date.parse(v)
-    return modelObject
-
-  # Handle create and update responses with JSON root keys
-  parse: (resp, xhr) ->
-    @updateStorageManager(resp)
-    modelObject = @_parseResultsResponse(resp)
-    super(@constructor.parse(modelObject), xhr)
-
-  updateStorageManager: (resp) ->
-    results = resp['results']
-    return if _.isEmpty(results)
-
-    keys = _.reject(_.keys(resp), (key) -> key == 'count' || key == 'results')
-    primaryModelKey = results[0]['key']
-    keys.splice(keys.indexOf(primaryModelKey), 1)
-    keys.push(primaryModelKey)
-
-    for underscoredModelName in keys
-      models = resp[underscoredModelName]
-      for id, attributes of models
-        @constructor.parse(attributes)
-        collection = base.data.storage(underscoredModelName)
-        collectionModel = collection.get(id)
-        if collectionModel
-          collectionModel.set(attributes)
-        else
-          if @brainstemKey == underscoredModelName && (@isNew() || @id == attributes.id)
-            @set(attributes)
-            collection.add(this)
-          else
-            collection.add(attributes)
-
-  _parseResultsResponse: (resp) ->
-    return resp unless resp['results']
-
-    if resp['results'].length
-      key = resp['results'][0].key
-      id = resp['results'][0].id
-      resp[key][id]
-    else
-      {}
-
 
   # Retreive details about a named association.  This is a class method.
   #     Model.associationDetails("project") # => {}
@@ -80,32 +32,17 @@ class window.Brainstem.Model extends Backbone.Model
             key: "#{association}_id"
           }
 
-  # This method determines if all of the provided associations have been loaded for this model.  If no associations are
-  # provided, all associations are assumed.
-  #   model.associationsAreLoaded(["project", "task"]) # => true|false
-  #   model.associationsAreLoaded() # => true|false
-  associationsAreLoaded: (associations) ->
-    associations ||= _.keys(@constructor.associations)
-    associations = _.filter associations, (association) => @constructor.associationDetails(association)
+  # Parse ISO8601 attribute strings into date objects
+  @parse: (modelObject) ->
+    for k,v of modelObject
+      # Date.parse will parse ISO 8601 in ECMAScript 5, but we include a shim for now
+      if /\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}/.test(v)
+        modelObject[k] = Date.parse(v)
+    return modelObject
 
-    _.all associations, (association) =>
-      details = @constructor.associationDetails association
-      key = details.key
 
-      return false unless _(@attributes).has key
-
-      pointer = @attributes[key]
-
-      if details.type == "BelongsTo"
-        if pointer == null
-          true
-        else if details.polymorphic
-          base.data.storage(pointer.key).get(pointer.id)
-        else
-          base.data.storage(details.collectionName).get(pointer)
-      else
-        _.all pointer, (id) ->
-          base.data.storage(details.collectionName).get(id)
+  #
+  # Accessors 
 
   # Override Model#get to access associations as well as fields.
   get: (field, options = {}) ->
@@ -146,22 +83,74 @@ class window.Brainstem.Model extends Backbone.Model
     else
       super(field)
 
+  className: ->
+    @paramRoot
+
+
+  #
+  # Control
+
+  # Handle create and update responses with JSON root keys
+  parse: (resp, xhr) ->
+    @updateStorageManager(resp)
+    modelObject = @_parseResultsResponse(resp)
+    super(@constructor.parse(modelObject), xhr)
+
+  updateStorageManager: (resp) ->
+    results = resp['results']
+    return if _.isEmpty(results)
+
+    keys = _.reject(_.keys(resp), (key) -> key == 'count' || key == 'results')
+    primaryModelKey = results[0]['key']
+    keys.splice(keys.indexOf(primaryModelKey), 1)
+    keys.push(primaryModelKey)
+
+    for underscoredModelName in keys
+      models = resp[underscoredModelName]
+      for id, attributes of models
+        @constructor.parse(attributes)
+        collection = base.data.storage(underscoredModelName)
+        collectionModel = collection.get(id)
+        if collectionModel
+          collectionModel.set(attributes)
+        else
+          if @brainstemKey == underscoredModelName && (@isNew() || @id == attributes.id)
+            @set(attributes)
+            collection.add(this)
+          else
+            collection.add(attributes)
+
+  # This method determines if all of the provided associations have been loaded for this model.  If no associations are
+  # provided, all associations are assumed.
+  #   model.associationsAreLoaded(["project", "task"]) # => true|false
+  #   model.associationsAreLoaded() # => true|false
+  associationsAreLoaded: (associations) ->
+    associations ||= _.keys(@constructor.associations)
+    associations = _.filter associations, (association) => @constructor.associationDetails(association)
+
+    _.all associations, (association) =>
+      details = @constructor.associationDetails association
+      key = details.key
+
+      return false unless _(@attributes).has key
+
+      pointer = @attributes[key]
+
+      if details.type == "BelongsTo"
+        if pointer == null
+          true
+        else if details.polymorphic
+          base.data.storage(pointer.key).get(pointer.id)
+        else
+          base.data.storage(details.collectionName).get(pointer)
+      else
+        _.all pointer, (id) ->
+          base.data.storage(details.collectionName).get(id)
+
   invalidateCache: ->
     for cacheKey, cacheObject of base.data.getCollectionDetails(@brainstemKey).cache
       if _.find(cacheObject.results, (result) => result.id == @id)
         cacheObject.valid = false
-
-  className: ->
-    @paramRoot
-
-  defaultJSONBlacklist: ->
-    ['id', 'created_at', 'updated_at']
-
-  createJSONBlacklist: ->
-    []
-
-  updateJSONBlacklist: ->
-    []
 
   toServerJSON: (method, options) ->
     json = @toJSON(options)
@@ -177,3 +166,27 @@ class window.Brainstem.Model extends Backbone.Model
       delete json[blacklistKey]
 
     json
+    
+  defaultJSONBlacklist: ->
+    ['id', 'created_at', 'updated_at']
+
+  createJSONBlacklist: ->
+    []
+
+  updateJSONBlacklist: ->
+    []
+
+
+
+  #
+  # Private
+
+  _parseResultsResponse: (resp) ->
+    return resp unless resp['results']
+
+    if resp['results'].length
+      key = resp['results'][0].key
+      id = resp['results'][0].id
+      resp[key][id]
+    else
+      {}

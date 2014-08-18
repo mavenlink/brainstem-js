@@ -1,6 +1,10 @@
 window.Brainstem ?= {}
 
 class window.Brainstem.Expectation
+
+  #
+  # Init
+  
   constructor: (name, options, manager) ->
     @name = name
     @manager = manager
@@ -16,19 +20,9 @@ class window.Brainstem.Expectation
     @requestQueue = []
     @options.response(@) if @options.response?
 
-  remove: ->
-    @disabled = true
 
-  recordRequest: (loader) ->
-    if @immediate
-      @handleRequest(loader)
-    else
-      @requestQueue.push(loader)
-
-  respond: ->
-    for request in @requestQueue
-      @handleRequest request
-    @requestQueue = []
+  #
+  # Control
 
   handleRequest: (loader) ->
     @matches.push loader.originalOptions
@@ -49,6 +43,23 @@ class window.Brainstem.Expectation
 
     loader._onLoadSuccess(returnedData)
 
+  recordRequest: (loader) ->
+    if @immediate
+      @handleRequest(loader)
+    else
+      @requestQueue.push(loader)
+
+  respond: ->
+    for request in @requestQueue
+      @handleRequest request
+    @requestQueue = []
+
+  remove: ->
+    @disabled = true
+
+  lastMatch: ->
+    @matches[@matches.length - 1]
+
   loaderOptionsMatch: (loader) ->
     return false if @disabled
     return false if @name != loader._getExpectationName()
@@ -66,6 +77,10 @@ class window.Brainstem.Expectation
         expectedOption = Brainstem.Utils.wrapObjects(expectedOption)
 
       Brainstem.Utils.matches(option, expectedOption)
+
+
+  #
+  # Private
 
   _handleAssociations: (_loader) ->
     for key, values of @associated
@@ -110,6 +125,3 @@ class window.Brainstem.Expectation
 
     existingModel.set(attributes)
     existingModel
-
-  lastMatch: ->
-    @matches[@matches.length - 1]
