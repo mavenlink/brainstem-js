@@ -32,8 +32,9 @@ class window.Brainstem.Collection extends Backbone.Collection
   #
   # Init
 
-  constructor: ->
+  constructor: (models, options) ->
     super
+    @firstFetchOptions = Brainstem.Collection.pickFetchOptions(options) if options
     @setLoaded false
 
 
@@ -54,10 +55,12 @@ class window.Brainstem.Collection extends Backbone.Collection
     options = if options then _.clone(options) else {}
     
     options.parse = options.parse ? true
-    options.name = options.name ? @brainstemKey
+    options.name = options.name ? @model?.prototype.brainstemKey
 
     unless options.name
-      Brainstem.Utils.throwError 'Collection must have brainstemKey defined or name option'
+      Brainstem.Utils.throwError(
+        'Either collection must have model with brainstemKey defined or name option must be provided'
+      )
 
     unless @firstFetchOptions
       @firstFetchOptions = Brainstem.Collection.pickFetchOptions options
@@ -66,17 +69,16 @@ class window.Brainstem.Collection extends Backbone.Collection
 
     loader = base.data.loadObject(options.name, _.extend(@firstFetchOptions, options))
     
-    loader.pipe(-> loader.internalObject.models)
-    .done((response) =>
-      method = if options.reset then 'reset' else 'set'
-      
-      @[method](response, options)
-      @lastFetchOptions = loader.externalObject.lastFetchOptions
-
-      @trigger('sync', this, response, options)
+    loader.pipe(->
+      loader.externalObject.models
     )
+      .done((response) =>
+        method = if options.reset then 'reset' else 'set'
+        @[method](response, options)
+        @lastFetchOptions = loader.externalObject.lastFetchOptions
 
-    loader.promise()
+        @trigger('sync', this, response, options)
+      ).promise()
 
   update: (models) ->
     models = models.models if models.models?

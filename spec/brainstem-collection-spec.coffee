@@ -5,6 +5,29 @@ describe 'Brainstem.Collection', ->
     collection = new Brainstem.Collection([{id: 2, title: '1'}, {id: 3, title: '2'}, {title: '3'}])
     updateArray = [{id: 2, title: '1 new'}, {id: 4, title: 'this is new'}]
 
+  describe '#constructor', ->
+    setLoadedSpy = pickFetchOptionsSpy = null
+
+    beforeEach ->
+      pickFetchOptionsSpy = spyOn(Brainstem.Collection, 'pickFetchOptions').andCallThrough()
+      setLoadedSpy = spyOn(Brainstem.Collection.prototype, 'setLoaded')
+
+      collection = new Brainstem.Collection(null, name: 'posts')
+
+    it 'sets `setLoaded` to false', ->
+      expect(setLoadedSpy).toHaveBeenCalled()
+
+    context 'when options are passed', ->
+      it 'calls `pickFetchOptions` with options', ->
+        expect(pickFetchOptionsSpy).toHaveBeenCalledWith(name: 'posts')
+
+      it 'sets `firstFetchOptions`', ->
+        expect(collection.firstFetchOptions).toBeDefined()
+        expect(collection.firstFetchOptions.name).toEqual('posts')
+
+    context 'no options are passed', ->
+      it 'does not throw an error trying to pick options', ->
+        expect(-> new Brainstem.Collection()).not.toThrow()
 
   describe '#pickFetchOptions', ->
     keys = sampleOptions = null
@@ -56,15 +79,23 @@ describe 'Brainstem.Collection', ->
       expect(collection.get).toHaveBeenCalledWith(10)
 
   describe '#fetch', ->
-    # collection = new Brainstem.Collection([{id: 2, title: '1'}, {id: 3, title: '2'}, {title: '3'}])
+    context 'collection has no model', ->
+      beforeEach ->
+        collection.model = undefined
+
+      it 'throws a "BrainstemError"', ->
+        expect(-> collection.fetch()).toThrow()
     
-    context 'collection has no brainstemKey defined', ->
+    context 'collection has model without a brainstemKey defined', ->
+      beforeEach ->
+        collection.model = new Backbone.Model()
+
       it 'throws a "BrainstemError"', ->
         expect(-> collection.fetch()).toThrow()
 
     context 'the collection has brainstemKey defined', ->
       beforeEach ->
-        collection.brainstemKey = 'posts'
+        collection.model = App.Models.Post
 
       it 'does not throw', ->
         expect(-> collection.fetch()).not.toThrow()
@@ -95,18 +126,17 @@ describe 'Brainstem.Collection', ->
     it 'wraps options-passed error function', ->
       wrapSpy = spyOn(Brainstem.Utils, 'wrapError')
       options = error: -> 'hi!'
-      collection.brainstemKey = 'posts'
+      collection.model = App.Models.Post
       collection.fetch(options)
       expect(wrapSpy).toHaveBeenCalledWith(collection, jasmine.any(Object))
       expect(wrapSpy.mostRecentCall.args[1].error).toBe(options.error)
 
     it 'returns a promise', ->
       deferred =
-        pipe: -> { done: (->) }
-        promise: -> 'le-promise'
+        pipe: -> { done: (-> { promise: -> 'le-promise' }) }
 
       spyOn(base.data, 'loadObject').andReturn(deferred)
-      collection.brainstemKey = 'posts'
+      collection.model = App.Models.Post
       expect(collection.fetch()).toEqual('le-promise')
 
     describe 'loading brainstem object', ->
@@ -116,7 +146,7 @@ describe 'Brainstem.Collection', ->
         promise = new $.Deferred()
 
         loadObjectSpy = spyOn(base.data, 'loadObject').andReturn(promise)
-        collection.brainstemKey = 'posts'
+        collection.model = App.Models.Post
       
       it 'calls `loadObject` with collection name', ->
         collection.fetch()
@@ -132,21 +162,21 @@ describe 'Brainstem.Collection', ->
           expect(loadObjectSpy.mostRecentCall.args[1][key]).toEqual options[key]
 
     describe 'brainstem request and response', ->
-      options = server = posts = null
+      options = expectation = posts = null
 
       beforeEach ->
         posts = [buildPost(), buildPost(), buildPost()]
-        collection.brainstemKey = 'posts'
+        collection.model = App.Models.Post
         options = { offset: 0, limit: 5, response: (res) -> res.results = posts }
 
         base.data.enableExpectations()
-        server = base.data.stub 'posts', options
+        expectation = base.data.stub 'posts', options
 
       it 'updates `lastFetchOptions` on the collection instance', ->
         expect(collection.lastFetchOptions).toBeNull()
 
         collection.fetch(options)
-        server.respond()
+        expectation.respond()
 
         lastFetchOptions = collection.lastFetchOptions
         expect(lastFetchOptions).toEqual(jasmine.any Object)
@@ -157,7 +187,7 @@ describe 'Brainstem.Collection', ->
         spyOn(collection, 'trigger')
 
         collection.fetch(options)
-        server.respond()
+        expectation.respond()
 
         expect(collection.trigger).toHaveBeenCalledWith('sync', collection, jasmine.any(Array), jasmine.any(Object))
 
@@ -168,7 +198,7 @@ describe 'Brainstem.Collection', ->
           collection.fetch(options)
 
         it 'sets the server response on the collection', ->
-          server.respond()
+          expectation.respond()
 
           objects = collection.set.mostRecentCall.args[0]
           expect(_.pluck(objects, 'id')).toEqual(_.pluck(posts, 'id'))
@@ -181,7 +211,7 @@ describe 'Brainstem.Collection', ->
           spyOn(collection, 'reset')
           
         it 'it resets the collection with the server response', ->
-          server.respond()
+          expectation.respond()
 
           objects = collection.reset.mostRecentCall.args[0]
           expect(_.pluck(objects, 'id')).toEqual(_.pluck(posts, 'id'))
@@ -193,17 +223,17 @@ describe 'Brainstem.Collection', ->
         beforeEach ->
           secondPosts = [buildPost(), buildPost()]
           secondOptions = { offset: 5, limit: 3, response: (res) -> res.results = secondPosts }
-          secondServer = base.data.stub 'posts', secondOptions
+          secondExpectation = base.data.stub 'posts', secondOptions
 
           spyOn(collection, 'set')
 
           collection.fetch(options)
-          server.respond()
+          expectation.respond()
 
           firstOptions = collection.lastFetchOptions
 
           collection.fetch(secondOptions)
-          secondServer.respond()
+          secondExpectation.respond()
 
         it 'returns only the second set of results', ->
           objects = collection.set.mostRecentCall.args[0]
@@ -217,6 +247,40 @@ describe 'Brainstem.Collection', ->
           expect(lastFetchOptions).toEqual(jasmine.any Object)
           expect(lastFetchOptions.offset).toEqual(5)
           expect(lastFetchOptions.limit).toEqual(3)
+
+    describe 'integration', ->
+      onDone = options = collection = posts1 = posts2 = null
+        
+      beforeEach ->
+        posts1 = [buildPost(), buildPost(), buildPost(), buildPost(), buildPost()]
+        posts2 = [buildPost(), buildPost()]
+
+        options = { page: 1, perPage: 5 }
+        collection = new App.Collections.Posts(null, options)
+        
+        respondWith(server, '/api/posts?per_page=5&page=1', resultsFrom: 'posts', data: { posts: posts1 })
+        collection.fetch().done(onDone = jasmine.createSpy())
+        
+        server.respond()
+
+      it 'passes returned models to chained callbacks', ->
+        response = onDone.mostRecentCall.args[0]
+        expect(_.pluck response, 'id').toEqual(_.pluck posts1, 'id')
+
+      it 'subsequent fetches return data from storage manager cache', ->
+        collection.fetch()
+
+        expect(_.pluck collection.models, 'id').toEqual(_.pluck posts1, 'id')
+        expect(_.pluck collection.models, 'id').not.toEqual(_.pluck posts2, 'id')
+
+      it 'subsequent fetch with different options returns different data', ->
+        respondWith(server, '/api/posts?per_page=5&page=2', resultsFrom: 'posts', data: { posts: posts2 })
+        collection.fetch({page: 2})
+        server.respond()
+
+        expect(_.pluck collection.models, 'id').not.toEqual(_.pluck posts1, 'id')
+        expect(_.pluck collection.models, 'id').toEqual(_.pluck posts2, 'id')
+
 
   describe '#update', ->
     it 'works with an array', ->
