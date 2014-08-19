@@ -52,3 +52,9 @@ class window.Brainstem.Utils
         o[elem] = []
         output.push o
     output
+
+  @wrapError = (collection, options) ->
+    error = options.error
+    options.error = (response) ->
+      error(collection, response, options) if error
+      collection.trigger('error', collection, response, options)
