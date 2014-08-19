@@ -2,6 +2,8 @@
 
 class window.Brainstem.Collection extends Backbone.Collection
 
+  @OPTION_KEYS = ['name', 'filters', 'page', 'perPage', 'limit', 'offset', 'order', 'search', 'cacheKey']
+
   @getComparatorWithIdFailover: (order) ->
     [field, direction] = order.split(":")
     comp = @getComparator(field)
@@ -15,6 +17,9 @@ class window.Brainstem.Collection extends Backbone.Collection
 
   @getComparator: (field) ->
     return (a, b) -> a.get(field) - b.get(field)
+
+  @pickFetchOptions: (options) ->
+    _.pick options, Brainstem.Collection.OPTION_KEYS
 
 
   #
@@ -44,6 +49,34 @@ class window.Brainstem.Collection extends Backbone.Collection
 
   #
   # Control
+
+  fetch: (options) ->
+    options = if options then _.clone(options) else {}
+    
+    options.parse = options.parse ? true
+    options.name = options.name ? @brainstemKey
+
+    unless options.name
+      Brainstem.Utils.throwError 'Collection must have brainstemKey defined or name option'
+
+    unless @firstFetchOptions
+      @firstFetchOptions = Brainstem.Collection.pickFetchOptions options
+
+    Brainstem.Utils.wrapError(this, options)
+
+    loader = base.data.loadObject(options.name, _.extend(@firstFetchOptions, options))
+    
+    loader.pipe(-> loader.internalObject.models)
+    .done((response) =>
+      method = if options.reset then 'reset' else 'set'
+      
+      @[method](response, options)
+      @lastFetchOptions = loader.externalObject.lastFetchOptions
+
+      @trigger('sync', this, response, options)
+    )
+
+    loader.promise()
 
   update: (models) ->
     models = models.models if models.models?
