@@ -264,23 +264,21 @@ describe 'Brainstem.Collection', ->
         server.respond()
 
       it 'passes returned models to chained callbacks', ->
-        response = onDone.mostRecentCall.args[0]
-        expect(_.pluck response, 'id').toEqual(_.pluck posts1, 'id')
+        expect(collection.pluck 'id').toEqual(_.pluck posts1, 'id')
 
       it 'subsequent fetches return data from storage manager cache', ->
         collection.fetch()
 
-        expect(_.pluck collection.models, 'id').toEqual(_.pluck posts1, 'id')
-        expect(_.pluck collection.models, 'id').not.toEqual(_.pluck posts2, 'id')
+        expect(collection.pluck 'id').toEqual(_.pluck posts1, 'id')
+        expect(collection.pluck 'id').not.toEqual(_.pluck posts2, 'id')
 
       it 'subsequent fetch with different options returns different data', ->
         respondWith(server, '/api/posts?per_page=5&page=2', resultsFrom: 'posts', data: { posts: posts2 })
         collection.fetch({page: 2})
         server.respond()
 
-        expect(_.pluck collection.models, 'id').not.toEqual(_.pluck posts1, 'id')
-        expect(_.pluck collection.models, 'id').toEqual(_.pluck posts2, 'id')
-
+        expect(collection.pluck 'id').not.toEqual(_.pluck posts1, 'id')
+        expect(collection.pluck 'id').toEqual(_.pluck posts2, 'id')
 
   describe '#update', ->
     it 'works with an array', ->
