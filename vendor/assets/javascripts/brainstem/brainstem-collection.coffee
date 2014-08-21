@@ -118,6 +118,29 @@ class window.Brainstem.Collection extends Backbone.Collection
     fetchOptions = _.extend({}, @lastFetchOptions, options, paginationOptions, collection: this, success: success)
     base.data.loadCollection @lastFetchOptions.name, fetchOptions
 
+  getFirstPage: (options = {}) ->
+    @getPage(1, options)
+
+  getLastPage: (options = {}) ->
+    @getPage(Infinity, options)
+
+  getPage: (index, options = {}) ->
+    @_canPaginate()
+
+    options = _.extend(options, @lastFetchOptions)
+
+    index = 1 if index < 1
+
+    if @lastFetchOptions.offset
+      max = @_maxOffset()
+      offset = @lastFetchOptions.limit * index - @lastFetchOptions.limit
+      options.offset = if offset < max then offset else max
+    else
+      max = @_maxPage()
+      options.page = if index < max then index else max
+
+    @fetch(options)
+
   invalidateCache: ->
     @_getCacheObject()?.valid = false
 
@@ -127,6 +150,23 @@ class window.Brainstem.Collection extends Backbone.Collection
 
   #
   # Private
+
+  _canPaginate: ->
+    options = @lastFetchOptions
+    throwError = Brainstem.Utils.throwError
+
+    throwError('Pagination: collection must have been fetched once') unless options
+    throwError('Pagination: perPage or limit must be defined') unless options.perPage || options.limit
+
+  _maxOffset: ->
+    limit = @lastFetchOptions.limit
+    Brainstem.Utils.throwError('Pagination: you must define limit when using offset') unless limit
+    limit * Math.ceil(@getServerCount() / limit) - limit
+
+  _maxPage: ->
+    perPage = @lastFetchOptions.perPage
+    Brainstem.Utils.throwError('Pagination: you must define perPage when using page') unless perPage
+    Math.ceil(@getServerCount() / perPage)
 
   _getCacheObject: ->
     if @lastFetchOptions

@@ -381,6 +381,176 @@ describe 'Brainstem.Collection', ->
       expect(collection.lastFetchOptions.offset).toEqual 4
       expect(collection.length).toEqual 5
 
+  describe '#getFirstPage', ->
+    collection = null
+
+    beforeEach ->
+      collection = new App.Collections.Tasks()
+      collection.lastFetchOptions = {}
+
+      spyOn(collection, 'fetch')
+      spyOn(collection, 'getServerCount').andReturn(50)
+
+    it 'calls _canPaginate', ->
+      spyOn(collection, '_canPaginate')
+      spyOn(collection, '_maxPage')
+
+      collection.getFirstPage()
+
+      expect(collection._canPaginate).toHaveBeenCalled()
+
+    context 'offset is not defined in lastFetchOptions', ->
+      beforeEach ->
+        collection.lastFetchOptions = { page: 3, perPage: 5 }
+        collection.getFirstPage()
+
+      it 'calls fetch', ->
+        expect(collection.fetch).toHaveBeenCalled()
+
+      it 'calls fetch with correct "perPage" options', ->
+        expect(collection.fetch.mostRecentCall.args[0].page).toEqual(1)
+
+    context 'offset is defined in lastFetchOptions', ->
+      beforeEach ->
+        collection.lastFetchOptions = { offset: 20, limit: 10 }
+        collection.getFirstPage()
+
+      it 'calls fetch', ->
+        expect(collection.fetch).toHaveBeenCalled()
+
+      it 'calls fetch with correct "perPage" options', ->
+        expect(collection.fetch.mostRecentCall.args[0].offset).toEqual(0)
+
+  describe '#getLastPage', ->
+    collection = null
+
+    beforeEach ->
+      collection = new App.Collections.Tasks()
+      collection.lastFetchOptions = {}
+      spyOn(collection, 'fetch')
+
+    it 'calls _canPaginate', ->
+      spyOn(collection, '_canPaginate')
+      spyOn(collection, '_maxPage')
+
+      collection.getLastPage()
+
+      expect(collection._canPaginate).toHaveBeenCalled()
+
+    context 'both offset and limit are defined in lastFetchOptions', ->
+      beforeEach ->
+        collection.lastFetchOptions = { offset: 15, limit: 5 }
+
+      context 'last page is a partial page', ->
+        beforeEach ->
+          spyOn(collection, 'getServerCount').andReturn(33)
+
+        it 'fetches with offset and limit defined correctly', ->
+          collection.getLastPage()
+
+          expect(collection.fetch).toHaveBeenCalled()
+          fetchOptions = collection.fetch.mostRecentCall.args[0]
+          expect(fetchOptions.offset).toEqual(30)
+          expect(fetchOptions.limit).toEqual(5)
+          
+      context 'last page is a complete page', ->
+        beforeEach ->
+          spyOn(collection, 'getServerCount').andReturn(35)
+          
+        it 'fetches with offset and limit defined correctly', ->
+          collection.getLastPage()
+
+          expect(collection.fetch).toHaveBeenCalled()
+          fetchOptions = collection.fetch.mostRecentCall.args[0]
+          expect(fetchOptions.offset).toEqual(30)
+          expect(fetchOptions.limit).toEqual(5)
+
+    context 'offset is not defined, both perPage and page are defined in lastFetchOptions', ->
+      beforeEach ->
+        collection.lastFetchOptions = { perPage: 10, page: 2 }
+        spyOn(collection, 'getServerCount').andReturn(53)
+
+      it 'fetches with perPage and page defined', ->
+        collection.getLastPage()
+
+        expect(collection.fetch).toHaveBeenCalled()
+        fetchOptions = collection.fetch.mostRecentCall.args[0]
+        expect(fetchOptions.page).toEqual(6)
+        expect(fetchOptions.perPage).toEqual(10)
+
+  describe '#getPage', ->
+    collection = null
+
+    beforeEach ->
+      collection = new App.Collections.Tasks()
+      collection.lastFetchOptions = {}
+      spyOn(collection, 'fetch')
+
+    it 'calls _canPaginate', ->
+      spyOn(collection, '_canPaginate')
+      spyOn(collection, '_maxPage')
+
+      collection.getPage()
+
+      expect(collection._canPaginate).toHaveBeenCalled()
+
+    context 'perPage and page are defined in lastFetchOptions', ->
+      beforeEach ->
+        collection.lastFetchOptions = { perPage: 20, page: 5 }
+        spyOn(collection, 'getServerCount').andReturn(400)
+
+      context 'there is a page to fetch', ->
+        it 'fetches the page', ->
+          collection.getPage(10)
+
+          expect(collection.fetch).toHaveBeenCalled()
+          options = collection.fetch.mostRecentCall.args[0]
+          expect(options.page).toEqual(10)
+          expect(options.perPage).toEqual(20)
+
+      context 'an index greater than the max page is specified', ->
+        it 'gets called with max page index', ->
+          collection.getPage(21)
+          options = collection.fetch.mostRecentCall.args[0]
+          expect(options.page).toEqual(20)
+
+    context 'collection has limit and offset defined', ->
+      beforeEach ->
+        collection.lastFetchOptions = { limit: 20, offset: 20 }
+        spyOn(collection, 'getServerCount').andReturn(400)
+
+      context 'there is a page to fetch', ->
+        it 'fetches the page', ->
+          collection.getPage(10)
+
+          expect(collection.fetch).toHaveBeenCalled()
+          options = collection.fetch.mostRecentCall.args[0]
+          expect(options.limit).toEqual(20)
+          expect(options.offset).toEqual(180)
+
+      context 'an index greater than the max page is specified', ->
+        it 'gets called with max page index', ->
+          collection.getPage(21)
+          options = collection.fetch.mostRecentCall.args[0]
+          expect(options.offset).toEqual(380)
+
+  describe '#getNextPage', ->
+    collection = null
+
+    beforeEach ->
+      collection = new App.Collections.Tasks()
+      collection.lastFetchOptions = {}
+      spyOn(collection, 'fetch')
+
+    it 'calls _canPaginate', ->
+      spyOn(collection, '_canPaginate')
+      spyOn(collection, '_maxPage')
+      collection.getNextPage()
+
+      expect(collection._canPaginate).toHaveBeenCalled
+
+
+
   describe '#invalidateCache', ->
     it 'invalidates the cache object', ->
       posts = (buildPost(message: 'old post', reply_ids: []) for i in [1..5])
