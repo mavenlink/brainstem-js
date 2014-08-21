@@ -616,3 +616,63 @@ describe 'Brainstem.Collection', ->
         newCollection = new Brainstem.Collection collection.models, comparator: Brainstem.Collection.getComparatorWithIdFailover('updated_at:asc')
         newCollection.sort()
         expect(newCollection.pluck('id')).toEqual [2, 5, 4, 6, 3]
+
+  describe '#_canPaginate', ->
+    beforeEach ->
+      collection = new App.Collections.Tasks()
+      spyOn(Brainstem.Utils, 'throwError').andCallThrough()
+
+    context 'lastFetchOptions is not defined', ->
+      beforeEach ->
+        collection.lastFetchOptions = undefined
+
+      it 'throws an error', ->
+        expect(-> collection._canPaginate()).toThrow()
+        expect(Brainstem.Utils.throwError.mostRecentCall.args[0]).toMatch(/collection must have been fetched once/)
+      
+    context 'lastFetchOptions is defined but neither limit nor perPage are defined', ->
+      beforeEach ->
+        collection.lastFetchOptions = { limit: undefined, perPage: undefined }
+
+      it 'throws an error', ->
+        expect(-> collection._canPaginate()).toThrow()
+        expect(Brainstem.Utils.throwError.mostRecentCall.args[0]).toMatch(/perPage or limit must be defined/)
+  
+  describe '#_maxOffset', ->
+    beforeEach ->
+      collection = new App.Collections.Tasks()
+
+    context 'limit is not defined in lastFetchOptions', ->
+      beforeEach ->
+        collection.lastFetchOptions = { limit: undefined }
+
+      it 'throws if limit is not defined', ->
+        expect(-> collection._maxOffset()).toThrow()
+
+    context 'limit is defined', ->
+      beforeEach ->
+        collection.lastFetchOptions = { limit: 20 }
+        spyOn(collection, 'getServerCount').andReturn(100)
+
+      it 'returns the maximum possible offset', ->
+        expect(collection._maxOffset()).toEqual(collection.getServerCount() - collection.lastFetchOptions.limit)
+
+  describe '#_maxPage', ->
+    beforeEach ->
+      collection = new App.Collections.Tasks()
+
+    context 'perPage is not defined in lastFetchOptions', ->
+      beforeEach ->
+        collection.lastFetchOptions = { perPage: undefined }
+
+      it 'throws if perPage is not defined', ->
+        expect(-> collection._maxPage()).toThrow()
+
+    context 'perPage is defined', ->
+      beforeEach ->
+        collection.lastFetchOptions = { perPage: 20 }
+        spyOn(collection, 'getServerCount').andReturn(100)
+
+      it 'returns the maximum possible page', ->
+        expect(collection._maxPage()).toEqual(collection.getServerCount() / collection.lastFetchOptions.perPage )
+    
