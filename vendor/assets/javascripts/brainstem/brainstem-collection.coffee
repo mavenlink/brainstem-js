@@ -177,8 +177,10 @@ class window.Brainstem.Collection extends Backbone.Collection
   _canPaginate: ->
     options = @lastFetchOptions
     throwError = Brainstem.Utils.throwError
+    count = try @getServerCount()
 
     throwError('(pagination) collection must have been fetched once') unless options
+    throwError('(pagination) collection must have a count') unless count
     throwError('(pagination) perPage or limit must be defined') unless options.perPage || options.limit
 
   _maxOffset: ->
