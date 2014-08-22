@@ -204,6 +204,19 @@ describe 'Brainstem.Collection', ->
           expect(_.pluck(objects, 'id')).toEqual(_.pluck(posts, 'id'))
           expect(object).toEqual(jasmine.any App.Models.Post) for object in objects
 
+        context 'add option is set to true', ->
+          beforeEach ->
+            options.add = true
+            spyOn(collection, 'add')
+            collection.fetch(options)
+
+          it 'adds the server response to the collection', ->
+            expectation.respond()
+
+            objects = collection.add.mostRecentCall.args[0]
+            expect(_.pluck(objects, 'id')).toEqual(_.pluck(posts, 'id'))
+            expect(object).toEqual(jasmine.any App.Models.Post) for object in objects
+
       context 'reset option is set to true', ->
         beforeEach ->
           options.reset = true

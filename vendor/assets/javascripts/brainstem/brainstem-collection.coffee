@@ -68,10 +68,16 @@ class window.Brainstem.Collection extends Backbone.Collection
     Brainstem.Utils.wrapError(this, options)
 
     loader = base.data.loadObject(options.name, _.extend(@firstFetchOptions, options))
-    
+
     loader.pipe(-> loader.internalObject.models)
       .done((response) =>
-        method = if options.reset then 'reset' else 'set'
+        if options.add
+          method = 'add'
+        else if options.reset
+          method = 'reset'
+        else
+          method = 'set'
+
         @[method](response, options)
         @lastFetchOptions = loader.externalObject.lastFetchOptions
 
