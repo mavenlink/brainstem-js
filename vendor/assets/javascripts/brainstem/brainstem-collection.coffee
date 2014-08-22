@@ -154,6 +154,22 @@ class window.Brainstem.Collection extends Backbone.Collection
 
     @fetch(options)
 
+  hasNextPage: ->
+    @_canPaginate()
+
+    unless _.isUndefined(@lastFetchOptions.offset)
+      if @_maxOffset() > @lastFetchOptions.offset then true else false
+    else
+      if @_maxPage() > @lastFetchOptions.page then true else false
+
+  hasPreviousPage: ->
+    @_canPaginate()
+
+    unless _.isUndefined(@lastFetchOptions.offset)
+      if @lastFetchOptions.offset > @lastFetchOptions.limit then true else false
+    else
+      if @lastFetchOptions.page > 1 then true else false
+
   invalidateCache: ->
     @_getCacheObject()?.valid = false
 
@@ -173,12 +189,12 @@ class window.Brainstem.Collection extends Backbone.Collection
 
   _maxOffset: ->
     limit = @lastFetchOptions.limit
-    Brainstem.Utils.throwError('(pagination) you must define limit when using offset') unless limit
+    Brainstem.Utils.throwError('(pagination) you must define limit when using offset') if _.isUndefined(limit)
     limit * Math.ceil(@getServerCount() / limit) - limit
 
   _maxPage: ->
     perPage = @lastFetchOptions.perPage
-    Brainstem.Utils.throwError('(pagination) you must define perPage when using page') unless perPage
+    Brainstem.Utils.throwError('(pagination) you must define perPage when using page') if _.isUndefined(perPage)
     Math.ceil(@getServerCount() / perPage)
 
   _getCacheObject: ->

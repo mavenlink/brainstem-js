@@ -686,22 +686,77 @@ describe 'Brainstem.Collection', ->
           options = collection.fetch.mostRecentCall.args[0]
           expect(options.offset).toEqual(380)
 
-  describe '#getNextPage', ->
+  describe '#hasNextPage', ->
     collection = null
-
     beforeEach ->
       collection = new App.Collections.Tasks()
-      collection.lastFetchOptions = {}
-      spyOn(collection, 'fetch')
+      spyOn(collection, 'getServerCount').andReturn(100)
 
-    it 'calls _canPaginate', ->
-      spyOn(collection, '_canPaginate')
-      spyOn(collection, '_maxPage')
-      collection.getNextPage()
+    context 'offset is defined', ->
+      context 'at the end of a collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { limit: 20, offset: 80 }
 
-      expect(collection._canPaginate).toHaveBeenCalled
+        it 'should return false', ->
+          expect(collection.hasNextPage()).toEqual(false)
 
+      context 'in the middle of a collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { limit: 20, offset: 40 }
 
+        it 'should return true', ->
+          expect(collection.hasNextPage()).toEqual(true)
+
+    context 'page is defined', ->
+      context 'at the end of a collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { page: 5, perPage: 20 }
+
+        it 'should return false', ->
+          expect(collection.hasNextPage()).toEqual(false)
+
+      context 'in the middle of a collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { page: 3, perPage: 20 }
+
+        it 'should return true', ->
+          expect(collection.hasNextPage()).toEqual(true)
+
+  describe '#hasPreviousPage', ->
+    collection = null
+    beforeEach ->
+      collection = new App.Collections.Tasks()
+      spyOn(collection, 'getServerCount').andReturn(100)
+
+    context 'offset is defined', ->
+      context 'at the front of a collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { limit: 20, offset: 0 }
+
+        it 'should return false', ->
+          expect(collection.hasPreviousPage()).toEqual(false)
+
+      context 'in the middle of a collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { limit: 20, offset: 40 }
+
+        it 'should return true', ->
+          expect(collection.hasPreviousPage()).toEqual(true)
+
+    context 'page is defined', ->
+      context 'at the front of a collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { page: 0, perPage: 20 }
+
+        it 'should return false', ->
+          expect(collection.hasPreviousPage()).toEqual(false)
+
+      context 'in the middle of a collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { page: 3, perPage: 20 }
+
+        it 'should return true', ->
+          expect(collection.hasPreviousPage()).toEqual(true)
 
   describe '#invalidateCache', ->
     it 'invalidates the cache object', ->
