@@ -126,10 +126,11 @@ class window.Brainstem.Collection extends Backbone.Collection
     @_canPaginate()
 
     options = _.extend(options, @lastFetchOptions)
+    options.reset ?= true
 
     index = 1 if index < 1
 
-    if @lastFetchOptions.offset
+    unless _.isUndefined(@lastFetchOptions.offset)
       max = @_maxOffset()
       offset = @lastFetchOptions.limit * index - @lastFetchOptions.limit
       options.offset = if offset < max then offset else max
