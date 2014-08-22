@@ -630,12 +630,6 @@ describe 'Brainstem.Collection', ->
         collection.lastFetchOptions = { perPage: 20, page: 5 }
         spyOn(collection, 'getServerCount').andReturn(400)
 
-      it 'defaults reset option to true', ->
-        collection.getPage(1, { reset: undefined })
-
-        options = collection.fetch.mostRecentCall.args[0]
-        expect(options.reset).toBe(true)
-
       context 'there is a page to fetch', ->
         it 'fetches the page', ->
           collection.getPage(10)
@@ -655,12 +649,6 @@ describe 'Brainstem.Collection', ->
       beforeEach ->
         collection.lastFetchOptions = { limit: 20, offset: 20 }
         spyOn(collection, 'getServerCount').andReturn(400)
-
-      it 'defaults reset option to true', ->
-        collection.getPage(1, { reset: undefined })
-
-        options = collection.fetch.mostRecentCall.args[0]
-        expect(options.reset).toBe(true)
 
       context 'when offset is zero', ->
         beforeEach ->

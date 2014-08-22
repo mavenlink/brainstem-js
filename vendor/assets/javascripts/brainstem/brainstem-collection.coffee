@@ -140,7 +140,6 @@ class window.Brainstem.Collection extends Backbone.Collection
     @_canPaginate()
 
     options = _.extend(options, @lastFetchOptions)
-    options.reset ?= true
 
     index = 1 if index < 1
 
