@@ -116,6 +116,20 @@ class window.Brainstem.Collection extends Backbone.Collection
     fetchOptions = _.extend({}, @lastFetchOptions, options, paginationOptions, collection: this, success: success)
     base.data.loadCollection @lastFetchOptions.name, fetchOptions
 
+  getPageIndex: ->
+    return 1 unless @lastFetchOptions
+
+    unless _.isUndefined(@lastFetchOptions.offset)
+      Math.ceil(@lastFetchOptions.offset / @lastFetchOptions.limit) + 1
+    else
+      @lastFetchOptions.page
+
+  getNextPage: (options = {}) ->
+    @getPage(@getPageIndex() + 1, options)
+
+  getPreviousPage: (options = {}) ->
+    @getPage(@getPageIndex() - 1, options)
+
   getFirstPage: (options = {}) ->
     @getPage(1, options)
 

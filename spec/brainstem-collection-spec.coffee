@@ -381,6 +381,137 @@ describe 'Brainstem.Collection', ->
       expect(collection.lastFetchOptions.offset).toEqual 4
       expect(collection.length).toEqual 5
 
+  describe '#getPageIndex', ->
+    collection = null
+
+    beforeEach ->
+      collection = new App.Collections.Tasks()
+
+    context 'lastFetchOptions is not defined (collection has not been fetched)', ->
+      beforeEach ->
+        collection.lastFetchOptions = undefined
+
+      it 'returns 1', ->
+        expect(collection.getPageIndex()).toEqual 1
+
+    context 'lastFetchOptions is defined (collection has been fetched)', ->
+      context 'limit and offset are defined', ->
+        beforeEach ->
+          collection.lastFetchOptions = { limit: 10, offset: 50 }
+          spyOn(collection, 'getServerCount').andReturn(100)
+
+        it 'returns correct page index', ->
+          expect(collection.getPageIndex()).toEqual(6)
+
+      context 'perPage and page are defined', ->
+        beforeEach ->
+          collection.lastFetchOptions = { perPage: 10, page: 6 }
+          spyOn(collection, 'getServerCount').andReturn(100)
+
+        it 'returns correct page index', ->
+          expect(collection.getPageIndex()).toEqual(6)
+
+  describe '#getNextPage', ->
+    beforeEach ->
+      collection = new App.Collections.Tasks()
+      collection.lastFetchOptions = {}
+
+      spyOn(collection, 'fetch')
+      spyOn(collection, 'getServerCount').andReturn(100)
+
+    context 'when limit and offset are definded in lastFetchOptions', ->
+      context 'fetching from middle of collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { offset: 20, limit: 10 }
+          collection.getNextPage()
+
+        it 'calls fetch with correct limit and offset options for next page', ->
+          options = collection.fetch.mostRecentCall.args[0]
+          expect(options.limit).toEqual 10
+          expect(options.offset).toEqual 30
+
+      context 'fetching from end of collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { offset: 80, limit: 20 }
+          collection.getNextPage()
+
+        it 'calls fetch with correct limit and offset options for next page', ->
+          options = collection.fetch.mostRecentCall.args[0]
+          expect(options.limit).toEqual 20
+          expect(options.offset).toEqual 80
+
+    context 'when page and perPage are defined in lastFetchOptions', ->
+      context 'fetching from middle of collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { perPage: 20, page: 2 }
+          collection.getNextPage()
+
+        it 'calls fetch with the correct page and perPage options for next page', ->
+          options = collection.fetch.mostRecentCall.args[0]
+          expect(options.perPage).toEqual 20
+          expect(options.page).toEqual 3
+
+      context 'fetching from end of collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { perPage: 20, page: 5 }
+          collection.getNextPage()
+
+        it 'calls fetch with the correct page and perPage options for next page', ->
+          options = collection.fetch.mostRecentCall.args[0]
+          expect(options.perPage).toEqual 20
+          expect(options.page).toEqual 5
+    
+  describe '#getPreviousPage', ->
+    beforeEach ->
+      collection = new App.Collections.Tasks()
+      collection.lastFetchOptions = {}
+
+      spyOn(collection, 'fetch')
+      spyOn(collection, 'getServerCount').andReturn(100)
+
+    context 'when limit and offset are definded in lastFetchOptions', ->
+      context 'fetching from middle of collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { offset: 20, limit: 10 }
+          collection.getPreviousPage()
+
+        it 'calls fetch with correct limit and offset options for next page', ->
+          options = collection.fetch.mostRecentCall.args[0]
+          expect(options.limit).toEqual 10
+          expect(options.offset).toEqual 10
+
+      context 'fetching from end of collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { offset: 0, limit: 20 }
+          collection.getPreviousPage()
+
+        it 'calls fetch with correct limit and offset options for next page', ->
+          options = collection.fetch.mostRecentCall.args[0]
+          expect(options.limit).toEqual 20
+          expect(options.offset).toEqual 0
+
+    context 'when page and perPage are defined in lastFetchOptions', ->
+      context 'fetching from middle of collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { perPage: 20, page: 2 }
+          collection.getPreviousPage()
+
+        it 'calls fetch with the correct page and perPage options for next page', ->
+          options = collection.fetch.mostRecentCall.args[0]
+          expect(options.perPage).toEqual 20
+          expect(options.page).toEqual 1
+
+      context 'fetching from end of collection', ->
+        beforeEach ->
+          collection.lastFetchOptions = { perPage: 20, page: 1 }
+          collection.getPreviousPage()
+
+        it 'calls fetch with the correct page and perPage options for next page', ->
+          options = collection.fetch.mostRecentCall.args[0]
+          expect(options.perPage).toEqual 20
+          expect(options.page).toEqual 1
+    
+
   describe '#getFirstPage', ->
     collection = null
 
