@@ -345,9 +345,9 @@ describe 'Brainstem.Collection', ->
 
   describe '#loadNextPage', ->
     it 'loads the next page of data for a collection that has previously been loaded in the storage manager, returns the collection and whether it thinks there is another page or not', ->
-      respondWith server, '/api/time_entries?per_page=2&page=1', resultsFrom: 'time_entries', data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
-      respondWith server, '/api/time_entries?per_page=2&page=2', resultsFrom: 'time_entries', data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
-      respondWith server, '/api/time_entries?per_page=2&page=3', resultsFrom: 'time_entries', data: { time_entries: [buildTimeEntry()] }
+      respondWith server, '/api/time_entries?per_page=2&page=1', resultsFrom: 'time_entries', data: { time_entries: [buildTimeEntry(), buildTimeEntry()], count: 5 }
+      respondWith server, '/api/time_entries?per_page=2&page=2', resultsFrom: 'time_entries', data: { time_entries: [buildTimeEntry(), buildTimeEntry()], count: 5 }
+      respondWith server, '/api/time_entries?per_page=2&page=3', resultsFrom: 'time_entries', data: { time_entries: [buildTimeEntry()], count: 5 }
       collection = base.data.loadCollection 'time_entries', perPage: 2
       expect(collection.length).toEqual 0
       server.respond()
@@ -370,9 +370,9 @@ describe 'Brainstem.Collection', ->
       expect(collection.length).toEqual 5
 
     it 'fetches based on the last limit and offset if they were the pagination options used', ->
-      respondWith server, '/api/time_entries?limit=2&offset=0', resultsFrom: 'time_entries', data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
-      respondWith server, '/api/time_entries?limit=2&offset=2', resultsFrom: 'time_entries', data: { time_entries: [buildTimeEntry(), buildTimeEntry()] }
-      respondWith server, '/api/time_entries?limit=2&offset=4', resultsFrom: 'time_entries', data: { time_entries: [buildTimeEntry()] }
+      respondWith server, '/api/time_entries?limit=2&offset=0', resultsFrom: 'time_entries', data: { time_entries: [buildTimeEntry(), buildTimeEntry()], count: 5 }
+      respondWith server, '/api/time_entries?limit=2&offset=2', resultsFrom: 'time_entries', data: { time_entries: [buildTimeEntry(), buildTimeEntry()], count: 5 }
+      respondWith server, '/api/time_entries?limit=2&offset=4', resultsFrom: 'time_entries', data: { time_entries: [buildTimeEntry()], count: 5 }
       collection = base.data.loadCollection 'time_entries', limit: 2, offset: 0
       expect(collection.length).toEqual 0
       server.respond()
