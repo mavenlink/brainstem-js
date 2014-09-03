@@ -19,7 +19,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     return (a, b) -> a.get(field) - b.get(field)
 
   @pickFetchOptions: (options) ->
-    _.pick options, Brainstem.Collection.OPTION_KEYS
+    _.pick options, @OPTION_KEYS
 
 
   #
