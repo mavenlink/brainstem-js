@@ -6,3 +6,4 @@
 /.idea/
 projectFilesBackup
 pkg
+.DS_Store
