@@ -834,9 +834,14 @@ describe 'Brainstem.Collection', ->
       beforeEach ->
         collection.lastFetchOptions = undefined
 
-      it 'throws an error', ->
-        expect(-> collection._canPaginate()).toThrow()
-        expect(Brainstem.Utils.throwError.mostRecentCall.args[0]).toMatch(/collection must have been fetched once/)
+      context 'throwError is passed as false', ->
+        it 'returns false', ->
+          expect(collection._canPaginate()).toBe false
+
+      context 'throwError is passed as true', ->
+        it 'throws an error', ->
+          expect(-> collection._canPaginate(true)).toThrow()
+          expect(Brainstem.Utils.throwError.mostRecentCall.args[0]).toMatch(/collection must have been fetched once/)
       
     context 'lastFetchOptions is defined', ->
       beforeEach ->
@@ -850,25 +855,43 @@ describe 'Brainstem.Collection', ->
           beforeEach ->
             collection.lastFetchOptions = { limit: undefined, perPage: undefined }
 
-          it 'throws an error', ->
-            expect(-> collection._canPaginate()).toThrow()
-            expect(Brainstem.Utils.throwError.mostRecentCall.args[0]).toMatch(/perPage or limit must be defined/)
+
+          context 'throwError is passed as false', ->
+            it 'returns false', ->
+              expect(collection._canPaginate()).toBe false
+
+          context 'throwError is passed as true', ->
+            it 'throws an error', ->
+              expect(-> collection._canPaginate(true)).toThrow()
+              expect(Brainstem.Utils.throwError.mostRecentCall.args[0]).toMatch(/perPage or limit must be defined/)
+
+          
 
       context 'collection does not have count', ->
         beforeEach ->
           collection.lastFetchOptions.name = 'tasks'
 
-        it 'throws an error', ->
-          expect(-> collection._canPaginate()).toThrow()
-          expect(Brainstem.Utils.throwError.mostRecentCall.args[0]).toMatch(/collection must have a count/)
+        context 'throwError is passed as false', ->
+          it 'returns false', ->
+            expect(collection._canPaginate()).toBe false
+
+        context 'throwError is passed as true', ->
+          it 'throws an error', ->
+            expect(-> collection._canPaginate(true)).toThrow()
+            expect(Brainstem.Utils.throwError.mostRecentCall.args[0]).toMatch(/collection must have a count/)
 
       context 'name is not defined in lastFetchOptions', ->
         beforeEach ->
           delete collection.lastFetchOptions.name
 
-        it 'still throws the correct error', ->
-          expect(-> collection._canPaginate()).toThrow()
-          expect(Brainstem.Utils.throwError.mostRecentCall.args[0]).toMatch(/collection must have a count/)
+        context 'throwError is passed as false', ->
+          it 'still returns false', ->
+            expect(collection._canPaginate()).toBe false
+
+        context 'throwError is passed as true', ->
+          it 'still throws the correct error', ->
+            expect(-> collection._canPaginate(true)).toThrow()
+            expect(Brainstem.Utils.throwError.mostRecentCall.args[0]).toMatch(/collection must have a count/)
 
   describe '#_maxOffset', ->
     beforeEach ->
