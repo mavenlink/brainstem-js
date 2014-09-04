@@ -177,11 +177,26 @@ describe 'Brainstem.Collection', ->
 
         collection.fetch(options)
         expectation.respond()
-
+  
         lastFetchOptions = collection.lastFetchOptions
         expect(lastFetchOptions).toEqual(jasmine.any Object)
         expect(lastFetchOptions.offset).toEqual(0)
         expect(lastFetchOptions.limit).toEqual(5)
+
+
+      it 'updates `lastFetchOptions` BEFORE invoking (set/reset/add) method on collection', ->
+        expect(collection.lastFetchOptions).toBeNull()
+
+        fakeReset = ->
+          lastFetchOptions = collection.lastFetchOptions
+          expect(lastFetchOptions).toEqual(jasmine.any Object)
+          expect(lastFetchOptions.offset).toEqual(0)
+          expect(lastFetchOptions.limit).toEqual(5)
+
+        spyOn(collection, 'set').andCallFake(fakeReset)
+
+        collection.fetch(options)
+        expectation.respond()
 
       it 'triggers sync', ->
         spyOn(collection, 'trigger')

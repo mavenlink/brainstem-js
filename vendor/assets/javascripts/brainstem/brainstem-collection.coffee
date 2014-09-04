@@ -71,6 +71,8 @@ class window.Brainstem.Collection extends Backbone.Collection
 
     loader.pipe(-> loader.internalObject.models)
       .done((response) =>
+        @lastFetchOptions = loader.externalObject.lastFetchOptions
+
         if options.add
           method = 'add'
         else if options.reset
@@ -79,7 +81,6 @@ class window.Brainstem.Collection extends Backbone.Collection
           method = 'set'
 
         @[method](response, options)
-        @lastFetchOptions = loader.externalObject.lastFetchOptions
 
         @trigger('sync', this, response, options)
       ).promise()
