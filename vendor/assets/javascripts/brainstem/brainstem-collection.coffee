@@ -132,7 +132,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     @getPage(Infinity, options)
 
   getPage: (index, options = {}) ->
-    @_canPaginate()
+    @_canPaginate(true)
 
     options = _.extend(options, @lastFetchOptions)
 
@@ -146,7 +146,7 @@ class window.Brainstem.Collection extends Backbone.Collection
       max = @_maxPage()
       options.page = if index < max then index else max
 
-    @fetch(options)
+    @fetch _.extend(options, { reset: true })
 
   hasNextPage: ->
     @_canPaginate()

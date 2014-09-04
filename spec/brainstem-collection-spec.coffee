@@ -630,13 +630,13 @@ describe 'Brainstem.Collection', ->
       collection.lastFetchOptions = {}
       spyOn(collection, 'fetch')
 
-    it 'calls _canPaginate', ->
+    it 'calls _canPaginate with throwError = true', ->
       spyOn(collection, '_canPaginate')
       spyOn(collection, '_maxPage')
 
       collection.getPage()
 
-      expect(collection._canPaginate).toHaveBeenCalled()
+      expect(collection._canPaginate).toHaveBeenCalledWith(true)
 
     context 'perPage and page are defined in lastFetchOptions', ->
       beforeEach ->
