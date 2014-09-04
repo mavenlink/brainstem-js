@@ -52,11 +52,6 @@ beforeEach ->
   window.server = sinon.fakeServer.create()
   sinon.log = -> console.log arguments
 
-  # Requests for Backbone.history.getFragment() will always return the contents of spec.fragment.
-  Backbone.history ||= new Backbone.History
-  spyOn(Backbone.history, 'getFragment').andCallFake -> window.spec.fragment
-  window.spec.fragment = "mock/path"
-
   # Prevent any actual navigation.
   spyOn Backbone.History.prototype, 'start'
   spyOn Backbone.History.prototype, 'navigate'
