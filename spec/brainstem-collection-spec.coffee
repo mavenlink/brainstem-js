@@ -708,19 +708,29 @@ describe 'Brainstem.Collection', ->
       collection = new App.Collections.Tasks()
       spyOn(collection, 'getServerCount').andReturn(100)
 
+    context 'collection\'s `lastFetchOptions` are undefined', ->
+      beforeEach ->
+        collection.lastFetchOptions = undefined
+
+      it 'returns false', ->
+        expect(collection.hasNextPage()).toEqual(false)
+
+      it 'doesn\'t throw an error', ->
+        expect(-> collection.hasNextPage()).not.toThrow()
+
     context 'offset is defined', ->
       context 'at the end of a collection', ->
         beforeEach ->
           collection.lastFetchOptions = { limit: 20, offset: 80 }
 
-        it 'should return false', ->
+        it 'returns false', ->
           expect(collection.hasNextPage()).toEqual(false)
 
       context 'in the middle of a collection', ->
         beforeEach ->
           collection.lastFetchOptions = { limit: 20, offset: 40 }
 
-        it 'should return true', ->
+        it 'returns true', ->
           expect(collection.hasNextPage()).toEqual(true)
 
     context 'page is defined', ->
@@ -728,14 +738,14 @@ describe 'Brainstem.Collection', ->
         beforeEach ->
           collection.lastFetchOptions = { page: 5, perPage: 20 }
 
-        it 'should return false', ->
+        it 'returns false', ->
           expect(collection.hasNextPage()).toEqual(false)
 
       context 'in the middle of a collection', ->
         beforeEach ->
           collection.lastFetchOptions = { page: 3, perPage: 20 }
 
-        it 'should return true', ->
+        it 'returns true', ->
           expect(collection.hasNextPage()).toEqual(true)
 
   describe '#hasPreviousPage', ->
@@ -744,19 +754,29 @@ describe 'Brainstem.Collection', ->
       collection = new App.Collections.Tasks()
       spyOn(collection, 'getServerCount').andReturn(100)
 
+    context 'collection\'s `lastFetchOptions` are undefined', ->
+      beforeEach ->
+        collection.lastFetchOptions = undefined
+
+      it 'returns false', ->
+        expect(collection.hasNextPage()).toEqual(false)
+
+      it 'doesn\'t throw an error', ->
+        expect(-> collection.hasNextPage()).not.toThrow()
+
     context 'offset is defined', ->
       context 'at the front of a collection', ->
         beforeEach ->
           collection.lastFetchOptions = { limit: 20, offset: 0 }
 
-        it 'should return false', ->
+        it 'returns false', ->
           expect(collection.hasPreviousPage()).toEqual(false)
 
       context 'in the middle of a collection', ->
         beforeEach ->
           collection.lastFetchOptions = { limit: 20, offset: 40 }
 
-        it 'should return true', ->
+        it 'returns true', ->
           expect(collection.hasPreviousPage()).toEqual(true)
 
     context 'page is defined', ->
@@ -764,14 +784,14 @@ describe 'Brainstem.Collection', ->
         beforeEach ->
           collection.lastFetchOptions = { page: 0, perPage: 20 }
 
-        it 'should return false', ->
+        it 'returns false', ->
           expect(collection.hasPreviousPage()).toEqual(false)
 
       context 'in the middle of a collection', ->
         beforeEach ->
           collection.lastFetchOptions = { page: 3, perPage: 20 }
 
-        it 'should return true', ->
+        it 'returns true', ->
           expect(collection.hasPreviousPage()).toEqual(true)
 
   describe '#invalidateCache', ->

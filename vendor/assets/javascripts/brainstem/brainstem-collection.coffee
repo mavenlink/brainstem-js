@@ -150,7 +150,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     @fetch _.extend(options, { reset: true })
 
   hasNextPage: ->
-    @_canPaginate()
+    return false unless @_canPaginate()
 
     unless _.isUndefined(@lastFetchOptions.offset)
       if @_maxOffset() > @lastFetchOptions.offset then true else false
@@ -158,7 +158,7 @@ class window.Brainstem.Collection extends Backbone.Collection
       if @_maxPage() > @lastFetchOptions.page then true else false
 
   hasPreviousPage: ->
-    @_canPaginate()
+    return false unless @_canPaginate()
 
     unless _.isUndefined(@lastFetchOptions.offset)
       if @lastFetchOptions.offset > @lastFetchOptions.limit then true else false
@@ -188,6 +188,8 @@ class window.Brainstem.Collection extends Backbone.Collection
     return throwOrReturn('(pagination) collection must have been fetched once') unless options
     return throwOrReturn('(pagination) collection must have a count') unless count
     return throwOrReturn('(pagination) perPage or limit must be defined') unless options.perPage || options.limit
+
+    true
 
   _maxOffset: ->
     limit = @lastFetchOptions.limit
