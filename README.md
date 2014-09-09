@@ -25,7 +25,7 @@ What follows is an overview.
 
 ### StorageManager
 
-The `Brainstem.StorageManager` is in charge of loading data over the API, as well as returning already cached data.  We recommend setting one up in a singleton App class.
+The `Brainstem.StorageManager` is in charge of loading data over the API, as well as returning already cached data.  The storage manager should be set up as a singleton before instantiating any models or collections.
 
 	class Application
 	  constructor: ->
@@ -34,7 +34,7 @@ The `Brainstem.StorageManager` is in charge of loading data over the API, as wel
 	    @data.addCollection 'locations', Collections.Locations
 	    @data.addCollection 'features', Collections.Features
 	    @homeRouter = new Routers.WidgetsRouter()
-	
+
 	$ ->
 	  window.base = new Application()
 	  Backbone.history.start(root: "/")
@@ -47,34 +47,33 @@ Once you have a StorageManager, you should setup some `Brainstem.Models` and `Br
 
 	window.Models ?= {}
 	window.Collections ?= {}
-	
+
 	class Models.Widget extends Brainstem.Model
 	  paramRoot: 'widget'
 	  brainstemKey: 'widgets'
 	  urlRoot: '/api/v1/widgets'
-	
+
 	  @associations:
-	    features: ["features"] # Has many
-	    location: "locations" # Belongs to
-	    parent: ["sprocket", "widget"] # Belongs to (polymorphic)
-	
+	    features: ["features"]
+	    location: "locations"
+
 	class Collections.Widgets extends Brainstem.Collection
 	  model: Models.Widget
 	  url: '/api/v1/widgets'
-	
+
 	class Models.Feature extends Brainstem.Model
 	  paramRoot: 'feature'
 	  brainstemKey: 'features'
 	  urlRoot: '/api/v1/features'
-	
+
 	  @associations:
 	    widgets: ["widgets"]
-	
+
 	class Collections.Features extends Brainstem.Collection
 	  model: Models.Feature
 	  url: '/api/v1/features'
 
-Use the `@associations` class method to declare the mapping between association names and `StorageManager` collections where the data can be located.  Arrays indicate has_many relationships.  Other than a few additions, these are just Backbone Models and Collections.
+Use the `@associations` class method to declare the mapping between association names and `StorageManager` collections where the data can be located.  Arrays indicate has_many relationships.  Other than a few additions, these are just Backbone Models and Collections.  You can load your newly declared Models and Collections using the `fetch` method.  Given Brainstem options, such as `include`, and `order`, fetch will interact with the `StorageManager` to retrieve data from the server or local cache.
 
 ### Backbone.Views
 
@@ -82,27 +81,31 @@ Now that you have models, collections, and a `StorageManager`, it's time to load
 
 	class Views.Widgets.IndexView extends Backbone.View
 	  template: JST["backbone/templates/widgets/index"]
-	
+
 	  initialize: ->
-	    @collection = base.data.loadCollection "widgets", include: ["location", "features"], order: 'updated_at:desc'
+	    @collection = new Collections.Widgets()
+	    @collection.fetch
+	    	include: ["location", "features"],
+	    	order: 'updated_at:desc'
+
 	    @collection.bind 'reset', @addAll
 	    @collection.bind 'remove', @addAll
-	
+
 	  render: =>
 	    @$el.html @template()
-	
+
 	    if @collection.loaded
 	      @addAll()
 	    else
 	      @$("#widgets-list").text "Just a moment..."
-	
+
 	    return this
-	
+
 	  addAll: =>
 	    @$("#widgets-list").empty()
 	    @collection.each(@addOne)
 	    @addLocations()
-	
+
 	  addOne: (model) =>
 	    view = new Views.Widgets.WidgetView(model: model)
 	    @$("#widgets-list").append view.render().el
@@ -110,9 +113,9 @@ Now that you have models, collections, and a `StorageManager`, it's time to load
 And finally, in your templates, you can access the relational data just like you'd normally access model data in Backbone.
 
     @model.get('location').get('name')
-    
+
     for feature in @model.get('features').models:
-    
+
 Etc.
 
 ## Development
@@ -140,7 +143,7 @@ To develop your application against a local checkout of brainstem-js, we suggest
 And when you're done, run:
 
     bundle config --delete local.brainstem-js
-    
+
 # License
 
 Brainstem and Brainstem.js were created by Mavenlink, Inc. and are available under the MIT License.
