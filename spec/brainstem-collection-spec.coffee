@@ -96,6 +96,7 @@ describe 'Brainstem.Collection', ->
     context 'the collection has brainstemKey defined', ->
       beforeEach ->
         collection.model = App.Models.Post
+        
 
       it 'does not throw', ->
         expect(-> collection.fetch()).not.toThrow()
@@ -106,6 +107,14 @@ describe 'Brainstem.Collection', ->
         collection.fetch()
 
         expect(loadObjectSpy.mostRecentCall.args[1].name).toEqual('posts')
+
+      it 'triggers "request"', ->
+        options = returnValues: {}
+
+        spyOn(collection, 'trigger')
+        collection.fetch(options)
+
+        expect(collection.trigger).toHaveBeenCalledWith('request', collection, options.returnValues.jqXhr, jasmine.any(Object))
 
     context 'options has a name property', ->
       it 'uses options name property over the collections brainstemKey', ->
