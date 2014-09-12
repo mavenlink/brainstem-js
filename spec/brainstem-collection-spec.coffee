@@ -317,6 +317,15 @@ describe 'Brainstem.Collection', ->
         expect(collection.pluck 'id').not.toEqual(_.pluck posts1, 'id')
         expect(collection.pluck 'id').toEqual(_.pluck posts2, 'id')
 
+  describe '#refresh', ->
+    beforeEach ->
+      collection.lastFetchOptions = {}
+      spyOn(collection, 'fetch')
+      collection.refresh()
+
+    it 'should call fetch with the correct options', ->
+      expect(collection.fetch).toHaveBeenCalledWith(cache: false)
+
   describe '#update', ->
     it 'works with an array', ->
       collection.update updateArray
