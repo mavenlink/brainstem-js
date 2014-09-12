@@ -2,7 +2,19 @@
 
 class window.Brainstem.Collection extends Backbone.Collection
 
-  @OPTION_KEYS = ['name', 'include', 'filters', 'page', 'perPage', 'limit', 'offset', 'order', 'search', 'cacheKey']
+  @OPTION_KEYS = [
+    'name'
+    'include'
+    'filters'
+    'page'
+    'perPage'
+    'limit'
+    'offset'
+    'order'
+    'search'
+    'cache'
+    'cacheKey'
+  ]
 
   @getComparatorWithIdFailover: (order) ->
     [field, direction] = order.split(":")
