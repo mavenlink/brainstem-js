@@ -100,6 +100,9 @@ class window.Brainstem.Collection extends Backbone.Collection
         @trigger('sync', this, response, options)
       ).promise()
 
+  refresh: (options = {}) ->
+    @fetch _.extend(@lastFetchOptions, options, cache: false)
+
   update: (models) ->
     models = models.models if models.models?
     for model in models
