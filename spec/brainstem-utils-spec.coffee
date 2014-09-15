@@ -20,3 +20,36 @@ describe 'Brainstem Utils', ->
       expect(Brainstem.Utils.wrapObjects([{'a':[], b: 'c', d: 'e' }])).toEqual [{a: []}, {b: [{c: []}]}, {d: [{e: []}]}]
       expect(Brainstem.Utils.wrapObjects(['a', { b: 'c', d: 'e' }])).toEqual [{a: []}, {b: [{c: []}]}, {d: [{e: []}]}]
       expect(Brainstem.Utils.wrapObjects([{'a': []}, {'b': ['c', d: []]}])).toEqual [{a: []}, {b: [{c: []}, {d: []}]}]
+
+  describe '.wrapError', ->
+    options = model = null
+    beforeEach ->
+      options = model = {}
+      model.trigger = jasmine.createSpy()
+
+    it 'triggers error on the model', ->
+      options.error = jasmine.createSpy()
+      Brainstem.Utils.wrapError(model, options)
+      options.error('asdf')
+
+      expect(model.trigger).toHaveBeenCalledWith('error', model, 'asdf', options)
+
+    context 'when an error handler is defined', ->
+      originalError = null
+
+      beforeEach ->
+        originalError = options.error = jasmine.createSpy()
+        Brainstem.Utils.wrapError(model, options)
+        options.error('asdf')
+
+      it 'calls original error handler', ->
+        expect(originalError).toHaveBeenCalledWith model, 'asdf', options
+
+    context 'when an error handler is not defined', ->
+      beforeEach ->
+        expect(options.error).toBeUndefined()
+        Brainstem.Utils.wrapError(model, options)
+          
+      it 'sets a function on options.error', ->
+        expect(options.error).toBeDefined()
+        expect(options.error).toEqual(jasmine.any(Function))

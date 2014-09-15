@@ -5,7 +5,12 @@ class window.Brainstem.Utils
     console?.log "Error:", args...
 
   @throwError: (message) ->
-    throw new Error("#{Backbone.history.getFragment()}: #{message}")
+    message = "#{message}"
+    fragment = Backbone.history?.getFragment()
+
+    message += ", fragment: #{fragment}" if fragment
+
+    throw new Brainstem.Error(message)
 
   @matches: (obj1, obj2) ->
     if @empty(obj1) && @empty(obj2)
@@ -47,3 +52,9 @@ class window.Brainstem.Utils
         o[elem] = []
         output.push o
     output
+
+  @wrapError = (collection, options) ->
+    error = options.error
+    options.error = (response) ->
+      error(collection, response, options) if error
+      collection.trigger('error', collection, response, options)

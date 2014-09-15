@@ -30,14 +30,12 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
   # Control
 
   _createObjects: ->
-    keys = ['name', 'filters', 'page', 'perPage', 'limit', 'offset', 'order', 'search', 'cacheKey']
-
     @internalObject = @storageManager.createNewCollection @loadOptions.name, []
 
     @externalObject = @loadOptions.collection || @storageManager.createNewCollection @loadOptions.name, []
     @externalObject.setLoaded false
     @externalObject.reset([], silent: false) if @loadOptions.reset
-    @externalObject.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), keys)
+    @externalObject.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), Brainstem.Collection.OPTION_KEYS)
     @externalObject.lastFetchOptions.include = @originalOptions.include
 
   _updateObjects: (object, data, silent = false) ->
