@@ -133,7 +133,7 @@ class window.Brainstem.Collection extends Backbone.Collection
   getPageIndex: ->
     return 1 unless @lastFetchOptions
 
-    unless _.isUndefined(@lastFetchOptions.offset)
+    if @lastFetchOptions.offset?
       Math.ceil(@lastFetchOptions.offset / @lastFetchOptions.limit) + 1
     else
       @lastFetchOptions.page
@@ -157,7 +157,7 @@ class window.Brainstem.Collection extends Backbone.Collection
 
     index = 1 if index < 1
 
-    unless _.isUndefined(@lastFetchOptions.offset)
+    if @lastFetchOptions.offset?
       max = @_maxOffset()
       offset = @lastFetchOptions.limit * index - @lastFetchOptions.limit
       options.offset = if offset < max then offset else max
@@ -170,7 +170,7 @@ class window.Brainstem.Collection extends Backbone.Collection
   hasNextPage: ->
     return false unless @_canPaginate()
 
-    unless _.isUndefined(@lastFetchOptions.offset)
+    if @lastFetchOptions.offset?
       if @_maxOffset() > @lastFetchOptions.offset then true else false
     else
       if @_maxPage() > @lastFetchOptions.page then true else false
@@ -178,7 +178,7 @@ class window.Brainstem.Collection extends Backbone.Collection
   hasPreviousPage: ->
     return false unless @_canPaginate()
 
-    unless _.isUndefined(@lastFetchOptions.offset)
+    if @lastFetchOptions.offset?
       if @lastFetchOptions.offset > @lastFetchOptions.limit then true else false
     else
       if @lastFetchOptions.page > 1 then true else false
