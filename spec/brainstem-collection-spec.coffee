@@ -155,6 +155,8 @@ describe 'Brainstem.Collection', ->
         promise = new $.Deferred()
 
         loadObjectSpy = spyOn(base.data, 'loadObject').andReturn(promise)
+
+        collection.firstFetchOptions = {}
         collection.model = App.Models.Post
       
       it 'calls `loadObject` with collection name', ->
@@ -169,6 +171,13 @@ describe 'Brainstem.Collection', ->
         for key of options
           expect(_.keys(loadObjectSpy.mostRecentCall.args[1])).toContain key
           expect(loadObjectSpy.mostRecentCall.args[1][key]).toEqual options[key]
+
+      it 'does not modify `firstFetchOptions`', ->
+        firstFetchOptions = _.clone collection.firstFetchOptions
+
+        collection.fetch(bla: 'bla')
+
+        expect(collection.firstFetchOptions).toEqual firstFetchOptions
 
     describe 'brainstem request and response', ->
       options = expectation = posts = null
