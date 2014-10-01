@@ -6,7 +6,7 @@ class window.Brainstem.Utils
 
   @throwError: (message) ->
     message = "#{message}"
-    fragment = Backbone.history?.getFragment()
+    fragment = try Backbone.history?.getFragment()
 
     message += ", fragment: #{fragment}" if fragment
 
