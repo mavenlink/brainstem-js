@@ -2,12 +2,88 @@ describe 'Brainstem.Model', ->
   model = null
 
   beforeEach ->
-    model = new App.Models.Task()
+    base.data.reset()
 
-  describe 'parse', ->
+  describe '#fetch', ->
+    beforeEach ->
+      model = buildTask()
+      base.data.storage('tasks').add model
+
+    context 'options has no name property and the model does not have a brainstem key', ->
+      beforeEach ->
+        model.brainstemKey = undefined
+
+      it 'throws a brainstem error', ->
+        expect(-> model.fetch()).toThrow()
+
+    context 'options has a name property and the model does not have a brainstem key', ->
+      beforeEach ->
+        model.brainstemKey = undefined
+
+      it 'does not throw a brainstem error', ->
+        expect(-> model.fetch({name: 'posts'})).not.toThrow()
+
+    context 'options has no name property and the model does have a brainstem key', ->
+      beforeEach ->
+        model.brainstemKey = 'posts'
+
+      it 'does not throw a brainstem error', ->
+        expect(-> model.fetch()).not.toThrow()
+
+    it 'calls wrapError', ->
+      spyOn(Brainstem.Utils, 'wrapError')
+      
+      model.fetch(options = {only: [model.id], parse: true, name: 'posts', cache: false})
+
+      expect(Brainstem.Utils.wrapError).toHaveBeenCalledWith(model, options)
+
+    it 'calls loadObject', ->
+      promise = done: (-> {promise: (->)})
+      spyOn(base.data, 'loadObject').andReturn(promise)
+
+      model.fetch()
+
+      expect(base.data.loadObject).toHaveBeenCalledWith(
+        'tasks',
+        { only: [model.id], parse: true, name: 'tasks', error: jasmine.any(Function), cache: false },
+        isCollection: false
+      )
+
+    it 'on success, triggers sync', ->
+      deferred = new $.Deferred
+      
+      spyOn(base.data, 'loadObject').andReturn(deferred)
+      spyOn(model, 'trigger')
+
+      model.fetch()
+      deferred.resolve()
+
+      expect(model.trigger).toHaveBeenCalledWith('sync', model, {only: [model.id], name: 'tasks', parse: true, error: jasmine.any(Function), cache: false})
+
+    it 'returns a promise', ->
+      promise = (new $.Deferred).promise()
+
+      spyOn(base.data, 'loadObject').andReturn(promise)
+      spyOn(model, 'trigger')
+
+      expect(model.fetch()).toEqual(promise)
+
+    describe 'integration', ->
+      it 'something', ->
+        task = buildTask()
+        respondWith(server, '/api/tasks/1', resultsFrom: 'tasks', data: task)
+
+        model.fetch()
+        server.respond()
+
+        expect(model.attributes).toEqual(task.attributes)
+
+
+  describe '#parse', ->
     response = null
 
     beforeEach ->
+      model = new App.Models.Task()
       response = count: 1, results: [id: 1, key: 'tasks'], tasks: { 1: { id: 1, title: 'Do Work' } }
 
     it "extracts object data from JSON with root keys", ->

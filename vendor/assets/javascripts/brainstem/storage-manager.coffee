@@ -168,7 +168,7 @@ class window.Brainstem.StorageManager
       if expectation.loaderOptionsMatch(loader)
         expectation.recordRequest(loader)
         return
-    throw  new Errorr("No expectation matched #{name} with #{JSON.stringify loader.originalOptions}")
+    throw  new Error("No expectation matched #{name} with #{JSON.stringify loader.originalOptions}")
     
 
   #

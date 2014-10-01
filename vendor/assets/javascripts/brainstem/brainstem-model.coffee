@@ -3,6 +3,15 @@
 # Extend Backbone.Model to include associations.
 class window.Brainstem.Model extends Backbone.Model
 
+  #
+  # Properties
+  
+  @OPTION_KEYS =  ['name', 'include', 'cacheKey']
+
+
+  #
+  # Class Methods
+  
   # Retreive details about a named association.  This is a class method.
   #     Model.associationDetails("project") # => {}
   #     timeEntry.constructor.associationDetails("project") # => {}
@@ -89,6 +98,27 @@ class window.Brainstem.Model extends Backbone.Model
 
   #
   # Control
+  
+  fetch: (options) ->
+    options = if options then _.clone(options) else {}
+
+    id = @id || options.id
+
+    options.only = [id] if id
+    options.parse = options.parse ? true
+    options.name = options.name ? @brainstemKey
+    options.cache = false
+
+    unless options.name
+      Brainstem.Utils.throwError('Either model must have a brainstemKey defined or name option must be provided')
+
+    Brainstem.Utils.wrapError(this, options)
+
+    base.data.loadObject(options.name, options, isCollection: false)
+      .done((response) =>
+        @trigger('sync', this, options)
+      )
+      .promise()
 
   # Handle create and update responses with JSON root keys
   parse: (resp, xhr) ->
