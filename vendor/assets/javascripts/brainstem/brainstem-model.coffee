@@ -88,7 +88,10 @@ class window.Brainstem.Model extends Backbone.Model
           collectionOptions = { comparator: comparator }
         else
           collectionOptions = {}
-        base.data.createNewCollection(details.collectionName, models, collectionOptions)
+        if options.link
+          @_linkCollection(details.collectionName, models, collectionOptions)
+        else
+          base.data.createNewCollection(details.collectionName, models, collectionOptions)
     else
       super(field)
 
@@ -220,3 +223,6 @@ class window.Brainstem.Model extends Backbone.Model
       resp[key][id]
     else
       {}
+      
+  _linkCollection: (collectionName, models, collectionOptions) ->
+    base.data.createNewCollection(collectionName, models, collectionOptions)

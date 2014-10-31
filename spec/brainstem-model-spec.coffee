@@ -438,7 +438,9 @@ describe 'Brainstem.Model', ->
             expect(timeEntry.get("missing")).toBeUndefined()
 
       describe "attributes defined as associations", ->
-        beforeEach ->          
+        collection = null
+        
+        beforeEach ->
           timeEntry = new App.Models.TimeEntry(id: 5, task_id: 2)
 
         context 'when an association id and association exists', ->
@@ -446,7 +448,32 @@ describe 'Brainstem.Model', ->
             base.data.storage("tasks").add buildTask(id: 2, title: "second time entry")
 
           it "returns correct value", ->
-            expect(timeEntry.get("task")).toEqual base.data.storage("tasks").get(2)            
+            expect(timeEntry.get("task")).toEqual base.data.storage("tasks").get(2)
+            
+          context 'option link is true', ->
+            beforeEach ->
+              collection = timeEntry.get('task', link: true)
+      
+            it 'changes to the returned collection are reflected on the models ids array', ->
+              task3 = buildTask(id: 3, title: "third time entry")
+              base.data.storage("tasks").add task3
+              
+              expect(timeEntry.attributes.task_ids)
+              
+              collection.add(task3)
+              
+              
+              
+            it 'asking for another linked collection returns the same instance of the collection', ->
+              
+          context 'option link is falsey', ->
+            beforeEach ->
+              collection = timeEntry.get('task', link: false)
+            
+            it 'changes to the returned collection are not relfected on the models ids array', ->
+              
+            it 'asking for another linked collection returns a new instance of the collection', ->
+              
 
         context "when we have an association id that cannot be found", ->
           beforeEach ->
@@ -560,7 +587,7 @@ describe 'Brainstem.Model', ->
                 expect(subTasks.at(1).get('position')).toEqual(2)
                 expect(subTasks.at(2).get('position')).toEqual(3)
 
-  describe 'invalidateCache', ->
+  describe '#invalidateCache', ->
     it 'invalidates all cache objects that a model is a result in', ->
       cache = base.data.getCollectionDetails(model.brainstemKey).cache
       model = buildTask()
@@ -595,7 +622,7 @@ describe 'Brainstem.Model', ->
       expect(cache[cacheKey.matching2].valid).toEqual false
       expect(cache[cacheKey.notMatching].valid).toEqual true
 
-  describe "toServerJSON", ->
+  describe '#toServerJSON', ->
     it "calls toJSON", ->
       spy = spyOn(model, "toJSON").andCallThrough()
       model.toServerJSON()
