@@ -412,7 +412,7 @@ describe 'Brainstem.Model', ->
         it "returns true", ->
           expect(testClass.associationsAreLoaded([])).toBe true
 
-    describe "get", ->
+    describe "#get", ->
       timeEntry = null
 
       afterEach ->
@@ -678,3 +678,48 @@ describe 'Brainstem.Model', ->
       json = model.toServerJSON("update")
       for key in updateBlacklist
         expect(json[key]).toBeUndefined()
+
+  describe '#_linkCollection', ->
+    story = null
+    
+    beforeEach ->
+      story = new App.Models.Task()
+      
+    context 'when there is not an associated collection', ->
+      dummyCollection = collectionName = collectionOptions = field = null
+      beforeEach ->
+        collectionName = 'users'
+        collectionOptions = {}
+        field = 'assignees'
+        expect(story._associatedCollections).toBeUndefined()
+        
+        dummyCollection = on: -> 'dummy Collection'
+        
+        spyOn(base.data, 'createNewCollection').andReturn(dummyCollection)
+        
+      it 'returns an associated collection' ,->
+        collection = story._linkCollection(collectionName, [], collectionOptions, field)
+        expect(collection).toBe(dummyCollection)
+        
+      it 'saves a reference to the associated collection', ->
+        collection = story._linkCollection(collectionName, [], collectionOptions, field)
+        expect(collection).toBe(story._associatedCollections.field)
+      
+    context 'when there is already an associated collection', ->
+      returnedCollection = collection = collectionName = collectionOptions = field = null
+      beforeEach ->
+        collectionName = 'users'
+        collectionOptions = {}
+        field = 'assignees'
+        collection = base.data.createNewCollection(collectionName, [], collectionOptions)
+        story._associatedCollections = {}
+        story._associatedCollections.field = collection
+        spyOn(base.data, 'createNewCollection')
+        returnedCollection = story._linkCollection(collectionName, [], collectionOptions, field)
+        
+      it 'returns an associated collection' ,->
+        expect(collection).toBe(returnedCollection)
+        
+      it 'should not create a new collection', ->  
+        expect(base.data.createNewCollection).not.toHaveBeenCalled()
+        
