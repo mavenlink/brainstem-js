@@ -703,8 +703,16 @@ describe 'Brainstem.Model', ->
         
       it 'saves a reference to the associated collection', ->
         collection = story._linkCollection(collectionName, [], collectionOptions, field)
-        expect(collection).toBe(story._associatedCollections.field)
-      
+        expect(collection).toBe(story._associatedCollections.assignees)
+        
+      it 'getting a different collection craetes a second key on _associatedCollections', ->
+        collection = story._linkCollection(collectionName, [], collectionOptions, field)
+        collection2 = story._linkCollection("tasks", [], collectionOptions, "sub_tasks")
+        
+        expect(story._associatedCollections.field).toBeUndefined()
+        expect(collection).toBe(story._associatedCollections.assignees)
+        expect(collection2).toBe(story._associatedCollections.sub_tasks)
+        
     context 'when there is already an associated collection', ->
       returnedCollection = collection = collectionName = collectionOptions = field = null
       beforeEach ->
@@ -713,7 +721,7 @@ describe 'Brainstem.Model', ->
         field = 'assignees'
         collection = base.data.createNewCollection(collectionName, [], collectionOptions)
         story._associatedCollections = {}
-        story._associatedCollections.field = collection
+        story._associatedCollections[field] = collection
         spyOn(base.data, 'createNewCollection')
         returnedCollection = story._linkCollection(collectionName, [], collectionOptions, field)
         
