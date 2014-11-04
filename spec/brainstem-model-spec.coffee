@@ -32,7 +32,7 @@ describe 'Brainstem.Model', ->
 
     it 'calls wrapError', ->
       spyOn(Brainstem.Utils, 'wrapError')
-      
+
       model.fetch(options = {only: [model.id], parse: true, name: 'posts', cache: false})
 
       expect(Brainstem.Utils.wrapError).toHaveBeenCalledWith(model, options)
@@ -51,7 +51,7 @@ describe 'Brainstem.Model', ->
 
     it 'on success, triggers sync', ->
       deferred = new $.Deferred
-      
+
       spyOn(base.data, 'loadObject').andReturn(deferred)
       spyOn(model, 'trigger')
 
@@ -196,7 +196,7 @@ describe 'Brainstem.Model', ->
         expect(base.data.storage('users').get(6).get('created_at')).toEqual(1359573957000)
 
   describe 'associations', ->
-    
+
     class TestClass extends Brainstem.Model
       @associations:
         user: "users"
@@ -211,12 +211,12 @@ describe 'Brainstem.Model', ->
           key: "user_id"
           type: "BelongsTo"
           collectionName: "users"
-        
+
         expect(TestClass.associationDetails('users')).toEqual
           key: "user_ids"
           type: "HasMany"
           collectionName: "users"
-      
+
       it 'returns the correct association details for polymorphic associations', ->
         expect(TestClass.associationDetails('activity')).toEqual
           key: "activity_ref"
@@ -227,7 +227,7 @@ describe 'Brainstem.Model', ->
       it "is cached on the class for speed", ->
         original = TestClass.associationDetails('users')
         TestClass.associations.users = "something_else"
-        
+
         expect(TestClass.associationDetails('users')).toEqual original
 
       it "returns falsy if the association cannot be found", ->
@@ -235,7 +235,7 @@ describe 'Brainstem.Model', ->
 
     describe 'associationsAreLoaded', ->
       testClass = null
-      
+
       describe "when association is of type 'BelongsTo'", ->
         context "and is not polymorphic", ->
           beforeEach ->
@@ -412,7 +412,7 @@ describe 'Brainstem.Model', ->
         it "returns true", ->
           expect(testClass.associationsAreLoaded([])).toBe true
 
-    describe "get", ->
+    describe "#get", ->
       timeEntry = null
 
       afterEach ->
@@ -438,15 +438,58 @@ describe 'Brainstem.Model', ->
             expect(timeEntry.get("missing")).toBeUndefined()
 
       describe "attributes defined as associations", ->
-        beforeEach ->          
+        collection = null
+
+        beforeEach ->
           timeEntry = new App.Models.TimeEntry(id: 5, task_id: 2)
 
         context 'when an association id and association exists', ->
+          task = user1 = user2 = null
+
           beforeEach ->
             base.data.storage("tasks").add buildTask(id: 2, title: "second time entry")
 
+            user1 = buildAndCacheUser()
+            user2 = buildAndCacheUser()
+
+            task = buildAndCacheTask(id: 5, assignee_ids: [user1.id])
+
           it "returns correct value", ->
-            expect(timeEntry.get("task")).toEqual base.data.storage("tasks").get(2)            
+            expect(timeEntry.get("task")).toEqual base.data.storage("tasks").get(2)
+
+          context 'option link is true', ->
+            beforeEach ->
+              collection = task.get('assignees', link: true)
+
+            it 'changes to the returned collection are reflected on the models ids array', ->
+              expect(collection.at(0)).toBe(user1)
+
+              collection.add(user2)
+
+              expect(task.get('assignees').at(1).cid).toBe(user2.cid)
+
+              collection.remove(user1)
+
+              expect(task.get('assignees').at(1)).toBeUndefined()
+              expect(task.get('assignees').at(0).cid).toBe(user2.cid)
+
+            it 'asking for another linked collection returns the same instance of the collection', ->
+              expect(task.get('assignees', link: true)).toBe(collection)
+
+          context 'option link is falsey', ->
+            beforeEach ->
+              collection = task.get('assignees', link: false)
+
+            it 'changes to the returned collection are not relfected on the models ids array', ->
+              expect(collection.at(0)).toBe(user1)
+
+              collection.add(user2)
+
+              expect(task.get('assignees').at(1)).toBeUndefined()
+
+            it 'asking for another linked collection returns a new instance of the collection', ->
+              expect(task.get('assignees', link: false)).not.toBe(collection)
+
 
         context "when we have an association id that cannot be found", ->
           beforeEach ->
@@ -459,7 +502,7 @@ describe 'Brainstem.Model', ->
             expect(-> timeEntry.get("task", silent: false)).toThrow()
 
           it "should not throw when silent is true", ->
-            expect(-> timeEntry.get("task", silent: true)).not.toThrow()           
+            expect(-> timeEntry.get("task", silent: true)).not.toThrow()
 
       describe "BelongsTo associations", ->
         beforeEach ->
@@ -547,20 +590,20 @@ describe 'Brainstem.Model', ->
             context 'not explicitly specified', ->
               it "applies the default sort order", ->
                 subTasks = task.get("sub_tasks")
-                
+
                 expect(subTasks.at(0).get('position')).toEqual(3)
                 expect(subTasks.at(1).get('position')).toEqual(2)
                 expect(subTasks.at(2).get('position')).toEqual(1)
 
             context 'is explicitly specified', ->
-              it "applies the specified sort order", ->            
+              it "applies the specified sort order", ->
                 subTasks = task.get("sub_tasks", order: "position:asc")
 
                 expect(subTasks.at(0).get('position')).toEqual(1)
                 expect(subTasks.at(1).get('position')).toEqual(2)
                 expect(subTasks.at(2).get('position')).toEqual(3)
 
-  describe 'invalidateCache', ->
+  describe '#invalidateCache', ->
     it 'invalidates all cache objects that a model is a result in', ->
       cache = base.data.getCollectionDetails(model.brainstemKey).cache
       model = buildTask()
@@ -595,7 +638,7 @@ describe 'Brainstem.Model', ->
       expect(cache[cacheKey.matching2].valid).toEqual false
       expect(cache[cacheKey.notMatching].valid).toEqual true
 
-  describe "toServerJSON", ->
+  describe '#toServerJSON', ->
     it "calls toJSON", ->
       spy = spyOn(model, "toJSON").andCallThrough()
       model.toServerJSON()
@@ -635,3 +678,56 @@ describe 'Brainstem.Model', ->
       json = model.toServerJSON("update")
       for key in updateBlacklist
         expect(json[key]).toBeUndefined()
+
+  describe '#_linkCollection', ->
+    story = null
+    
+    beforeEach ->
+      story = new App.Models.Task()
+      
+    context 'when there is not an associated collection', ->
+      dummyCollection = collectionName = collectionOptions = field = null
+      beforeEach ->
+        collectionName = 'users'
+        collectionOptions = {}
+        field = 'assignees'
+        expect(story._associatedCollections).toBeUndefined()
+        
+        dummyCollection = on: -> 'dummy Collection'
+        
+        spyOn(base.data, 'createNewCollection').andReturn(dummyCollection)
+        
+      it 'returns an associated collection' ,->
+        collection = story._linkCollection(collectionName, [], collectionOptions, field)
+        expect(collection).toBe(dummyCollection)
+        
+      it 'saves a reference to the associated collection', ->
+        collection = story._linkCollection(collectionName, [], collectionOptions, field)
+        expect(collection).toBe(story._associatedCollections.assignees)
+        
+      it 'getting a different collection craetes a second key on _associatedCollections', ->
+        collection = story._linkCollection(collectionName, [], collectionOptions, field)
+        collection2 = story._linkCollection("tasks", [], collectionOptions, "sub_tasks")
+        
+        expect(story._associatedCollections.field).toBeUndefined()
+        expect(collection).toBe(story._associatedCollections.assignees)
+        expect(collection2).toBe(story._associatedCollections.sub_tasks)
+        
+    context 'when there is already an associated collection', ->
+      returnedCollection = collection = collectionName = collectionOptions = field = null
+      beforeEach ->
+        collectionName = 'users'
+        collectionOptions = {}
+        field = 'assignees'
+        collection = base.data.createNewCollection(collectionName, [], collectionOptions)
+        story._associatedCollections = {}
+        story._associatedCollections[field] = collection
+        spyOn(base.data, 'createNewCollection')
+        returnedCollection = story._linkCollection(collectionName, [], collectionOptions, field)
+        
+      it 'returns an associated collection' ,->
+        expect(collection).toBe(returnedCollection)
+        
+      it 'should not create a new collection', ->  
+        expect(base.data.createNewCollection).not.toHaveBeenCalled()
+        

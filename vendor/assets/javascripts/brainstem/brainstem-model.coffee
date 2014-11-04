@@ -5,13 +5,13 @@ class window.Brainstem.Model extends Backbone.Model
 
   #
   # Properties
-  
+
   @OPTION_KEYS =  ['name', 'include', 'cacheKey']
 
 
   #
   # Class Methods
-  
+
   # Retreive details about a named association.  This is a class method.
   #     Model.associationDetails("project") # => {}
   #     timeEntry.constructor.associationDetails("project") # => {}
@@ -51,7 +51,7 @@ class window.Brainstem.Model extends Backbone.Model
 
 
   #
-  # Accessors 
+  # Accessors
 
   # Override Model#get to access associations as well as fields.
   get: (field, options = {}) ->
@@ -88,7 +88,10 @@ class window.Brainstem.Model extends Backbone.Model
           collectionOptions = { comparator: comparator }
         else
           collectionOptions = {}
-        base.data.createNewCollection(details.collectionName, models, collectionOptions)
+        if options.link
+          @_linkCollection(details.collectionName, models, collectionOptions, field)
+        else
+          base.data.createNewCollection(details.collectionName, models, collectionOptions)
     else
       super(field)
 
@@ -98,7 +101,7 @@ class window.Brainstem.Model extends Backbone.Model
 
   #
   # Control
-  
+
   fetch: (options) ->
     options = if options then _.clone(options) else {}
 
@@ -196,7 +199,7 @@ class window.Brainstem.Model extends Backbone.Model
       delete json[blacklistKey]
 
     json
-    
+
   defaultJSONBlacklist: ->
     ['id', 'created_at', 'updated_at']
 
@@ -205,7 +208,6 @@ class window.Brainstem.Model extends Backbone.Model
 
   updateJSONBlacklist: ->
     []
-
 
 
   #
@@ -220,3 +222,16 @@ class window.Brainstem.Model extends Backbone.Model
       resp[key][id]
     else
       {}
+
+  _linkCollection: (collectionName, models, collectionOptions, field) ->
+    @_associatedCollections ?= {}
+    
+    unless @_associatedCollections[field]
+      @_associatedCollections[field] = base.data.createNewCollection(collectionName, models, collectionOptions)
+      @_associatedCollections[field].on 'add', => @_onAssociatedCollectionChange.call(this, field, arguments)
+      @_associatedCollections[field].on 'remove', => @_onAssociatedCollectionChange.call(this, field, arguments)
+      
+    @_associatedCollections[field]
+
+  _onAssociatedCollectionChange: (field, collectionChangeDetails) =>
+    @attributes[@constructor.associationDetails(field).key] = collectionChangeDetails[1].pluck('id')
