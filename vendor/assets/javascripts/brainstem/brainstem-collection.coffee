@@ -2,6 +2,12 @@
 
 class window.Brainstem.Collection extends Backbone.Collection
 
+  # 
+  # Properties
+
+  # Properties that form the firstFetchOptions object on instantianion.  Subsequent 
+  #  calls to fetch with an options object that contains these properties will update the
+  #  lastFetchOptions object.
   @OPTION_KEYS = [
     'name'
     'include'
@@ -16,6 +22,16 @@ class window.Brainstem.Collection extends Backbone.Collection
     'cacheKey'
   ]
 
+
+  #
+  # Class Methods
+
+  # Returns a collection comparator using the provided options.  If the two sorting values
+  #   are equal, the comparator will default to a model's id.
+  # 
+  # @example Sort by property {duration} in descending order
+  #   Collections.Tasks.getComparatorWithIdFailover('duration:desc') # sorts descending duration
+  # @param [String] order Attribute to use for ordering.  Syntax of order is a ```{property}:{direction}``` 
   @getComparatorWithIdFailover: (order) ->
     [field, direction] = order.split(":")
     comp = @getComparator(field)
@@ -26,10 +42,13 @@ class window.Brainstem.Collection extends Backbone.Collection
         a.get('id') - b.get('id')
       else
         result
-
+  
+  # Returns a comparator function.  Assumes the ```field``` value on the model's attributes
+  #   is a number.
   @getComparator: (field) ->
     return (a, b) -> a.get(field) - b.get(field)
 
+  # Picks only options related to a fetch operation out of the passed object
   @pickFetchOptions: (options) ->
     _.pick options, @OPTION_KEYS
 
@@ -44,6 +63,13 @@ class window.Brainstem.Collection extends Backbone.Collection
   #
   # Init
 
+  # Constructor delegates to Backbone#Collection.  The collection has an internal flag, {setLoaded}
+  #   to denote whether or not the collection has been fetched from the server yet.
+  # 
+  # @param [Array] models An array of Brainstem Models that the collection will contain.  These 
+  #   models will be set on the collection by Backbone.
+  # @param [Object] options An options object.  A number of these properties are used as fetch options.
+  # @see {window.Brainstem.Collection#OPTION_KEYS} Properties that are picked for firstFetchOptions from the options object
   constructor: (models, options) ->
     super
     @firstFetchOptions = Brainstem.Collection.pickFetchOptions(options) if options
@@ -53,9 +79,12 @@ class window.Brainstem.Collection extends Backbone.Collection
   #
   # Accessors
 
+  # @return [Integer] Total number of models stored on the server that match 
+  #   the collections most recent fetch options.
   getServerCount: ->
     @_getCacheObject()?.count
 
+  # ???
   getWithAssocation: (id) ->
     @get(id)
 
@@ -100,9 +129,19 @@ class window.Brainstem.Collection extends Backbone.Collection
         @trigger('sync', this, response, options)
       ).promise()
 
+  # Calls #fetch with the lastFetchOptions object.  By default, cache is set to false.
+  # 
+  # @param [Object] options Options object.  See #fetch for options.
+  # 
+  # @see {Brainstem.Collection#fetch]} Fetch options object.
   refresh: (options = {}) ->
     @fetch _.extend(@lastFetchOptions, options, cache: false)
 
+  # Manually update the collection with an array of new models.  For each model, 
+  #   if the collection does not contain the model it will be #added.  If the model already
+  #   exists in the collection it will be #set with the new model's attributes.
+  # 
+  # @param [Array] models Array of models to update the collection with.
   update: (models) ->
     models = models.models if models.models?
     for model in models
@@ -116,6 +155,8 @@ class window.Brainstem.Collection extends Backbone.Collection
       else
         Brainstem.Utils.warn "Unable to update collection with invalid model", model
 
+  # Reset the collection, removing all models contained within the collection.  
+  #   The collection then fetches itself with its lastFetchOptions.
   reload: (options) ->
     base.data.reset()
     @reset [], silent: true
@@ -123,6 +164,10 @@ class window.Brainstem.Collection extends Backbone.Collection
     loadOptions = _.extend({}, @lastFetchOptions, options, page: 1, collection: this)
     base.data.loadCollection @lastFetchOptions.name, loadOptions
 
+  # Loads the next page of data.  Uses default options provided by 
+  # 
+  # @param [Object] options Options object
+  # @option options [Function] success Success callback.
   loadNextPage: (options = {}) ->
     if _.isFunction(options.success)
       success = options.success
@@ -130,6 +175,10 @@ class window.Brainstem.Collection extends Backbone.Collection
 
     @getNextPage(_.extend(options, add: true)).done(=> success?(this, @hasNextPage()))
 
+  # Returns the current page index of the collection.  If the collection has not yet
+  #   been fetched the page defaults to 0.
+  # 
+  # @return [Integer] current page index of the collection.
   getPageIndex: ->
     return 1 unless @lastFetchOptions
 
@@ -138,18 +187,49 @@ class window.Brainstem.Collection extends Backbone.Collection
     else
       @lastFetchOptions.page
 
+  # Fetches the next page of the collection
+  #  
+  # @param [object] Fetch options
+  # 
+  # @return [jQuery Promise] Promise object. 
+  # @see {window.Brainstem.Collection#fetch} See #fetch for fetch options
   getNextPage: (options = {}) ->
     @getPage(@getPageIndex() + 1, options)
 
+  # Fetches the previous page of the collection
+  #  
+  # @param [object] Fetch options
+  # 
+  # @return [jQuery Promise] Promise object. 
+  # @see {window.Brainstem.Collection#fetch} See #fetch for fetch options
   getPreviousPage: (options = {}) ->
     @getPage(@getPageIndex() - 1, options)
 
+  # Fetches the first page of the collection
+  #  
+  # @param [Object] Fetch options
+  # 
+  # @return [jQuery Promise] Promise object. 
+  # @see {window.Brainstem.Collection#fetch} See #fetch for fetch options
   getFirstPage: (options = {}) ->
     @getPage(1, options)
 
+  # Fetches the last page of the collection
+  #  
+  # @param [Object] Fetch options
+  # 
+  # @return [jQuery Promise] Promise object. 
+  # @see {window.Brainstem.Collection#fetch} See #fetch for fetch options
   getLastPage: (options = {}) ->
     @getPage(Infinity, options)
 
+  # Fetches a specific page of the collection
+  #  
+  # @param [Integer]
+  # @param [Object] Fetch options
+  # 
+  # @return [jQuery Promise] Promise object. 
+  # @see {window.Brainstem.Collection#fetch} See #fetch for fetch options
   getPage: (index, options = {}) ->
     @_canPaginate(true)
 
@@ -166,7 +246,8 @@ class window.Brainstem.Collection extends Backbone.Collection
       options.page = if index < max then index else max
 
     @fetch _.extend(options, { reset: true })
-
+    
+  # @return [Boolean] True if the collection has a next page that it can fetch.
   hasNextPage: ->
     return false unless @_canPaginate()
 
@@ -175,6 +256,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     else
       if @_maxPage() > @lastFetchOptions.page then true else false
 
+  # @return [Boolean] True if the collection has a previous page that it can fetch.
   hasPreviousPage: ->
     return false unless @_canPaginate()
 
@@ -183,9 +265,11 @@ class window.Brainstem.Collection extends Backbone.Collection
     else
       if @lastFetchOptions.page > 1 then true else false
 
+  # ???
   invalidateCache: ->
     @_getCacheObject()?.valid = false
 
+  # @return [Object] Returns a JSON representation of all the models of the collection.
   toServerJSON: (method) ->
     @toJSON()
 

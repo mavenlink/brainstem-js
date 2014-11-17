@@ -111,6 +111,7 @@ class window.Brainstem.Model extends Backbone.Model
     else
       super(field)
 
+  # @return [String] Name of the model
   className: ->
     @paramRoot
 
@@ -238,17 +239,17 @@ class window.Brainstem.Model extends Backbone.Model
 
     json
 
-  # Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
+  # @return [Array] Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
   #   Applied to both 'update' and 'create' operations.
   defaultJSONBlacklist: ->
     ['id', 'created_at', 'updated_at']
 
-  # Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
+  # @return [Array] Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
   #   Applied to both only 'create' operations.
   createJSONBlacklist: ->
     []
 
-  # Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
+  # @return [Array] Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
   #   Applied to only 'update' operations.
   updateJSONBlacklist: ->
     []
