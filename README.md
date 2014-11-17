@@ -140,7 +140,13 @@ To develop your application against a local checkout of brainstem-js, we suggest
 And when you're done, run:
 
     bundle config --delete local.brainstem-js
-    
+
+### Building Docs
+
+To build the documentation, run the following from the root directory:
+
+		codo
+		
 # License
 
 Brainstem and Brainstem.js were created by Mavenlink, Inc. and are available under the MIT License.
