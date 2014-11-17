@@ -111,6 +111,7 @@ class window.Brainstem.Model extends Backbone.Model
     else
       super(field)
 
+  # @return [String] Name of the model
   className: ->
     @paramRoot
 
@@ -238,17 +239,17 @@ class window.Brainstem.Model extends Backbone.Model
 
     json
 
-  # Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
+  # @return [Array] Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
   #   Applied to both 'update' and 'create' operations.
   defaultJSONBlacklist: ->
     ['id', 'created_at', 'updated_at']
 
-  # Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
+  # @return [Array] Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
   #   Applied to both only 'create' operations.
   createJSONBlacklist: ->
     []
 
-  # Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
+  # @return [Array] Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
   #   Applied to only 'update' operations.
   updateJSONBlacklist: ->
     []
@@ -269,13 +270,10 @@ class window.Brainstem.Model extends Backbone.Model
 
   _linkCollection: (collectionName, models, collectionOptions, field) ->
     @_associatedCollections ?= {}
-    
-    unless @_associatedCollections[field]
-      @_associatedCollections[field] = base.data.createNewCollection(collectionName, models, collectionOptions)
-      @_associatedCollections[field].on 'add', => @_onAssociatedCollectionChange.call(this, field, arguments)
-      @_associatedCollections[field].on 'remove', => @_onAssociatedCollectionChange.call(this, field, arguments)
-      
-    @_associatedCollections[field]
+    @_associatedCollections.field ?= base.data.createNewCollection(collectionName, models, collectionOptions)
+
+    @_associatedCollections.field.on 'add', => @_onAssociatedCollectionChange.call(this, field, arguments)
+    @_associatedCollections.field.on 'remove', => @_onAssociatedCollectionChange.call(this, field, arguments)
 
   _onAssociatedCollectionChange: (field, collectionChangeDetails) =>
     @attributes[@constructor.associationDetails(field).key] = collectionChangeDetails[1].pluck('id')
