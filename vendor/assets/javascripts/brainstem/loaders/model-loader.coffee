@@ -1,6 +1,6 @@
 window.Brainstem ?= {}
 
-class Brainstem.ModelLoader extends Brainstem.AbstractLoader
+class window.Brainstem.ModelLoader extends Brainstem.AbstractLoader
 
   #
   # Accessors

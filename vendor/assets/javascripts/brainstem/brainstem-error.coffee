@@ -1,6 +1,6 @@
 window.Brainstem ?= {}
 
-class Brainstem.Error extends Error
+class window.Brainstem.Error extends Error
 
   constructor: (message) ->
     @name = 'BrainstemError'
