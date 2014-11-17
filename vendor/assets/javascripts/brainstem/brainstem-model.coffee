@@ -270,13 +270,10 @@ class window.Brainstem.Model extends Backbone.Model
 
   _linkCollection: (collectionName, models, collectionOptions, field) ->
     @_associatedCollections ?= {}
-    
-    unless @_associatedCollections[field]
-      @_associatedCollections[field] = base.data.createNewCollection(collectionName, models, collectionOptions)
-      @_associatedCollections[field].on 'add', => @_onAssociatedCollectionChange.call(this, field, arguments)
-      @_associatedCollections[field].on 'remove', => @_onAssociatedCollectionChange.call(this, field, arguments)
-      
-    @_associatedCollections[field]
+    @_associatedCollections.field ?= base.data.createNewCollection(collectionName, models, collectionOptions)
+
+    @_associatedCollections.field.on 'add', => @_onAssociatedCollectionChange.call(this, field, arguments)
+    @_associatedCollections.field.on 'remove', => @_onAssociatedCollectionChange.call(this, field, arguments)
 
   _onAssociatedCollectionChange: (field, collectionChangeDetails) =>
     @attributes[@constructor.associationDetails(field).key] = collectionChangeDetails[1].pluck('id')
