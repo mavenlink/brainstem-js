@@ -13,7 +13,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     storageManager = new Brainstem.StorageManager()
     storageManager.addCollection('tasks', App.Collections.Tasks)
 
-    defaults = 
+    defaults =
       storageManager: storageManager
 
     loader = new loaderClass(_.extend {}, defaults, opts)
@@ -21,7 +21,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     loader._createObjects = ->
       @internalObject = bar: 'foo'
       @externalObject = foo: 'bar'
-      
+
     loader._getModelsForAssociation = -> [{ id: 5 }, { id: 2 }, { id: 1 }, { id: 4 }, { id: 1 }, [{ id: 6 }], { id: null }]
     loader._getModel = -> App.Collections.Tasks::model
     loader._updateStorageManagerFromResponse = jasmine.createSpy()
@@ -91,7 +91,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       opts = defaultLoadOptions()
       loader.setup(opts)
       cacheKey = loader.loadOptions.cacheKey
-      
+
       expect(loader.getCacheObject()).toBeUndefined()
       fakeCache = [key: "tasks", id: 5]
       loader.storageManager.getCollectionDetails(loader._getCollectionName()).cache[cacheKey] = fakeCache
@@ -240,11 +240,14 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
     it 'builds a cache key', ->
       # order, filterKeys, page, perPage, limit, offset
-      myOpts = 
+      myOpts =
         order: 'myOrder'
         filters:
           key1: 'value1'
           key2: 'value2'
+          key3:
+            value1: 'a'
+            value2: 'b'
         page: 1
         perPage: 200
         limit: 50
@@ -254,7 +257,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
       opts = _.extend(opts, myOpts)
       loadOptions = loader._parseLoadOptions(opts)
-      expect(loadOptions.cacheKey).toEqual 'myOrder|key1:value1,key2:value2|1,2,3|1|200|50|0|foobar'
+      expect(loadOptions.cacheKey).toEqual 'myOrder|{"key1":"value1","key2":"value2","key3":{"value1":"a","value2":"b"}}|1,2,3|1|200|50|0|foobar'
 
     it 'sets the cachedCollection on the loader from the storageManager', ->
       loader._parseLoadOptions(opts)
@@ -278,6 +281,14 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
       expect(ret).toEqual false
       expect(loader._onLoadSuccess).not.toHaveBeenCalled()
+
+      context 'the requested IDs have not all been loaded', ->
+        beforeEach ->
+          loader.storageManager.storage('tasks').add([taskOne])
+
+        it 'returns false and does not call #_onLoadSuccess', ->
+          loader.setup(opts)
+          notFound(loader, opts)
 
     context 'only query', ->
       beforeEach ->
