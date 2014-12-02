@@ -282,14 +282,6 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       expect(ret).toEqual false
       expect(loader._onLoadSuccess).not.toHaveBeenCalled()
 
-      context 'the requested IDs have not all been loaded', ->
-        beforeEach ->
-          loader.storageManager.storage('tasks').add([taskOne])
-
-        it 'returns false and does not call #_onLoadSuccess', ->
-          loader.setup(opts)
-          notFound(loader, opts)
-
     context 'only query', ->
       beforeEach ->
         opts.only = ['2', '3']
