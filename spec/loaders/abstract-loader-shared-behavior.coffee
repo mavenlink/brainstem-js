@@ -13,7 +13,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     storageManager = new Brainstem.StorageManager()
     storageManager.addCollection('tasks', App.Collections.Tasks)
 
-    defaults = 
+    defaults =
       storageManager: storageManager
 
     loader = new loaderClass(_.extend {}, defaults, opts)
@@ -21,7 +21,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     loader._createObjects = ->
       @internalObject = bar: 'foo'
       @externalObject = foo: 'bar'
-      
+
     loader._getModelsForAssociation = -> [{ id: 5 }, { id: 2 }, { id: 1 }, { id: 4 }, { id: 1 }, [{ id: 6 }], { id: null }]
     loader._getModel = -> App.Collections.Tasks::model
     loader._updateStorageManagerFromResponse = jasmine.createSpy()
@@ -91,7 +91,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       opts = defaultLoadOptions()
       loader.setup(opts)
       cacheKey = loader.loadOptions.cacheKey
-      
+
       expect(loader.getCacheObject()).toBeUndefined()
       fakeCache = [key: "tasks", id: 5]
       loader.storageManager.getCollectionDetails(loader._getCollectionName()).cache[cacheKey] = fakeCache
@@ -240,7 +240,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
     it 'builds a cache key', ->
       # order, filterKeys, page, perPage, limit, offset
-      myOpts = 
+      myOpts =
         order: 'myOrder'
         filters:
           key1: 'value1'
@@ -546,6 +546,11 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       it 'sets data.search to be loadOptions.search if present', ->
         opts.search = 'term'
         expect(getSyncOptions(loader, opts).data.search).toEqual 'term'
+
+    describe 'data.params', ->
+      it 'adds in additional custom params if present', ->
+        opts.params = bodilyFunction: 'burp'
+        expect(getSyncOptions(loader, opts).data.params.bodilyFunction).toEqual 'burp'
 
   describe '#_shouldUseOnly', ->
     it 'returns true if internalObject is an instance of a Backbone.Collection', ->

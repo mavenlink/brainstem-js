@@ -4,7 +4,7 @@ class Brainstem.AbstractLoader
 
   #
   # Properties
-  
+
   internalObject: null
   externalObject: null
 
@@ -46,7 +46,7 @@ class Brainstem.AbstractLoader
 
   #
   # Control
-  
+
   ###*
    * Loads the model from memory or the server.
    * @return {object} the loader's `externalObject`
@@ -130,7 +130,7 @@ class Brainstem.AbstractLoader
   ###
   _updateObjects: (object, data, silent = false) ->
     throw new Error('Implement in your subclass')
-  
+
   ###*
    * Parse supplied loadOptions, add defaults, transform them into
    * appropriate structures, and pull out important pieces.
@@ -143,7 +143,7 @@ class Brainstem.AbstractLoader
     @loadOptions.include = Brainstem.Utils.wrapObjects(Brainstem.Utils.extractArray "include", @loadOptions)
     @loadOptions.filters ?= {}
     @loadOptions.thisLayerInclude = _.map @loadOptions.include, (i) -> _.keys(i)[0] # pull off the top layer of includes
-    
+
     if @loadOptions.only
       @loadOptions.only = _.map((Brainstem.Utils.extractArray "only", @loadOptions), (id) -> String(id))
     else
@@ -292,7 +292,9 @@ class Brainstem.AbstractLoader
         syncOptions.data.per_page = @loadOptions.perPage
         syncOptions.data.page = @loadOptions.page
 
-    syncOptions.data.search = @loadOptions.search if @loadOptions.search
+    for option in ["search", "params"]
+      syncOptions.data[option] = @loadOptions[option] if @loadOptions[option]
+
     syncOptions
 
   ###*
