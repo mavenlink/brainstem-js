@@ -549,8 +549,8 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
     describe 'data.params', ->
       it 'adds in additional custom params if present', ->
-        opts.params = bodilyFunction: 'burp'
-        expect(getSyncOptions(loader, opts).data.params.bodilyFunction).toEqual 'burp'
+        opts.params = color: 'red'
+        expect(getSyncOptions(loader, opts).data.color).toEqual 'red'
 
   describe '#_shouldUseOnly', ->
     it 'returns true if internalObject is an instance of a Backbone.Collection', ->
