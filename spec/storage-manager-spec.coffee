@@ -140,9 +140,9 @@ describe 'Brainstem Storage Manager', ->
       subTask.set('assignee_ids', [subTaskAssignee.id])
 
       respondWith server, "/api/tasks/#{mainTask.id}?include=assignees%2Csub_tasks%2Cproject", resultsFrom: "tasks", data: { results: resultsArray("tasks", [mainTask]), tasks: resultsObject([mainTask, subTask]), projects: resultsObject([mainProject]), users: resultsObject([mainTaskAssignee]) }
-      respondWith server, "/api/tasks?include=assignees&only=#{subTask.id}", resultsFrom: "tasks", data: { results: resultsArray("tasks", [subTask]), tasks: resultsObject([subTask]), users: resultsObject([subTaskAssignee]) }
-      respondWith server, "/api/projects?include=time_entries&only=#{mainProject.id}", resultsFrom: "projects", data: { results: resultsArray("projects", [mainProject]), time_entries: resultsObject([timeEntry]), projects: resultsObject([mainProject]) }
-      respondWith server, "/api/time_entries?include=task&only=" + timeEntry.id, resultsFrom: "time_entries", data: { results: resultsArray("time_entries", [timeEntry]), time_entries: resultsObject([timeEntry]), tasks: resultsObject([timeTask]) }
+      respondWith server, "/api/tasks?include=assignees&only=#{subTask.id}&apply_default_filters=false", resultsFrom: "tasks", data: { results: resultsArray("tasks", [subTask]), tasks: resultsObject([subTask]), users: resultsObject([subTaskAssignee]) }
+      respondWith server, "/api/projects?include=time_entries&only=#{mainProject.id}&apply_default_filters=false", resultsFrom: "projects", data: { results: resultsArray("projects", [mainProject]), time_entries: resultsObject([timeEntry]), projects: resultsObject([mainProject]) }
+      respondWith server, "/api/time_entries?include=task&only=" + timeEntry.id + "&apply_default_filters=false", resultsFrom: "time_entries", data: { results: resultsArray("time_entries", [timeEntry]), time_entries: resultsObject([timeEntry]), tasks: resultsObject([timeTask]) }
 
       loader = base.data.loadModel "task", mainTask.id, include: ["assignees", {"sub_tasks": ["assignees"]}, { "project" : [{ "time_entries": ["task"] }] }]
       model = loader.getModel()
@@ -264,12 +264,12 @@ describe 'Brainstem Storage Manager', ->
         stub.associated.project = [project]
         stub.recursive = true
 
-      projectExpectation = base.data.stub "projects", only: project.id, include: ['tasks': ['assignees']], response: (stub) ->
+      projectExpectation = base.data.stub "projects", only: project.id, include: ['tasks': ['assignees']], filters: { apply_default_filters: false }, response: (stub) ->
         stub.results = [project]
         stub.associated.tasks = [task, task2, task3]
         stub.recursive = true
 
-      taskWithAssigneesExpectation = base.data.stub "tasks", only: [task.id, task2.id, task3.id], include: ['assignees'], response: (stub) ->
+      taskWithAssigneesExpectation = base.data.stub "tasks", only: [task.id, task2.id, task3.id], include: ['assignees'], filters: { apply_default_filters: false }, response: (stub) ->
         stub.results = [task]
         stub.associated.users = [user]
 
@@ -418,9 +418,9 @@ describe 'Brainstem Storage Manager', ->
           taskOne = buildTask(id: 10, project_id: projectOne.id, assignee_ids: [taskOneAssignee.id], sub_task_ids: [taskOneSub.id])
           taskTwo = buildTask(id: 11, project_id: projectTwo.id, assignee_ids: [taskTwoAssignee.id], sub_task_ids: [taskTwoSub.id])
           respondWith server, "/api/tasks?include=assignees%2Cproject%2Csub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne, taskTwo]), tasks: resultsObject([taskOne, taskTwo, taskOneSub, taskTwoSub]), users: resultsObject([taskOneAssignee, taskTwoAssignee]), projects: resultsObject([projectOne, projectTwo]) }
-          respondWith server, "/api/tasks?include=assignees&only=#{taskOneSub.id}%2C#{taskTwoSub.id}", data: { results: resultsArray("tasks", [taskOneSub, taskTwoSub]), tasks: resultsObject([taskOneSubWithAssignees, taskTwoSubWithAssignees]), users: resultsObject([taskOneSubAssignee, taskTwoAssignee]) }
-          respondWith server, "/api/projects?include=time_entries&only=#{projectOne.id}%2C#{projectTwo.id}", data: { results: resultsArray("projects", [projectOne, projectTwo]), projects: resultsObject([projectOneWithTimeEntries, projectTwoWithTimeEntries]), time_entries: resultsObject([projectOneTimeEntry]) }
-          respondWith server, "/api/time_entries?include=task&only=#{projectOneTimeEntry.id}", data: { results: resultsArray("time_entries", [projectOneTimeEntry]), time_entries: resultsObject([projectOneTimeEntryWithTask]), tasks: resultsObject([projectOneTimeEntryTask]) }
+          respondWith server, "/api/tasks?include=assignees&only=#{taskOneSub.id}%2C#{taskTwoSub.id}&apply_default_filters=false", data: { results: resultsArray("tasks", [taskOneSub, taskTwoSub]), tasks: resultsObject([taskOneSubWithAssignees, taskTwoSubWithAssignees]), users: resultsObject([taskOneSubAssignee, taskTwoAssignee]) }
+          respondWith server, "/api/projects?include=time_entries&only=#{projectOne.id}%2C#{projectTwo.id}&apply_default_filters=false", data: { results: resultsArray("projects", [projectOne, projectTwo]), projects: resultsObject([projectOneWithTimeEntries, projectTwoWithTimeEntries]), time_entries: resultsObject([projectOneTimeEntry]) }
+          respondWith server, "/api/time_entries?include=task&only=#{projectOneTimeEntry.id}&apply_default_filters=false", data: { results: resultsArray("time_entries", [projectOneTimeEntry]), time_entries: resultsObject([projectOneTimeEntryWithTask]), tasks: resultsObject([projectOneTimeEntryTask]) }
 
           callCount = 0
           checkStructure = (collection) ->
@@ -796,7 +796,7 @@ describe 'Brainstem Storage Manager', ->
         taskOne = buildTask(id: 10, sub_task_ids: [12])
         taskOneSub = buildTask(id: 12, parent_id: 10, sub_task_ids: [13], project_id: taskOne.get('workspace_id'))
         respondWith server, "/api/tasks?include=sub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne]), tasks: resultsObject([taskOne, taskOneSub]) }
-        server.respondWith "GET", "/api/tasks?include=sub_tasks&only=12", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
+        server.respondWith "GET", "/api/tasks?include=sub_tasks&only=12&apply_default_filters=false", [ 401, {"Content-Type": "application/json"}, JSON.stringify({ errors: ["Invalid OAuth 2 Request"]}) ]
         base.data.loadCollection("tasks", filters: { parents_only: "true" }, include: [ "sub_tasks": ["sub_tasks"] ], success: successHandler, error: errorHandler)
 
         expect(successHandler).not.toHaveBeenCalled()

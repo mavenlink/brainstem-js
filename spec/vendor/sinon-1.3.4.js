@@ -2993,7 +2993,7 @@ sinon.fakeServer = (function () {
                 }
 
                 if (response === defaultResponse) {
-                  console.log("Unable to find a handler for", request);
+                  console.log("Unable to find a handler for", request.url, request.method, request);
                   expect("you to set a server.respondWith for every network request, but your tests happen").toContain("a non-handled ajax call");
                 }
 
