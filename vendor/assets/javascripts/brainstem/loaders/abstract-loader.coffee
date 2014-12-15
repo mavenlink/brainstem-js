@@ -256,7 +256,7 @@ class Brainstem.AbstractLoader
       loadOptions =
         only: association.ids
         include: association.include
-        filters:
+        params:
           apply_default_filters: false
 
       promises.push(@storageManager.loadObject(collectionName, loadOptions))
