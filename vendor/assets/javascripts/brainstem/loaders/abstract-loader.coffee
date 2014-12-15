@@ -163,7 +163,7 @@ class Brainstem.AbstractLoader
    * @return {string} cache key
   ###
   _buildCacheKey: ->
-    filterKeys = _.map(@loadOptions.filters, (v, k) -> "#{k}:#{v}").join(',')
+    filterKeys = if _.isObject(@loadOptions.filters) && _.size(@loadOptions.filters) > 0 then JSON.stringify(@loadOptions.filters) else ''
     onlyIds = (@loadOptions.only || []).sort().join(',')
 
     @loadOptions.cacheKey = [

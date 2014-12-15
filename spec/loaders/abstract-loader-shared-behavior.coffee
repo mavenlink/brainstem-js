@@ -245,6 +245,9 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         filters:
           key1: 'value1'
           key2: 'value2'
+          key3:
+            value1: 'a'
+            value2: 'b'
         page: 1
         perPage: 200
         limit: 50
@@ -254,7 +257,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
       opts = _.extend(opts, myOpts)
       loadOptions = loader._parseLoadOptions(opts)
-      expect(loadOptions.cacheKey).toEqual 'myOrder|key1:value1,key2:value2|1,2,3|1|200|50|0|foobar'
+      expect(loadOptions.cacheKey).toEqual 'myOrder|{"key1":"value1","key2":"value2","key3":{"value1":"a","value2":"b"}}|1,2,3|1|200|50|0|foobar'
 
     it 'sets the cachedCollection on the loader from the storageManager', ->
       loader._parseLoadOptions(opts)
