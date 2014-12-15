@@ -550,6 +550,11 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         opts.search = 'term'
         expect(getSyncOptions(loader, opts).data.search).toEqual 'term'
 
+    describe 'data.params', ->
+      it 'adds in additional custom params if present', ->
+        opts.params = color: 'red'
+        expect(getSyncOptions(loader, opts).data.color).toEqual 'red'
+
   describe '#_shouldUseOnly', ->
     it 'returns true if internalObject is an instance of a Backbone.Collection', ->
       loader = createLoader()

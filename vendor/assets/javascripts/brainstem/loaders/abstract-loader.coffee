@@ -285,6 +285,7 @@ class Brainstem.AbstractLoader
     syncOptions.data.order = @loadOptions.order if @loadOptions.order?
     keys = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search']
     _.extend(syncOptions.data, _(@loadOptions.filters).omit(keys)) if _(@loadOptions.filters).keys().length
+    _.extend(syncOptions.data, _(@loadOptions.params).omit(keys)) if @loadOptions.params
 
     unless @loadOptions.only?
       if @loadOptions.limit? && @loadOptions.offset?
@@ -295,6 +296,7 @@ class Brainstem.AbstractLoader
         syncOptions.data.page = @loadOptions.page
 
     syncOptions.data.search = @loadOptions.search if @loadOptions.search
+
     syncOptions
 
   ###*
