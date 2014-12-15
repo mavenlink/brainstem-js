@@ -295,7 +295,7 @@ describe 'Brainstem.Collection', ->
           expect(lastFetchOptions.limit).toEqual(3)
 
     describe 'integration', ->
-      onDone = options = collection = posts1 = posts2 = null
+      options = collection = posts1 = posts2 = null
         
       beforeEach ->
         posts1 = [buildPost(), buildPost(), buildPost(), buildPost(), buildPost()]
@@ -303,28 +303,45 @@ describe 'Brainstem.Collection', ->
 
         options = { page: 1, perPage: 5 }
         collection = new App.Collections.Posts(null, options)
-        
+
+      it 'updates collection with response', ->
         respondWith(server, '/api/posts?per_page=5&page=1', resultsFrom: 'posts', data: { posts: posts1 })
-        collection.fetch().done(onDone = jasmine.createSpy())
-        
-        server.respond()
 
-      it 'passes returned models to chained callbacks', ->
-        expect(collection.pluck 'id').toEqual(_.pluck posts1, 'id')
-
-      it 'subsequent fetches return data from storage manager cache', ->
         collection.fetch()
-
-        expect(collection.pluck 'id').toEqual(_.pluck posts1, 'id')
-        expect(collection.pluck 'id').not.toEqual(_.pluck posts2, 'id')
-
-      it 'subsequent fetch with different options returns different data', ->
-        respondWith(server, '/api/posts?per_page=5&page=2', resultsFrom: 'posts', data: { posts: posts2 })
-        collection.fetch({page: 2})
         server.respond()
 
-        expect(collection.pluck 'id').not.toEqual(_.pluck posts1, 'id')
-        expect(collection.pluck 'id').toEqual(_.pluck posts2, 'id')
+        expect(collection.pluck('id')).toEqual(_(posts1).pluck('id'))
+
+      it 'responds to requests with custom params', ->
+        paramsOnDoneSpy = jasmine.createSpy('paramsOnDoneSpy')
+
+        respondWith(server, '/api/posts?my_custom_param=theparam&per_page=5&page=1', resultsFrom: 'posts', data: { posts: posts2 })
+        collection.fetch({params: {my_custom_param: 'theparam'}}).done(paramsOnDoneSpy)
+
+        server.respond()
+
+        expect(paramsOnDoneSpy).toHaveBeenCalled()
+
+      describe 'subsequent fetches', ->
+        beforeEach ->
+          respondWith(server, '/api/posts?per_page=5&page=1', resultsFrom: 'posts', data: { posts: posts1 })
+
+          collection.fetch()
+          server.respond()
+
+        it 'subsequent fetches return data from storage manager cache', ->
+          collection.fetch()
+
+          expect(collection.pluck 'id').toEqual(_.pluck posts1, 'id')
+          expect(collection.pluck 'id').not.toEqual(_.pluck posts2, 'id')
+
+        it 'subsequent fetch with different options returns different data', ->
+          respondWith(server, '/api/posts?per_page=5&page=2', resultsFrom: 'posts', data: { posts: posts2 })
+          collection.fetch({page: 2})
+          server.respond()
+
+          expect(collection.pluck 'id').not.toEqual(_.pluck posts1, 'id')
+          expect(collection.pluck 'id').toEqual(_.pluck posts2, 'id')
 
   describe '#refresh', ->
     beforeEach ->
