@@ -15,6 +15,8 @@ pairs:
   sc: Sean Crafts
   cm: Caleb Mingle
   aa: André Arko
+  rc: Randy Coulman; randycoulman
+  jr: Jamie Rolfs; jrolfs
 email:
   prefix: pair
   domain: mavenlink.com
