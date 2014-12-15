@@ -329,19 +329,21 @@ describe 'Brainstem.Collection', ->
           collection.fetch()
           server.respond()
 
-        it 'subsequent fetches return data from storage manager cache', ->
+        it 'returns data from storage manager cache', ->
           collection.fetch()
 
           expect(collection.pluck 'id').toEqual(_.pluck posts1, 'id')
           expect(collection.pluck 'id').not.toEqual(_.pluck posts2, 'id')
 
-        it 'subsequent fetch with different options returns different data', ->
-          respondWith(server, '/api/posts?per_page=5&page=2', resultsFrom: 'posts', data: { posts: posts2 })
-          collection.fetch({page: 2})
-          server.respond()
+        context 'different options are provided', ->
+          beforeEach ->
+            respondWith(server, '/api/posts?per_page=5&page=2', resultsFrom: 'posts', data: { posts: posts2 })
+            collection.fetch({page: 2})
+            server.respond()
 
-          expect(collection.pluck 'id').not.toEqual(_.pluck posts1, 'id')
-          expect(collection.pluck 'id').toEqual(_.pluck posts2, 'id')
+          it 'updates collection with new data', ->
+            expect(collection.pluck 'id').not.toEqual(_.pluck posts1, 'id')
+            expect(collection.pluck 'id').toEqual(_.pluck posts2, 'id')
 
   describe '#refresh', ->
     beforeEach ->
