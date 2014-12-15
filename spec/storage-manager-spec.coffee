@@ -264,12 +264,12 @@ describe 'Brainstem Storage Manager', ->
         stub.associated.project = [project]
         stub.recursive = true
 
-      projectExpectation = base.data.stub "projects", only: project.id, include: ['tasks': ['assignees']], filters: { apply_default_filters: false }, response: (stub) ->
+      projectExpectation = base.data.stub "projects", only: project.id, include: ['tasks': ['assignees']], params: { apply_default_filters: false }, response: (stub) ->
         stub.results = [project]
         stub.associated.tasks = [task, task2, task3]
         stub.recursive = true
 
-      taskWithAssigneesExpectation = base.data.stub "tasks", only: [task.id, task2.id, task3.id], include: ['assignees'], filters: { apply_default_filters: false }, response: (stub) ->
+      taskWithAssigneesExpectation = base.data.stub "tasks", only: [task.id, task2.id, task3.id], include: ['assignees'], params: { apply_default_filters: false }, response: (stub) ->
         stub.results = [task]
         stub.associated.users = [user]
 
