@@ -741,7 +741,7 @@ describe 'Brainstem Storage Manager', ->
 
       it "returns the matching items with includes, triggering reset and success", ->
         task = buildTask()
-        respondWith server, "/api/tasks?per_page=20&page=1&search=go+go+gadget+search",
+        respondWith server, "/api/tasks?search=go+go+gadget+search&per_page=20&page=1",
                     data: { results: [{key: "tasks", id: task.id}], tasks: [task] }
         spy2 = jasmine.createSpy().andCallFake (collection) ->
           expect(collection.loaded).toBe true
@@ -756,7 +756,7 @@ describe 'Brainstem Storage Manager', ->
         expect(spy2).toHaveBeenCalled()
 
       it 'does not blow up when no results are returned', ->
-        respondWith server, "/api/tasks?per_page=20&page=1&search=go+go+gadget+search", data: { results: [], tasks: [] }
+        respondWith server, "/api/tasks?search=go+go+gadget+search&per_page=20&page=1", data: { results: [], tasks: [] }
         collection = base.data.loadCollection "tasks", search: "go go gadget search"
         server.respond()
 
