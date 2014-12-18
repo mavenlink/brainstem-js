@@ -483,22 +483,58 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         opts.order = 'foo'
         expect(getSyncOptions(loader, opts).data.order).toEqual 'foo'
 
-    describe 'extending data with filters', ->
-      it 'extends data with anything on filters that does not meet the omit list', ->
-        omitList = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search']
-        opts.filters = {}
+    describe 'extending data with filters and custom params', ->
+      blacklist = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search']
 
-        for k in omitList
-          opts.filters[k] = true
-
-        opts.filters.foo = 'bar'
+      excludesBlacklistFromObject = (object) ->
+        object[key] = 'overwritten' for key in blacklist
 
         data = getSyncOptions(loader, opts).data
 
-        for k in omitList
-          expect(data[k]).not.toEqual true
+        expect(data[key]).toBeUndefined() for key in blacklist
 
-        expect(data.foo).toEqual 'bar'
+      context 'filters do not exist', ->
+        beforeEach ->
+          opts.filters = undefined
+
+        it 'does not throw an error parsing filters', ->
+          expect()
+          expect(-> getSyncOptions(loader, opts)).not.toThrow()
+
+      context 'filters exist', ->
+        beforeEach ->
+          opts.filters = {}
+
+        it 'includes filter in data object', ->
+          opts.filters.foo = 'bar'
+
+          data = getSyncOptions(loader, opts).data
+
+          expect(data.foo).toEqual 'bar'
+
+        it 'excludes blacklisted brainstem specific keys from filters', ->
+          excludesBlacklistFromObject(opts.filters)
+
+      context 'params do not exist', ->
+        beforeEach ->
+          opts.params = undefined
+
+        it 'does not throw an error parsing params', ->
+          expect(-> getSyncOptions(loader, opts)).not.toThrow()
+
+      context 'custom params exist', ->
+        beforeEach ->
+          opts.params = {}
+
+        it 'includes custom params in data object', ->
+          opts.params = { color: 'red' }
+
+          data = getSyncOptions(loader, opts).data
+
+          expect(data.color).toEqual 'red'
+
+        it 'excludes blacklisted brainstem specific keys from custom params', ->
+          excludesBlacklistFromObject(opts.params)
 
     describe 'pagination', ->
       beforeEach ->

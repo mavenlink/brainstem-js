@@ -269,30 +269,32 @@ class Brainstem.AbstractLoader
    * @return {object} options that are passed to Backbone.sync
   ###
   _buildSyncOptions: ->
+    options = @loadOptions
     syncOptions =
       data: {}
       parse: true
       error: @_onServerLoadError
       success: @_onServerLoadSuccess
 
-    syncOptions.data.include = @loadOptions.thisLayerInclude.join(",") if @loadOptions.thisLayerInclude.length
+    syncOptions.data.include = options.thisLayerInclude.join(",") if options.thisLayerInclude.length
+    syncOptions.data.only = options.only.join(",") if options.only && @_shouldUseOnly()
+    syncOptions.data.order = options.order if options.order?
+    syncOptions.data.search = options.search if options.search
 
-    if @loadOptions.only && @_shouldUseOnly()
-      syncOptions.data.only = @loadOptions.only.join(",")
+    blacklist = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search']
+    _(syncOptions.data).chain()
+      .extend(_(options.filters).omit(blacklist))
+      .extend(_(options.params).omit(blacklist))
+      .value()
 
-    syncOptions.data.order = @loadOptions.order if @loadOptions.order?
-    keys = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search']
-    _.extend(syncOptions.data, _(@loadOptions.filters).omit(keys)) if _(@loadOptions.filters).keys().length
-
-    unless @loadOptions.only?
-      if @loadOptions.limit? && @loadOptions.offset?
-        syncOptions.data.limit = @loadOptions.limit
-        syncOptions.data.offset = @loadOptions.offset
+    unless options.only?
+      if options.limit? && options.offset?
+        syncOptions.data.limit = options.limit
+        syncOptions.data.offset = options.offset
       else
-        syncOptions.data.per_page = @loadOptions.perPage
-        syncOptions.data.page = @loadOptions.page
+        syncOptions.data.per_page = options.perPage
+        syncOptions.data.page = options.page
 
-    syncOptions.data.search = @loadOptions.search if @loadOptions.search
     syncOptions
 
   ###*
