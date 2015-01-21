@@ -189,7 +189,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     @_getCacheObject()?.valid = false
 
   toServerJSON: (method) ->
-    @map (model) -> model.toServerJSON(method)
+    @map (model) -> _.extend(model.toServerJSON(method), id: model.id)
 
 
   #
