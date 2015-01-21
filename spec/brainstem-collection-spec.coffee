@@ -854,10 +854,15 @@ describe 'Brainstem.Collection', ->
       expect(loader.getCacheObject().valid).toEqual false
 
   describe '#toServerJSON', ->
-    it 'calls through to toJSON', ->
-      spy = spyOn(collection, 'toJSON')
-      collection.toServerJSON()
-      expect(spy).toHaveBeenCalled()
+    beforeEach ->
+      spyOn(model, 'toServerJSON').andCallFake(-> @id) for model in collection.models
+
+    it 'returns model contents serialized using model server json', ->
+      expect(collection.toServerJSON()).toEqual(collection.pluck('id'))
+
+    it 'passes method to model method calls', ->
+      collection.toServerJSON('update')
+      expect(model.toServerJSON).toHaveBeenCalledWith('update') for model in collection.models
 
   describe '#setLoaded', ->
     it 'should set the values of @loaded', ->

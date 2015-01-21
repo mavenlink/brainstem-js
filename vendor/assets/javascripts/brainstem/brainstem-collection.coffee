@@ -2,6 +2,8 @@
 
 class window.Brainstem.Collection extends Backbone.Collection
 
+  model: Brainstem.Model
+
   @OPTION_KEYS = [
     'name'
     'include'
@@ -187,7 +189,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     @_getCacheObject()?.valid = false
 
   toServerJSON: (method) ->
-    @toJSON()
+    @map (model) -> model.toServerJSON(method)
 
 
   #
