@@ -67,7 +67,7 @@ class window.Brainstem.Collection extends Backbone.Collection
 
   fetch: (options) ->
     options = if options then _.clone(options) else {}
-    
+
     options.parse = options.parse ? true
     options.name = options.name ? @model?.prototype.brainstemKey
     options.returnValues ?= {}
@@ -83,7 +83,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     Brainstem.Utils.wrapError(this, options)
 
     loader = base.data.loadObject(options.name, _.extend({}, @firstFetchOptions, options))
-    
+
     @trigger('request', this, options.returnValues.jqXhr, options)
 
     loader.pipe(-> loader.internalObject.models)
