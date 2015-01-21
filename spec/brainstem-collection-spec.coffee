@@ -855,10 +855,10 @@ describe 'Brainstem.Collection', ->
 
   describe '#toServerJSON', ->
     beforeEach ->
-      spyOn(model, 'toServerJSON').andCallFake(-> @id) for model in collection.models
+      spyOn(model, 'toServerJSON').andCallThrough() for model in collection.models
 
     it 'returns model contents serialized using model server json', ->
-      expect(collection.toServerJSON()).toEqual(collection.pluck('id'))
+      expect(_(collection.toServerJSON()).pluck('id')).toEqual(collection.pluck('id'))
 
     it 'passes method to model method calls', ->
       collection.toServerJSON('update')
