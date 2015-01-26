@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset='UTF-8'>
+  <title>CoffeeScript API Documentation</title>
+  <script src='../../javascript/application.js'></script>
+  <script src='../../javascript/search.js'></script>
+  <link rel='stylesheet' href='../../stylesheets/application.css' type='text/css'>
+</head>
+  <body>
+    <div id='base' data-path='../../'></div>
+<div id='header'>
+  <div id='menu'>
+    <a href='../../extra/README.md.html' title='Brainstem-js'>
+      Brainstem-js
+    </a>
+    &raquo;
+    <a href='../../alphabetical_index.html' title='Index'>
+      Index
+    </a>
+    &raquo;
+    <span class='title'>Brainstem</span>
+    &raquo;
+    <span class='title'>CollectionLoader</span>
+  </div>
+</div>
+    <div id='content'>
+      <h1>
+        Class:
+        Brainstem.CollectionLoader
+      </h1>
+      <table class='box'>
+        <tr>
+          <td>Defined in:</td>
+          <td>vendor&#47;assets&#47;javascripts&#47;brainstem&#47;loaders&#47;collection-loader.coffee</td>
+        </tr>
+        <tr>
+          <td>Inherits:</td>
+          <td>
+            <a href='../../class/Brainstem/AbstractLoader.html'>Brainstem.AbstractLoader</a>
+          </td>
+        </tr>
+      </table>
+      <h2>Variables Summary</h2>
+      
+      <h3 class='inherited'>
+        Variable inherited from
+        <a href='../../class/Brainstem/AbstractLoader.html'>Brainstem.AbstractLoader</a>
+      </h3>
+      <p class='inherited'>
+        <a href='../../class/Brainstem/AbstractLoader.html#internalObject-variable'>internalObject</a>
+        <a href='../../class/Brainstem/AbstractLoader.html#externalObject-variable'>externalObject</a>
+      </p>
+      <h2>Instance Method Summary</h2>
+      <ul class='summary'>
+  <li>
+    <span class='signature'>
+      <a href='#getCollection-dynamic'>
+        #
+(void)
+<b>getCollection</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_getCollectionName-dynamic'>
+        #
+(void)
+<b>_getCollectionName</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_getExpectationName-dynamic'>
+        #
+(void)
+<b>_getExpectationName</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_getModel-dynamic'>
+        #
+(void)
+<b>_getModel</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_getModelsForAssociation-dynamic'>
+        #
+(void)
+<b>_getModelsForAssociation</b><span>(association)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_createObjects-dynamic'>
+        #
+(void)
+<b>_createObjects</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_updateObjects-dynamic'>
+        #
+(void)
+<b>_updateObjects</b><span>(object, data, silent = false)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_updateStorageManagerFromResponse-dynamic'>
+        #
+(void)
+<b>_updateStorageManagerFromResponse</b><span>(resp)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+</ul>
+      <h2>
+        <small>Inherited Method Summary</small>
+        <h3 class='inherited'>
+          Methods inherited from
+          <a href='../../class/Brainstem/AbstractLoader.html'>Brainstem.AbstractLoader</a>
+        </h3>
+        <p class='inherited'>
+          <a href='../../class/Brainstem/AbstractLoader.html#setup-dynamic'>#setup</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#getCacheObject-dynamic'>#getCacheObject</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#load-dynamic'>#load</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_getCollectionName-dynamic'>#_getCollectionName</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_getExpectationName-dynamic'>#_getExpectationName</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_getModel-dynamic'>#_getModel</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_getModelsForAssociation-dynamic'>#_getModelsForAssociation</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_getIdsForAssociation-dynamic'>#_getIdsForAssociation</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_createObjects-dynamic'>#_createObjects</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_updateObjects-dynamic'>#_updateObjects</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_parseLoadOptions-dynamic'>#_parseLoadOptions</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_buildCacheKey-dynamic'>#_buildCacheKey</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_checkCacheForData-dynamic'>#_checkCacheForData</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_loadFromServer-dynamic'>#_loadFromServer</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_updateStorageManagerFromResponse-dynamic'>#_updateStorageManagerFromResponse</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_calculateAdditionalIncludes-dynamic'>#_calculateAdditionalIncludes</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_loadAdditionalIncludes-dynamic'>#_loadAdditionalIncludes</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_buildSyncOptions-dynamic'>#_buildSyncOptions</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_shouldUseOnly-dynamic'>#_shouldUseOnly</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_modelsOrObj-dynamic'>#_modelsOrObj</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_onServerLoadSuccess-dynamic'>#_onServerLoadSuccess</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_onServerLoadError-dynamic'>#_onServerLoadError</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_onLoadSuccess-dynamic'>#_onLoadSuccess</a>
+          <a href='../../class/Brainstem/AbstractLoader.html#_onLoadingCompleted-dynamic'>#_onLoadingCompleted</a>
+        </p>
+      </h2>
+      <h2>Instance Method Details</h2>
+      <div class='methods'>
+  <div class='method_details'>
+    <p class='signature' id='getCollection-dynamic'>
+      #
+(void)
+<b>getCollection</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_getCollectionName-dynamic'>
+      #
+(void)
+<b>_getCollectionName</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_getExpectationName-dynamic'>
+      #
+(void)
+<b>_getExpectationName</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_getModel-dynamic'>
+      #
+(void)
+<b>_getModel</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_getModelsForAssociation-dynamic'>
+      #
+(void)
+<b>_getModelsForAssociation</b><span>(association)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_createObjects-dynamic'>
+      #
+(void)
+<b>_createObjects</b><span>()</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_updateObjects-dynamic'>
+      #
+(void)
+<b>_updateObjects</b><span>(object, data, silent = false)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_updateStorageManagerFromResponse-dynamic'>
+      #
+(void)
+<b>_updateStorageManagerFromResponse</b><span>(resp)</span>
+      <br>
+    </p>
+    
+  </div>
+</div>
+    </div>
+    <div id='footer'>
+  November 17, 14 15:24:45 by
+  <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
+    Codo
+  </a>
+  2.0.9
+  &#10034;
+  Press H to see the keyboard shortcuts
+  &#10034;
+  <a href='http://twitter.com/netzpirat' target='_parent'>@netzpirat</a>
+  &#10034;
+  <a href='http://twitter.com/_inossidabile' target='_parent'>@_inossidabile</a>
+</div>
+<iframe id='search_frame'></iframe>
+<div id='fuzzySearch'>
+  <input type='text'>
+  <ol></ol>
+</div>
+<div id='help'>
+  <p>
+    Quickly fuzzy find classes, mixins, methods, file:
+  </p>
+  <ul>
+    <li>
+      <span>T</span>
+      Open fuzzy finder dialog
+    </li>
+  </ul>
+  <p>
+    Control the navigation frame:
+  </p>
+  <ul>
+    <li>
+      <span>L</span>
+      Toggle list view
+    </li>
+    <li>
+      <span>C</span>
+      Show class list
+    </li>
+    <li>
+      <span>I</span>
+      Show mixin list
+    </li>
+    <li>
+      <span>F</span>
+      Show file list
+    </li>
+    <li>
+      <span>M</span>
+      Show method list
+    </li>
+    <li>
+      <span>E</span>
+      Show extras list
+    </li>
+  </ul>
+  <p>
+    You can focus and blur the search input:
+  </p>
+  <ul>
+    <li>
+      <span>S</span>
+      Focus search input
+    </li>
+    <li>
+      <span>Esc</span>
+      Blur search input
+    </li>
+  </ul>
+</div>
+  </body>
+</html>

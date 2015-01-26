@@ -12,9 +12,11 @@ class window.Brainstem.Model extends Backbone.Model
   #
   # Class Methods
 
-  # Retreive details about a named association.  This is a class method.
-  #     Model.associationDetails("project") # => {}
-  #     timeEntry.constructor.associationDetails("project") # => {}
+  # Resolves an association definition on a model
+  #
+  # @param [Object] association key:value pair.  The key is the model's own nomenclature
+  #   for the association, while value is the registered name of the model or collection.
+  # @return [Object]
   @associationDetails: (association) ->
     @associationDetailsCache ||= {}
     if @associations && @associations[association]
@@ -54,6 +56,20 @@ class window.Brainstem.Model extends Backbone.Model
   # Accessors
 
   # Override Model#get to access associations as well as fields.
+  #
+  # @example Retrieve a Backbone model property by delegating to Backbone.Model#get
+  #   (new Task(title: 'Sweep the garage')).get('title') # => 'Sweep the garage'
+  #
+  # @example Retrieve a Brainstem Association.  The returned association may be a collection or a model.
+  #   task = new Task(id: 1)
+  #   task.fetch({include: 'assignees'})
+  #     .done( -> task.get('assignees')) # => Assignees Collection
+  #
+  # @param [String] field Name of the property the model is attempting to access.
+  # @param [Object] options Configuration object
+  # @option options [linked] Boolean When set to 'true', a collection singleton is created for this creation.
+  #   The model will listen to the collection for change events and update its (the model) own internal records of association Id's.
+  #   Future calls to #get for this association will always return the same instance of the collection.
   get: (field, options = {}) ->
     if details = @constructor.associationDetails(field)
       if details.type == "BelongsTo"
@@ -95,6 +111,7 @@ class window.Brainstem.Model extends Backbone.Model
     else
       super(field)
 
+  # @return [String] Name of the model
   className: ->
     @paramRoot
 
@@ -102,6 +119,9 @@ class window.Brainstem.Model extends Backbone.Model
   #
   # Control
 
+  # Override Model#fetch to retrieve server data with additional Brainstem options
+  #
+  # @params [Object] options Configurable options object
   fetch: (options) ->
     options = if options then _.clone(options) else {}
 
@@ -124,11 +144,17 @@ class window.Brainstem.Model extends Backbone.Model
       .promise()
 
   # Handle create and update responses with JSON root keys
+  #
+  # @param [Object] resp Response data from ajax request
+  # @param [Object] xhr Response object
   parse: (resp, xhr) ->
     @updateStorageManager(resp)
     modelObject = @_parseResultsResponse(resp)
     super(@constructor.parse(modelObject), xhr)
 
+  # Updates local StorageManager with new association data from a server request
+  #
+  # @param [Object] resp Response data from ajax request
   updateStorageManager: (resp) ->
     results = resp['results']
     return if _.isEmpty(results)
@@ -153,10 +179,18 @@ class window.Brainstem.Model extends Backbone.Model
           else
             collection.add(attributes)
 
-  # This method determines if all of the provided associations have been loaded for this model.  If no associations are
+  # Determines if all of the provided associations have been loaded for this model.  If no associations are
   # provided, all associations are assumed.
+  #
+  # @example Check if all associated models are loaded for a particular association
   #   model.associationsAreLoaded(["project", "task"]) # => true|false
+  #
+  # @example Check if all associated models are loaded for all of this models associations
   #   model.associationsAreLoaded() # => true|false
+  #
+  # @param [Array] associations Optional array of strings detailing the associations to check
+  #
+  # @return [Boolean]
   associationsAreLoaded: (associations) ->
     associations ||= _.keys(@constructor.associations)
     associations = _.filter associations, (association) => @constructor.associationDetails(association)
@@ -185,6 +219,11 @@ class window.Brainstem.Model extends Backbone.Model
       if _.find(cacheObject.results, (result) => result.id == @id)
         cacheObject.valid = false
 
+  # JSONifies the model's attributes while deleting any blacklisted keys.
+  #   Delegates to Backbone.Model#toJSON
+  #
+  # @param [String] method Purpose attributes to be created; either 'create' or 'update'.
+  # @param [Options] options Options object to be provided to Backbone.Model#toJSON
   toServerJSON: (method, options) ->
     json = @toJSON(options)
     blacklist = @defaultJSONBlacklist()
@@ -200,12 +239,18 @@ class window.Brainstem.Model extends Backbone.Model
 
     json
 
+  # @return [Array] Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
+  #   Applied to both 'update' and 'create' operations.
   defaultJSONBlacklist: ->
     ['id', 'created_at', 'updated_at']
 
+  # @return [Array] Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
+  #   Applied to both only 'create' operations.
   createJSONBlacklist: ->
     []
 
+  # @return [Array] Default list of properties to be blacklisted by Brainstem.Model#toServerJSON.
+  #   Applied to only 'update' operations.
   updateJSONBlacklist: ->
     []
 
