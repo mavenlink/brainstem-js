@@ -93,7 +93,7 @@ class window.Brainstem.Expectation
     return if not @results
 
     cachedData =
-      count: @count
+      count: @count ? @results.length
       results: @results
       valid: true
 
