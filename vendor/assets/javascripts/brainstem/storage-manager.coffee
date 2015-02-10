@@ -169,7 +169,7 @@ class window.Brainstem.StorageManager
         expectation.recordRequest(loader)
         return
     throw  new Error("No expectation matched #{name} with #{JSON.stringify loader.originalOptions}")
-    
+
 
   #
   # Private

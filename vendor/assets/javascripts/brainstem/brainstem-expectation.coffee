@@ -13,12 +13,13 @@ class window.Brainstem.Expectation
     @matches = []
     @recursive = false
     @triggerError = options.triggerError
+    @count = options.count
     @immediate = options.immediate
     delete options.immediate
     @associated = {}
     @collections = {}
     @requestQueue = []
-    @options.response(@) if @options.response?
+    @options.response(this) if @options.response?
 
 
   #
@@ -91,6 +92,13 @@ class window.Brainstem.Expectation
   _handleCollectionResults: (loader) ->
     return if not @results
 
+    cachedData =
+      count: @count ? @results.length
+      results: @results
+      valid: true
+
+    @manager.getCollectionDetails(loader.loadOptions.name).cache[loader.loadOptions.cacheKey] = cachedData
+
     for result in @results
       if result instanceof Brainstem.Model
         @manager.storage(result.brainstemKey).update [result]
@@ -115,7 +123,7 @@ class window.Brainstem.Expectation
       attributes = _.omit @result, 'key'
 
     if !key
-      throw 'Brainstem key is required on the result (brainstemKey on model or key in JSON)'
+      throw Brainstem.Error('Brainstem key is required on the result (brainstemKey on model or key in JSON)')
 
     existingModel = @manager.storage(key).get(attributes.id)
 
