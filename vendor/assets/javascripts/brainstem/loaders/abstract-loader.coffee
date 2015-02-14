@@ -282,6 +282,7 @@ class Brainstem.AbstractLoader
     syncOptions.data.only = options.only.join(",") if options.only && @_shouldUseOnly()
     syncOptions.data.order = options.order if options.order?
     syncOptions.data.search = options.search if options.search
+    syncOptions.data.additional_fields = options.additionalFields if options.additionalFields
 
     blacklist = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search']
     _(syncOptions.data).chain()

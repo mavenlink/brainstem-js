@@ -111,6 +111,7 @@ class window.Brainstem.Model extends Backbone.Model
     options.parse = options.parse ? true
     options.name = options.name ? @brainstemKey
     options.cache = false
+    options.additionalFields = @additionalFields
 
     unless options.name
       Brainstem.Utils.throwError('Either model must have a brainstemKey defined or name option must be provided')

@@ -16,6 +16,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     'search'
     'cache'
     'cacheKey'
+    'additionalFields'
   ]
 
   @getComparatorWithIdFailover: (order) ->
@@ -71,6 +72,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     options.parse = options.parse ? true
     options.name = options.name ? @model?.prototype.brainstemKey
     options.returnValues ?= {}
+    
 
     unless options.name
       Brainstem.Utils.throwError(
@@ -79,6 +81,7 @@ class window.Brainstem.Collection extends Backbone.Collection
 
     unless @firstFetchOptions
       @firstFetchOptions = Brainstem.Collection.pickFetchOptions options
+      options.additionalFields = @firstFetchOptions.additionalFields
 
     Brainstem.Utils.wrapError(this, options)
 
