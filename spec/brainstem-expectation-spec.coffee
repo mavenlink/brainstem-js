@@ -63,6 +63,35 @@ describe 'Brainstem Expectations', ->
       expect(collection.get(1).get("tasks").models).toEqual [task1]
       expect(collection.get(2).get("tasks").models).toEqual []
 
+    context "count option is supplied", ->
+      collection = null
+
+      beforeEach ->
+        expectation = manager.stub "projects",
+          count: 20
+          response: (stub) ->
+            stub.results = [project1, project2]
+
+        collection = manager.loadCollection "projects"
+        expectation.respond()
+
+      it "mocks cache object to return mocked count from getServerCount", ->
+        expect(collection.getServerCount()).toEqual 20
+
+    context "count option is not supplied", ->
+      collection = null
+
+      beforeEach ->
+        expectation = manager.stub "projects",
+          response: (stub) ->
+            stub.results = [project1, project2]
+
+        collection = manager.loadCollection "projects"
+        expectation.respond()
+
+      it "mocks cache object to return default count (result length) from getServerCount", ->
+        expect(collection.getServerCount()).toEqual 2
+
     describe 'recursive loading', ->
       context 'recursive option is false', ->
         it "should not try to recursively load includes in an expectation", ->
