@@ -119,7 +119,7 @@ class window.Brainstem.Model extends Backbone.Model
 
     base.data.loadObject(options.name, options, isCollection: false)
       .done((response) =>
-        @trigger('sync', this, options, response)
+        @trigger('sync', response, options)
       )
       .promise()
 
