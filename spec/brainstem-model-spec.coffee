@@ -51,14 +51,15 @@ describe 'Brainstem.Model', ->
 
     it 'on success, triggers sync', ->
       deferred = new $.Deferred
+      newModel = {}
 
       spyOn(base.data, 'loadObject').andReturn(deferred)
       spyOn(model, 'trigger')
 
       model.fetch()
-      deferred.resolve()
+      deferred.resolve(newModel)
 
-      expect(model.trigger).toHaveBeenCalledWith('sync', model, {only: [model.id], name: 'tasks', parse: true, error: jasmine.any(Function), cache: false})
+      expect(model.trigger).toHaveBeenCalledWith('sync', newModel, {only: [model.id], name: 'tasks', parse: true, error: jasmine.any(Function), cache: false})
 
     it 'returns a promise', ->
       promise = (new $.Deferred).promise()
@@ -681,10 +682,10 @@ describe 'Brainstem.Model', ->
 
   describe '#_linkCollection', ->
     story = null
-    
+
     beforeEach ->
       story = new App.Models.Task()
-      
+
     context 'when there is not an associated collection', ->
       dummyCollection = collectionName = collectionOptions = field = null
       beforeEach ->
@@ -692,27 +693,27 @@ describe 'Brainstem.Model', ->
         collectionOptions = {}
         field = 'assignees'
         expect(story._associatedCollections).toBeUndefined()
-        
+
         dummyCollection = on: -> 'dummy Collection'
-        
+
         spyOn(base.data, 'createNewCollection').andReturn(dummyCollection)
-        
+
       it 'returns an associated collection' ,->
         collection = story._linkCollection(collectionName, [], collectionOptions, field)
         expect(collection).toBe(dummyCollection)
-        
+
       it 'saves a reference to the associated collection', ->
         collection = story._linkCollection(collectionName, [], collectionOptions, field)
         expect(collection).toBe(story._associatedCollections.assignees)
-        
+
       it 'getting a different collection craetes a second key on _associatedCollections', ->
         collection = story._linkCollection(collectionName, [], collectionOptions, field)
         collection2 = story._linkCollection("tasks", [], collectionOptions, "sub_tasks")
-        
+
         expect(story._associatedCollections.field).toBeUndefined()
         expect(collection).toBe(story._associatedCollections.assignees)
         expect(collection2).toBe(story._associatedCollections.sub_tasks)
-        
+
     context 'when there is already an associated collection', ->
       returnedCollection = collection = collectionName = collectionOptions = field = null
       beforeEach ->
@@ -724,10 +725,9 @@ describe 'Brainstem.Model', ->
         story._associatedCollections[field] = collection
         spyOn(base.data, 'createNewCollection')
         returnedCollection = story._linkCollection(collectionName, [], collectionOptions, field)
-        
+
       it 'returns an associated collection' ,->
         expect(collection).toBe(returnedCollection)
-        
-      it 'should not create a new collection', ->  
+
+      it 'should not create a new collection', ->
         expect(base.data.createNewCollection).not.toHaveBeenCalled()
-        
