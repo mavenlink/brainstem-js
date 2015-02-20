@@ -16,6 +16,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     'search'
     'cache'
     'cacheKey'
+    'optionalFields'
   ]
 
   @getComparatorWithIdFailover: (order) ->

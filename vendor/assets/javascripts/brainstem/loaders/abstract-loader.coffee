@@ -141,6 +141,7 @@ class Brainstem.AbstractLoader
     @originalOptions = _.clone(loadOptions)
     @loadOptions = _.clone(loadOptions)
     @loadOptions.include = Brainstem.Utils.wrapObjects(Brainstem.Utils.extractArray "include", @loadOptions)
+    @loadOptions.optionalFields = Brainstem.Utils.extractArray("optionalFields", @loadOptions)
     @loadOptions.filters ?= {}
     @loadOptions.thisLayerInclude = _.map @loadOptions.include, (i) -> _.keys(i)[0] # pull off the top layer of includes
 
@@ -185,7 +186,8 @@ class Brainstem.AbstractLoader
   _checkCacheForData: ->
     if @loadOptions.only?
       alreadyLoadedIds = _.select @loadOptions.only, (id) =>
-        @cachedCollection.get(id)?.associationsAreLoaded(@loadOptions.thisLayerInclude)
+        @cachedCollection.get(id)?.dependenciesAreLoaded(@loadOptions)
+        # and ensure any optional fields we need this time are in the cached models
       if alreadyLoadedIds.length == @loadOptions.only.length
         # We've already seen every id that is being asked for and have all the associated data.
         @_onLoadSuccess(_.map @loadOptions.only, (id) => @cachedCollection.get(id))
@@ -197,7 +199,8 @@ class Brainstem.AbstractLoader
 
       if cacheObject && cacheObject.valid
         subset = _.map cacheObject.results, (result) => @storageManager.storage(result.key).get(result.id)
-        if (_.all(subset, (model) => model.associationsAreLoaded(@loadOptions.thisLayerInclude)))
+        if (_.all(subset, (model) => model.dependenciesAreLoaded(@loadOptions)))
+          # if this if is still needed, we'd need to also check to make sure all optional_fields we need are in these models
           @_onLoadSuccess(subset)
           return @externalObject
 
@@ -282,8 +285,9 @@ class Brainstem.AbstractLoader
     syncOptions.data.only = options.only.join(",") if options.only && @_shouldUseOnly()
     syncOptions.data.order = options.order if options.order?
     syncOptions.data.search = options.search if options.search
+    syncOptions.data.optional_fields = @loadOptions.optionalFields.join(",") if @loadOptions.optionalFields.length
 
-    blacklist = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search']
+    blacklist = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search', 'optional_fields']
     _(syncOptions.data).chain()
       .extend(_(options.filters).omit(blacklist))
       .extend(_(options.params).omit(blacklist))

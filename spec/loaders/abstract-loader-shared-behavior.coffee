@@ -303,6 +303,8 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           loader.setup(opts)
           notFound(loader, opts)
 
+      # check when optional fields have been requested that all of the only models have those fields, or return false if not
+
     context 'not an only query', ->
       context 'there exists a cache with this cacheKey', ->
         beforeEach ->
@@ -332,6 +334,8 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
               opts.include = ['project']
               loader.setup(opts)
               notFound(loader, opts)
+
+          # above contexts for optional fields
 
         context 'cache is invalid', ->
           beforeEach ->
