@@ -412,7 +412,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
       spyOn(loader, '_onLoadingCompleted')
 
-    it 'nested include statements respect the cache false', ->
+    it 'respects "cache" option in nested includes', ->
       spyOn(loader.storageManager, 'loadObject')
       loader._loadAdditionalIncludes()
 
