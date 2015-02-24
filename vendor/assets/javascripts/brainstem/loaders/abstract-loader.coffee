@@ -254,6 +254,7 @@ class Brainstem.AbstractLoader
       collectionName = @_getModel().associationDetails(association.name).collectionName
 
       loadOptions =
+        cache: @loadOptions.cache
         only: association.ids
         include: association.include
         params:
