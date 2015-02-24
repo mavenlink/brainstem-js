@@ -404,13 +404,20 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
     beforeEach ->
       loader = createLoader()
-      opts = defaultLoadOptions()
+      opts = _.extend(defaultLoadOptions(), cache: false)
       opts.include = fakeNestedInclude
 
       loader.setup(opts)
       loader._calculateAdditionalIncludes()
 
       spyOn(loader, '_onLoadingCompleted')
+
+    it 'nested include statements respect the cache false', ->
+      spyOn(loader.storageManager, 'loadObject')
+      loader._loadAdditionalIncludes()
+
+      for call in loader.storageManager.loadObject.calls
+        expect(call.args[1].cache).toBeFalsey
 
     it 'creates a request for each additional include and calls #_onLoadingCompleted when they all are done', ->
       promises = []
