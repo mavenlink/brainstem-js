@@ -353,7 +353,21 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
               loader.setup(opts)
               notFound(loader, opts)
 
-          # above contexts for optional fields
+          context 'all of the cached models have their optional fields loaded', ->
+            beforeEach ->
+              taskOne.set('test_field', 'test value')
+
+            it 'calls #_onLoadSuccess with the models from the cache', ->
+              opts.optionalFields = ['test_field']
+              loader.setup(opts)
+              loader._checkCacheForData()
+              expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne])
+
+          context 'all of the cached models do not have their optional fields loaded', ->
+            it 'returns false and does not call #_onLoadSuccess', ->
+              opts.optionalFields = ['test_field']
+              loader.setup(opts)
+              expect(loader._onLoadSuccess).not.toHaveBeenCalled()
 
         context 'cache is invalid', ->
           beforeEach ->
