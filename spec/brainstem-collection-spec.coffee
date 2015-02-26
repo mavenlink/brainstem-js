@@ -140,6 +140,14 @@ describe 'Brainstem.Collection', ->
       expect(wrapSpy).toHaveBeenCalledWith(collection, jasmine.any(Object))
       expect(wrapSpy.mostRecentCall.args[1].error).toBe(options.error)
 
+    it 'returns a promise', ->
+      deferred =
+        pipe: -> { done: (-> { promise: -> 'le-promise' }) }
+
+      spyOn(base.data, 'loadObject').andReturn(deferred)
+      collection.model = App.Models.Post
+      expect(collection.fetch()).toEqual('le-promise')
+
     describe 'loading brainstem object', ->
       loadObjectSpy = options = null
 
@@ -303,16 +311,6 @@ describe 'Brainstem.Collection', ->
         server.respond()
 
         expect(collection.pluck('id')).toEqual(_(posts1).pluck('id'))
-
-      it 'passes collection instance to promise callbacks', ->
-        doneSpy = jasmine.createSpy('onDone')
-
-        respondWith(server, '/api/posts?per_page=5&page=1', resultsFrom: 'posts', data: { posts: posts1 })
-
-        collection.fetch().done(doneSpy)
-        server.respond()
-        
-        expect(doneSpy).toHaveBeenCalledWith collection
 
       it 'responds to requests with custom params', ->
         paramsOnDoneSpy = jasmine.createSpy('paramsOnDoneSpy')

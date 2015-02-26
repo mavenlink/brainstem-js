@@ -86,10 +86,9 @@ class window.Brainstem.Collection extends Backbone.Collection
 
     @trigger('request', this, options.returnValues.jqXhr, options)
 
-    loader.pipe(=> this)
-      .done((collection) ->
-        response = loader.internalObject.models
-        collection.lastFetchOptions = loader.externalObject.lastFetchOptions
+    loader.pipe(-> loader.internalObject.models)
+      .done((response) =>
+        @lastFetchOptions = loader.externalObject.lastFetchOptions
 
         if options.add
           method = 'add'
@@ -98,11 +97,10 @@ class window.Brainstem.Collection extends Backbone.Collection
         else
           method = 'set'
 
-        collection[method](response, options)
+        @[method](response, options)
 
-        collection.trigger('sync', collection, response, options)
-      )
-      .promise()
+        @trigger('sync', this, response, options)
+      ).promise()
 
   refresh: (options = {}) ->
     @fetch _.extend(@lastFetchOptions, options, cache: false)
