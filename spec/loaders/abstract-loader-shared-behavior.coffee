@@ -303,7 +303,25 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           loader.setup(opts)
           notFound(loader, opts)
 
-      # check when optional fields have been requested that all of the only models have those fields, or return false if not
+      context 'when optional fields have been requested but the fields arent on the tasks', ->
+        beforeEach ->
+          opts.optionalFields = ['test_field']
+          taskOne.set('test_field', 'fake value')
+          loader.storageManager.storage('tasks').add([taskOne, taskTwo])
+
+        it 'returns false and does not call #_onLoadSuccess', ->
+          loader.setup(opts)
+          loader._checkCacheForData()
+          expect(loader._onLoadSuccess).not.toHaveBeenCalled()
+
+      context 'when optional fields have been requested but the fields are there on the tasks', ->
+        beforeEach ->
+          loader.storageManager.storage('tasks').add([taskOne, taskTwo])
+
+        it 'returns true and does not calls #_onLoadSuccess', ->
+          loader.setup(opts)
+          loader._checkCacheForData()
+          expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne, taskTwo])
 
     context 'not an only query', ->
       context 'there exists a cache with this cacheKey', ->
