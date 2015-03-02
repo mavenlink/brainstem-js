@@ -69,7 +69,10 @@ class window.Brainstem.Model extends Backbone.Model
           model = base.data.storage(collectionName).get(pointer)
 
           if not model && not options.silent
-            Brainstem.Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
+            Brainstem.Utils.throwError """
+              Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.
+              We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
+            """
 
           model
       else
@@ -82,9 +85,14 @@ class window.Brainstem.Model extends Backbone.Model
             models.push(model)
             notFoundIds.push(id) unless model
           if notFoundIds.length && not options.silent
-            Brainstem.Utils.throwError("Unable to find #{field} with ids #{notFoundIds.join(", ")} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
+            Brainstem.Utils.throwError """
+              Unable to find #{field} with ids #{notFoundIds.join(", ")} in our
+              cached #{details.collectionName} collection.  We know about
+              #{base.data.storage(details.collectionName).pluck("id").join(", ")}
+            """
         if options.order
-          comparator = base.data.getCollectionDetails(details.collectionName).klass.getComparatorWithIdFailover(options.order)
+          klass = base.data.getCollectionDetails(details.collectionName).klass
+          comparator = klass.getComparatorWithIdFailover(options.order)
           collectionOptions = { comparator: comparator }
         else
           collectionOptions = {}
@@ -118,9 +126,7 @@ class window.Brainstem.Model extends Backbone.Model
     Brainstem.Utils.wrapError(this, options)
 
     base.data.loadObject(options.name, options, isCollection: false)
-      .done((response) =>
-        @trigger('sync', response, options)
-      )
+      .done((response) => @trigger('sync', response, options))
       .promise()
 
   # Handle create and update responses with JSON root keys
@@ -225,7 +231,7 @@ class window.Brainstem.Model extends Backbone.Model
 
   _linkCollection: (collectionName, models, collectionOptions, field) ->
     @_associatedCollections ?= {}
-    
+
     unless @_associatedCollections[field]
       @_associatedCollections[field] = base.data.createNewCollection(collectionName, models, collectionOptions)
       @_associatedCollections[field].on 'add', => @_onAssociatedCollectionChange.call(this, field, arguments)
