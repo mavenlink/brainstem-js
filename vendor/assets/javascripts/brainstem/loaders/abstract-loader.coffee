@@ -187,9 +187,7 @@ class Brainstem.AbstractLoader
     if @loadOptions.only?
       alreadyLoadedIds = _.select @loadOptions.only, (id) =>
         @cachedCollection.get(id)?.dependenciesAreLoaded(@loadOptions)
-        # and ensure any optional fields we need this time are in the cached models
       if alreadyLoadedIds.length == @loadOptions.only.length
-        # We've already seen every id that is being asked for and have all the associated data.
         @_onLoadSuccess(_.map @loadOptions.only, (id) => @cachedCollection.get(id))
         return @externalObject
     else
@@ -285,7 +283,7 @@ class Brainstem.AbstractLoader
     syncOptions.data.only = options.only.join(",") if options.only && @_shouldUseOnly()
     syncOptions.data.order = options.order if options.order?
     syncOptions.data.search = options.search if options.search
-    syncOptions.data.optional_fields = @loadOptions.optionalFields.join(",") if @loadOptions.optionalFields.length
+    syncOptions.data.optional_fields = @loadOptions.optionalFields.join(",") if @loadOptions.optionalFields?.length
 
     blacklist = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search', 'optional_fields']
     _(syncOptions.data).chain()
