@@ -198,7 +198,6 @@ class Brainstem.AbstractLoader
       if cacheObject && cacheObject.valid
         subset = _.map cacheObject.results, (result) => @storageManager.storage(result.key).get(result.id)
         if (_.all(subset, (model) => model.dependenciesAreLoaded(@loadOptions)))
-          # if this if is still needed, we'd need to also check to make sure all optional_fields we need are in these models
           @_onLoadSuccess(subset)
           return @externalObject
 
