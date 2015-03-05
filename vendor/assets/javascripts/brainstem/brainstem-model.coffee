@@ -6,6 +6,9 @@ class window.Brainstem.Model extends Backbone.Model
   #
   # Properties
 
+  isBuffer: false
+  bufferedModel: null
+
   @OPTION_KEYS =  ['name', 'include', 'cacheKey']
 
 
@@ -128,6 +131,9 @@ class window.Brainstem.Model extends Backbone.Model
     base.data.loadObject(options.name, options, { isCollection: false, object: this })
       .done((response) => @trigger('sync', response, options))
       .promise()
+
+  getBuffer: ->
+    
 
   # Handle create and update responses with JSON root keys
   parse: (resp, xhr) ->
