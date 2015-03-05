@@ -121,14 +121,9 @@ class window.Brainstem.StorageManager
     loader = new loaderClass(storageManager: this, externalObject: options.object)
     loader.setup(loadOptions)
 
-    if completeCallback? && _.isFunction(completeCallback)
-      loader.always(completeCallback)
-
-    if successCallback? && _.isFunction(successCallback)
-      loader.done(successCallback)
-
-    if errorCallback? && _.isFunction(errorCallback)
-      loader.fail(errorCallback)
+    loader.always(completeCallback) if _.isFunction(completeCallback)
+    loader.done(successCallback) if _.isFunction(successCallback)
+    loader.fail(errorCallback) if _.isFunction(errorCallback)
 
     if @expectations?
       @handleExpectations(loader)
