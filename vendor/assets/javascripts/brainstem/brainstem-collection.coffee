@@ -82,7 +82,7 @@ class window.Brainstem.Collection extends Backbone.Collection
 
     Brainstem.Utils.wrapError(this, options)
 
-    loader = base.data.loadObject(options.name, _.extend({}, @firstFetchOptions, options))
+    loader = base.data.loadObject(options.name, _.extend({}, @firstFetchOptions, options), { object: this })
 
     @trigger('request', this, options.returnValues.jqXhr, options)
 

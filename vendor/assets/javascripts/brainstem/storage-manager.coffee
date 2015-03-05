@@ -118,7 +118,7 @@ class window.Brainstem.StorageManager
 
     @_checkPageSettings loadOptions
 
-    loader = new loaderClass(storageManager: this)
+    loader = new loaderClass(storageManager: this, externalObject: options.object)
     loader.setup(loadOptions)
 
     if completeCallback? && _.isFunction(completeCallback)

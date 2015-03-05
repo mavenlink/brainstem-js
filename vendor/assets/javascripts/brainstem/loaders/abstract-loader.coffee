@@ -14,6 +14,7 @@ class Brainstem.AbstractLoader
 
   constructor: (options = {}) ->
     @storageManager = options.storageManager
+    @externalObject = options.externalObject
 
     @_deferred = $.Deferred()
     @_deferred.promise(this)
