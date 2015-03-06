@@ -153,7 +153,11 @@ describe 'Brainstem.Collection', ->
       
       it 'calls `loadObject` with collection name', ->
         collection.fetch()
-        expect(loadObjectSpy).toHaveBeenCalledWith('posts', jasmine.any(Object))
+        expect(loadObjectSpy).toHaveBeenCalledWith('posts', jasmine.any(Object), jasmine.any(Object))
+ 
+      it 'passes collection instance as "object" option to `loadObject`', ->
+        collection.fetch()
+        expect(loadObjectSpy).toHaveBeenCalledWith(jasmine.any(String), jasmine.any(Object), { object: collection })
 
       it 'mixes passed options into options passed to `loadObject`', ->
         options = { parse: false, url: 'sick url', reset: true }

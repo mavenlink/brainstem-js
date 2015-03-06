@@ -37,8 +37,8 @@ describe 'Brainstem.Model', ->
 
       expect(Brainstem.Utils.wrapError).toHaveBeenCalledWith(model, options)
 
-    it 'calls loadObject', ->
-      promise = done: (-> {promise: (->)})
+    it 'calls loadObject with correct loadOptions', ->
+      promise = $.Deferred()
       spyOn(base.data, 'loadObject').andReturn(promise)
 
       model.fetch()
@@ -46,7 +46,19 @@ describe 'Brainstem.Model', ->
       expect(base.data.loadObject).toHaveBeenCalledWith(
         'tasks',
         { only: [model.id], parse: true, name: 'tasks', error: jasmine.any(Function), cache: false },
-        isCollection: false
+        jasmine.any(Object)
+      )
+
+    it 'calls loadObject with correct options', ->
+      promise = $.Deferred()
+      spyOn(base.data, 'loadObject').andReturn(promise)
+
+      model.fetch()
+
+      expect(base.data.loadObject).toHaveBeenCalledWith(
+        'tasks',
+        jasmine.any(Object),
+        { isCollection: false, object: model }
       )
 
     it 'on success, triggers sync', ->

@@ -64,14 +64,15 @@ describe 'Loaders CollectionLoader', ->
         expect(loader.storageManager.createNewCollection.callCount).toEqual 2
         expect(loader.internalObject).toEqual collection
 
-      context 'collection is passed in to loadOptions', ->
+      context 'externalObject is passed in to options', ->
         it 'uses the collection that is passed in', ->
-          opts.collection ?= new App.Collections.Tasks()
-          loader.setup(opts)
-          expect(loader.externalObject).toEqual opts.collection
+          opts.externalObject = new App.Collections.Tasks()
+          createLoader(opts)
+          expect(loader.externalObject).toEqual opts.externalObject
 
-      context 'collection is not passed in to loadOptions', ->
+      context 'externalObject is not passed in to options', ->
         it 'creates a new collection from the name in loadOptions', ->
+          opts.externalObject = undefined
           loader.setup(opts)
           expect(loader.storageManager.createNewCollection.callCount).toEqual 2
           expect(loader.externalObject).toEqual collection

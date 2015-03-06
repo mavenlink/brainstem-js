@@ -97,7 +97,7 @@ class window.Brainstem.StorageManager
   #     collection = manager.loadCollection "tasks", include: ["assets", { "assignees": "account" }, { "sub_tasks": ["assignees", "assets"] }]
   #     collection = manager.loadCollection "time_entries", filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
   loadCollection: (name, options = {}) ->
-    loader = @loadObject(name, options)
+    loader = @loadObject(name, options, { object: options.collection })
     loader.externalObject
 
   # Helpers
