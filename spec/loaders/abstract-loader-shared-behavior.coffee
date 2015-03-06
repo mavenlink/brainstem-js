@@ -311,7 +311,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
         it 'returns false and does not call #_onLoadSuccess', ->
           loader.setup(opts)
-          loader._checkCacheForData()
+          expect(loader._checkCacheForData()).toEqual(false)
           expect(loader._onLoadSuccess).not.toHaveBeenCalled()
 
       context 'when optional fields have been requested and the fields are already on the tasks', ->
@@ -321,7 +321,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           taskTwo.set('test_field', 'fake value for two')
           loader.storageManager.storage('tasks').add([taskOne, taskTwo])
 
-        it 'returns true and does not calls #_onLoadSuccess', ->
+        it 'calls #_onLoadSuccess with the models from the cache', ->
           loader.setup(opts)
           loader._checkCacheForData()
           expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne, taskTwo])
@@ -370,7 +370,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
             it 'returns false and does not call #_onLoadSuccess', ->
               opts.optionalFields = ['test_field']
               loader.setup(opts)
-              loader._checkCacheForData()
+              expect(loader._checkCacheForData()).toEqual(false)
               expect(loader._onLoadSuccess).not.toHaveBeenCalled()
 
         context 'cache is invalid', ->
