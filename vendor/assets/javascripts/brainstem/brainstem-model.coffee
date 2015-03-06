@@ -159,7 +159,7 @@ class window.Brainstem.Model extends Backbone.Model
         if collectionModel
           collectionModel.set(attributes)
         else
-          if @brainstemKey == underscoredModelName && (@isNew() || String(@id) == attributes.id)
+          if @brainstemKey == underscoredModelName && (@isNew() || String(@id) == String(attributes.id))
             @set(attributes)
             collection.add(this)
           else
