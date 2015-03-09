@@ -153,6 +153,13 @@ class window.Brainstem.Model extends Backbone.Model
           else
             collection.add(attributes)
 
+  dependenciesAreLoaded: (loadOptions) ->
+    @associationsAreLoaded(loadOptions.thisLayerInclude) && @optionalFieldsAreLoaded(loadOptions.optionalFields)
+
+  optionalFieldsAreLoaded: (optionalFields) ->
+    return true unless optionalFields?
+    _.all optionalFields, (optionalField) => @attributes.hasOwnProperty(optionalField)
+
   # This method determines if all of the provided associations have been loaded for this model.  If no associations are
   # provided, all associations are assumed.
   #   model.associationsAreLoaded(["project", "task"]) # => true|false
