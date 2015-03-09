@@ -308,10 +308,13 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           opts.optionalFields = ['test_field']
           taskOne.set('test_field', 'fake value')
           loader.storageManager.storage('tasks').add([taskOne, taskTwo])
-
-        it 'returns false and does not call #_onLoadSuccess', ->
           loader.setup(opts)
+
+        it 'returns false', ->
           expect(loader._checkCacheForData()).toEqual(false)
+
+        it 'does not call #_onLoadSuccess', ->
+          loader._checkCacheForData()
           expect(loader._onLoadSuccess).not.toHaveBeenCalled()
 
       context 'when optional fields have been requested and the fields are already on the tasks', ->
@@ -320,10 +323,10 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           taskOne.set('test_field', 'fake value for one')
           taskTwo.set('test_field', 'fake value for two')
           loader.storageManager.storage('tasks').add([taskOne, taskTwo])
-
-        it 'calls #_onLoadSuccess with the models from the cache', ->
           loader.setup(opts)
           loader._checkCacheForData()
+
+        it 'calls #_onLoadSuccess with the models from the cache', ->
           expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne, taskTwo])
 
     context 'not an only query', ->
@@ -359,18 +362,23 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           context 'all of the cached models have their optional fields loaded', ->
             beforeEach ->
               taskOne.set('test_field', 'test value')
-
-            it 'calls #_onLoadSuccess with the models from the cache', ->
               opts.optionalFields = ['test_field']
               loader.setup(opts)
               loader._checkCacheForData()
+
+            it 'calls #_onLoadSuccess with the models from the cache', ->
               expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne])
 
           context 'all of the cached models do not have their optional fields loaded', ->
-            it 'returns false and does not call #_onLoadSuccess', ->
+            beforeEach ->
               opts.optionalFields = ['test_field']
               loader.setup(opts)
+
+            it 'returns false', ->
               expect(loader._checkCacheForData()).toEqual(false)
+
+            it 'does not call #_onLoadSuccess', ->
+              loader._checkCacheForData()
               expect(loader._onLoadSuccess).not.toHaveBeenCalled()
 
         context 'cache is invalid', ->
