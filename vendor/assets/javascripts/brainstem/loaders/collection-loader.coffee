@@ -41,12 +41,16 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
   _updateObjects: (object, data, silent = false) ->
     object.setLoaded true, trigger: false
 
-    if data
-      data = data.models if data.models?
-      if object.length
-        object.add data
-      else
-        object.reset data
+    object.set(data) if _.isArray(data)
+
+    if @loadOptions.add
+      method = 'add'
+    else if @loadOptions.reset
+      method = 'reset'
+    else
+      method = 'set'
+
+    object[method](data.models, @loadOptions) if data.models?
 
     object.setLoaded true unless silent
 
