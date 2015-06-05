@@ -196,6 +196,10 @@ describe 'Brainstem.Model', ->
         expect(base.data.storage('users').get(5).get('created_at')).toEqual(1361820357000)
         expect(base.data.storage('users').get(6).get('created_at')).toEqual(1359573957000)
 
+      it "does not handle ISO 8601 dates with other characters", ->
+        parsed = model.parse({created_at: "blargh 2013-01-25T11:25:57-08:00 churgh"})
+        expect(parsed.created_at).toEqual("blargh 2013-01-25T11:25:57-08:00 churgh")
+
   describe 'associations', ->
 
     class TestClass extends Brainstem.Model
