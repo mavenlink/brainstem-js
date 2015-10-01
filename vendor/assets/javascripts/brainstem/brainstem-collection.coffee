@@ -84,8 +84,9 @@ class window.Brainstem.Collection extends Backbone.Collection
     Brainstem.Utils.wrapError(this, options)
 
     loader = base.data.loadObject(options.name, _.extend({}, @firstFetchOptions, options))
+    xhr = options.returnValues.jqXhr
 
-    @trigger('request', this, options.returnValues.jqXhr, options)
+    @trigger('request', this, xhr, options)
 
     loader.pipe(-> loader.internalObject.models)
       .done((response) =>
@@ -101,7 +102,7 @@ class window.Brainstem.Collection extends Backbone.Collection
         @[method](response, options)
 
         @trigger('sync', this, response, options)
-      ).promise()
+      ).promise(xhr)
 
   refresh: (options = {}) ->
     @fetch _.extend(@lastFetchOptions, options, cache: false)
