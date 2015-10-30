@@ -55,6 +55,8 @@ class window.Brainstem.Utils
 
   @wrapError = (collection, options) ->
     error = options.error
-    options.error = (response) ->
-      error(collection, response, options) if error
-      collection.trigger('error', collection, response, options)
+    # only wrap if we have a handler
+    if error
+      options.error = (response) ->
+        error(collection, response, options) if error
+        collection.trigger('error', collection, response, options)
