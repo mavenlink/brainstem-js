@@ -562,6 +562,7 @@ describe 'Brainstem.Model', ->
 
           it 'should not throw a Brainstem error', ->
             expect(-> timeEntry.get("project")).not.toThrow()
+            expect(timeEntry.get("project")).toBe(undefined)
 
       describe "HasMany associations", ->
         project = null
