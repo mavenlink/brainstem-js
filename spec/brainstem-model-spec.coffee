@@ -556,6 +556,13 @@ describe 'Brainstem.Model', ->
             it "should return association", ->
               expect(post.get("subject")).toEqual base.data.storage("projects").get(10)
 
+        describe 'when a form sets an association id to an empty string', ->
+          beforeEach ->
+            timeEntry.set('project_id', '')
+
+          it 'should not throw a Brainstem error', ->
+            expect(-> timeEntry.get("project")).not.toThrow()
+
       describe "HasMany associations", ->
         project = null
 

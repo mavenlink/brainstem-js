@@ -58,7 +58,7 @@ class window.Brainstem.Model extends Backbone.Model
     if details = @constructor.associationDetails(field)
       if details.type == "BelongsTo"
         pointer = super(details.key) # project_id
-        if pointer?
+        if pointer
           if details.polymorphic
             id = pointer.id
             collectionName = pointer.key
