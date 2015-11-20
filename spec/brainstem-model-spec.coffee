@@ -51,14 +51,15 @@ describe 'Brainstem.Model', ->
 
     it 'on success, triggers sync', ->
       deferred = new $.Deferred
+      newModel = {}
 
       spyOn(base.data, 'loadObject').andReturn(deferred)
       spyOn(model, 'trigger')
 
       model.fetch()
-      deferred.resolve()
+      deferred.resolve(newModel)
 
-      expect(model.trigger).toHaveBeenCalledWith('sync', model, {only: [model.id], name: 'tasks', parse: true, error: jasmine.any(Function), cache: false})
+      expect(model.trigger).toHaveBeenCalledWith('sync', newModel, {only: [model.id], name: 'tasks', parse: true, error: jasmine.any(Function), cache: false})
 
     it 'returns a promise', ->
       promise = (new $.Deferred).promise()
@@ -194,6 +195,10 @@ describe 'Brainstem.Model', ->
         expect(parsed.created_at).toEqual(1359141957000)
         expect(base.data.storage('users').get(5).get('created_at')).toEqual(1361820357000)
         expect(base.data.storage('users').get(6).get('created_at')).toEqual(1359573957000)
+
+      it "does not handle ISO 8601 dates with other characters", ->
+        parsed = model.parse({created_at: "blargh 2013-01-25T11:25:57-08:00 churgh"})
+        expect(parsed.created_at).toEqual("blargh 2013-01-25T11:25:57-08:00 churgh")
 
   describe 'associations', ->
 
@@ -551,6 +556,14 @@ describe 'Brainstem.Model', ->
             it "should return association", ->
               expect(post.get("subject")).toEqual base.data.storage("projects").get(10)
 
+        describe 'when a form sets an association id to an empty string', ->
+          beforeEach ->
+            timeEntry.set('project_id', '')
+
+          it 'should not throw a Brainstem error', ->
+            expect(-> timeEntry.get("project")).not.toThrow()
+            expect(timeEntry.get("project")).toBe(undefined)
+
       describe "HasMany associations", ->
         project = null
 
@@ -703,10 +716,10 @@ describe 'Brainstem.Model', ->
 
   describe '#_linkCollection', ->
     story = null
-    
+
     beforeEach ->
       story = new App.Models.Task()
-      
+
     context 'when there is not an associated collection', ->
       dummyCollection = collectionName = collectionOptions = field = null
       beforeEach ->
@@ -714,27 +727,27 @@ describe 'Brainstem.Model', ->
         collectionOptions = {}
         field = 'assignees'
         expect(story._associatedCollections).toBeUndefined()
-        
+
         dummyCollection = on: -> 'dummy Collection'
-        
+
         spyOn(base.data, 'createNewCollection').andReturn(dummyCollection)
-        
+
       it 'returns an associated collection' ,->
         collection = story._linkCollection(collectionName, [], collectionOptions, field)
         expect(collection).toBe(dummyCollection)
-        
+
       it 'saves a reference to the associated collection', ->
         collection = story._linkCollection(collectionName, [], collectionOptions, field)
         expect(collection).toBe(story._associatedCollections.assignees)
-        
+
       it 'getting a different collection craetes a second key on _associatedCollections', ->
         collection = story._linkCollection(collectionName, [], collectionOptions, field)
         collection2 = story._linkCollection("tasks", [], collectionOptions, "sub_tasks")
-        
+
         expect(story._associatedCollections.field).toBeUndefined()
         expect(collection).toBe(story._associatedCollections.assignees)
         expect(collection2).toBe(story._associatedCollections.sub_tasks)
-        
+
     context 'when there is already an associated collection', ->
       returnedCollection = collection = collectionName = collectionOptions = field = null
       beforeEach ->
@@ -746,10 +759,9 @@ describe 'Brainstem.Model', ->
         story._associatedCollections[field] = collection
         spyOn(base.data, 'createNewCollection')
         returnedCollection = story._linkCollection(collectionName, [], collectionOptions, field)
-        
+
       it 'returns an associated collection' ,->
         expect(collection).toBe(returnedCollection)
-        
-      it 'should not create a new collection', ->  
+
+      it 'should not create a new collection', ->
         expect(base.data.createNewCollection).not.toHaveBeenCalled()
-        

@@ -85,7 +85,7 @@ describe 'Brainstem.Collection', ->
 
       it 'throws a "BrainstemError"', ->
         expect(-> collection.fetch()).toThrow()
-    
+
     context 'collection has model without a brainstemKey defined', ->
       beforeEach ->
         collection.model = new Backbone.Model()
@@ -96,7 +96,6 @@ describe 'Brainstem.Collection', ->
     context 'the collection has brainstemKey defined', ->
       beforeEach ->
         collection.model = App.Models.Post
-        
 
       it 'does not throw', ->
         expect(-> collection.fetch()).not.toThrow()
@@ -303,6 +302,17 @@ describe 'Brainstem.Collection', ->
 
         options = { page: 1, perPage: 5 }
         collection = new App.Collections.Posts(null, options)
+
+      it 'returns a promise with jqXhr methods', ->
+        respondWith(server, '/api/posts?per_page=5&page=1', resultsFrom: 'posts', data: { posts: posts1 })
+
+        jqXhr = $.ajax()
+        promise = collection.fetch()
+
+        for key, value of jqXhr
+          object = {}
+          object[key] = jasmine.any(value.constructor)
+          expect(promise).toEqual jasmine.objectContaining(object)
 
       it 'updates collection with response', ->
         respondWith(server, '/api/posts?per_page=5&page=1', resultsFrom: 'posts', data: { posts: posts1 })
@@ -854,10 +864,15 @@ describe 'Brainstem.Collection', ->
       expect(loader.getCacheObject().valid).toEqual false
 
   describe '#toServerJSON', ->
-    it 'calls through to toJSON', ->
-      spy = spyOn(collection, 'toJSON')
-      collection.toServerJSON()
-      expect(spy).toHaveBeenCalled()
+    beforeEach ->
+      spyOn(model, 'toServerJSON').andCallThrough() for model in collection.models
+
+    it 'returns model contents serialized using model server json', ->
+      expect(_(collection.toServerJSON()).pluck('id')).toEqual(collection.pluck('id'))
+
+    it 'passes method to model method calls', ->
+      collection.toServerJSON('update')
+      expect(model.toServerJSON).toHaveBeenCalledWith('update') for model in collection.models
 
   describe '#setLoaded', ->
     it 'should set the values of @loaded', ->

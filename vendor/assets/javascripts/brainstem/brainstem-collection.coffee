@@ -2,6 +2,8 @@
 
 class window.Brainstem.Collection extends Backbone.Collection
 
+  model: Brainstem.Model
+
   @OPTION_KEYS = [
     'name'
     'include'
@@ -14,6 +16,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     'search'
     'cache'
     'cacheKey'
+    'optionalFields'
   ]
 
   @getComparatorWithIdFailover: (order) ->
@@ -65,7 +68,7 @@ class window.Brainstem.Collection extends Backbone.Collection
 
   fetch: (options) ->
     options = if options then _.clone(options) else {}
-    
+
     options.parse = options.parse ? true
     options.name = options.name ? @model?.prototype.brainstemKey
     options.returnValues ?= {}
@@ -81,8 +84,9 @@ class window.Brainstem.Collection extends Backbone.Collection
     Brainstem.Utils.wrapError(this, options)
 
     loader = base.data.loadObject(options.name, _.extend({}, @firstFetchOptions, options))
-    
-    @trigger('request', this, options.returnValues.jqXhr, options)
+    xhr = options.returnValues.jqXhr
+
+    @trigger('request', this, xhr, options)
 
     loader.pipe(-> loader.internalObject.models)
       .done((response) =>
@@ -98,7 +102,7 @@ class window.Brainstem.Collection extends Backbone.Collection
         @[method](response, options)
 
         @trigger('sync', this, response, options)
-      ).promise()
+      ).promise(xhr)
 
   refresh: (options = {}) ->
     @fetch _.extend(@lastFetchOptions, options, cache: false)
@@ -187,7 +191,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     @_getCacheObject()?.valid = false
 
   toServerJSON: (method) ->
-    @toJSON()
+    @map (model) -> _.extend(model.toServerJSON(method), id: model.id)
 
 
   #

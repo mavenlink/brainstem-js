@@ -47,7 +47,7 @@ class window.Brainstem.Model extends Backbone.Model
   @parse: (modelObject) ->
     for k,v of modelObject
       # Date.parse will parse ISO 8601 in ECMAScript 5, but we include a shim for now
-      if /\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}/.test(v)
+      if /^\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}$/.test(v)
         modelObject[k] = Date.parse(v)
     return modelObject
 
@@ -68,7 +68,7 @@ class window.Brainstem.Model extends Backbone.Model
     if details = @constructor.associationDetails(field)
       if details.type == "BelongsTo"
         pointer = super(details.key) # project_id
-        if pointer?
+        if pointer
           if details.polymorphic
             id = pointer.id
             collectionName = pointer.key
@@ -139,7 +139,7 @@ class window.Brainstem.Model extends Backbone.Model
 
     base.data.loadObject(options.name, options, isCollection: false)
       .done((response) =>
-        @trigger('sync', this, options)
+        @trigger('sync', response, options)
       )
       .promise()
 
@@ -172,6 +172,13 @@ class window.Brainstem.Model extends Backbone.Model
             collection.add(this)
           else
             collection.add(attributes)
+
+  dependenciesAreLoaded: (loadOptions) ->
+    @associationsAreLoaded(loadOptions.thisLayerInclude) && @optionalFieldsAreLoaded(loadOptions.optionalFields)
+
+  optionalFieldsAreLoaded: (optionalFields) ->
+    return true unless optionalFields?
+    _.all optionalFields, (optionalField) => @attributes.hasOwnProperty(optionalField)
 
   # This method determines if all of the provided associations have been loaded for this model.  If no associations are
   # provided, all associations are assumed.

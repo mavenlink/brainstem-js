@@ -303,6 +303,32 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           loader.setup(opts)
           notFound(loader, opts)
 
+      context 'when optional fields have been requested but the fields arent on all the tasks', ->
+        beforeEach ->
+          opts.optionalFields = ['test_field']
+          taskOne.set('test_field', 'fake value')
+          loader.storageManager.storage('tasks').add([taskOne, taskTwo])
+          loader.setup(opts)
+
+        it 'returns false', ->
+          expect(loader._checkCacheForData()).toEqual(false)
+
+        it 'does not call #_onLoadSuccess', ->
+          loader._checkCacheForData()
+          expect(loader._onLoadSuccess).not.toHaveBeenCalled()
+
+      context 'when optional fields have been requested and the fields are already on the tasks', ->
+        beforeEach ->
+          opts.optionalFields = ['test_field']
+          taskOne.set('test_field', 'fake value for one')
+          taskTwo.set('test_field', 'fake value for two')
+          loader.storageManager.storage('tasks').add([taskOne, taskTwo])
+          loader.setup(opts)
+          loader._checkCacheForData()
+
+        it 'calls #_onLoadSuccess with the models from the cache', ->
+          expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne, taskTwo])
+
     context 'not an only query', ->
       context 'there exists a cache with this cacheKey', ->
         beforeEach ->
@@ -332,6 +358,28 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
               opts.include = ['project']
               loader.setup(opts)
               notFound(loader, opts)
+
+          context 'all of the cached models have their optional fields loaded', ->
+            beforeEach ->
+              taskOne.set('test_field', 'test value')
+              opts.optionalFields = ['test_field']
+              loader.setup(opts)
+              loader._checkCacheForData()
+
+            it 'calls #_onLoadSuccess with the models from the cache', ->
+              expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne])
+
+          context 'all of the cached models do not have their optional fields loaded', ->
+            beforeEach ->
+              opts.optionalFields = ['test_field']
+              loader.setup(opts)
+
+            it 'returns false', ->
+              expect(loader._checkCacheForData()).toEqual(false)
+
+            it 'does not call #_onLoadSuccess', ->
+              loader._checkCacheForData()
+              expect(loader._onLoadSuccess).not.toHaveBeenCalled()
 
         context 'cache is invalid', ->
           beforeEach ->
@@ -404,13 +452,20 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
     beforeEach ->
       loader = createLoader()
-      opts = defaultLoadOptions()
+      opts = _.extend(defaultLoadOptions(), cache: false)
       opts.include = fakeNestedInclude
 
       loader.setup(opts)
       loader._calculateAdditionalIncludes()
 
       spyOn(loader, '_onLoadingCompleted')
+
+    it 'respects "cache" option in nested includes', ->
+      spyOn(loader.storageManager, 'loadObject')
+      loader._loadAdditionalIncludes()
+
+      for call in loader.storageManager.loadObject.calls
+        expect(call.args[1].cache).toBeFalsey
 
     it 'creates a request for each additional include and calls #_onLoadingCompleted when they all are done', ->
       promises = []
