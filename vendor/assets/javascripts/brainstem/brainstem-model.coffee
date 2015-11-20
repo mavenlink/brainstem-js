@@ -213,13 +213,14 @@ class window.Brainstem.Model extends Backbone.Model
         cacheObject.valid = false
 
   toServerJSON: (method, options) ->
-    switch method
-      when "create"
-        json = @toJSON(options)
-        blacklist = @defaultJSONBlacklist().concat @createJSONBlacklist()
-      when "update"
-        json = _.pick(@toJSON(options), _.keys(@unsavedAttributes))
-        blacklist = @defaultJSONBlacklist().concat @updateJSONBlacklist()
+    blacklist = @defaultJSONBlacklist()
+
+    if method == "update"
+      json = _.pick(@toJSON(options), _.keys(@unsavedAttributes))
+      blacklist = blacklist.concat @updateJSONBlacklist()
+    else
+      json = @toJSON(options)
+      blacklist = blacklist.concat @createJSONBlacklist()
 
     delete json[blacklistKey] for blacklistKey in blacklist
 

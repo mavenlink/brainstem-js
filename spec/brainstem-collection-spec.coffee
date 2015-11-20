@@ -855,7 +855,7 @@ describe 'Brainstem.Collection', ->
       posts = (buildPost(message: 'old post', reply_ids: []) for i in [1..5])
       respondWith server, '/api/posts?include=replies&parents_only=true&per_page=5&page=1', resultsFrom: 'posts', data: { count: posts.length, posts: posts }
       loader = base.data.loadObject 'posts', include: ['replies'], filters: { parents_only: 'true' }, perPage: 5
-      
+
       expect(loader.getCacheObject()).toBeUndefined()
       server.respond()
 
