@@ -681,8 +681,22 @@ describe 'Brainstem.Model', ->
 
     it "only sends back changed fields on update actions", ->
       expect(_.keys(model.toServerJSON('update'))).toEqual []
+
       model.set('title', 'new title')
+
       expect(_.keys(model.toServerJSON('update'))).toEqual ['title']
+
+    it "resets changed fields on save", ->
+      model.set('title', 'new title')
+      model.set('description', 'new description')
+
+      expect(_.keys(model.toServerJSON('update'))).toEqual ['title', 'description']
+
+      model.save()
+
+      model.set('description', 'another description')
+
+      expect(_.keys(model.toServerJSON('update'))).toEqual ['description']
 
     it "sends back all fields on create actions", ->
       expect(_.keys(model.toServerJSON('create'))).toEqual _.chain(model.attributes).keys().without('id').value()

@@ -8,6 +8,8 @@ class window.Brainstem.Model extends Backbone.Model
 
   @OPTION_KEYS =  ['name', 'include', 'cacheKey']
 
+  unsavedAttributes: null
+
 
   #
   # Class Methods
@@ -48,6 +50,14 @@ class window.Brainstem.Model extends Backbone.Model
       if /\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}/.test(v)
         modelObject[k] = Date.parse(v)
     return modelObject
+
+
+  #
+  # Init
+
+  constructor: (options = {}) ->
+    super
+    @unsavedAttributes = {}
 
 
   #
@@ -94,6 +104,16 @@ class window.Brainstem.Model extends Backbone.Model
           base.data.createNewCollection(details.collectionName, models, collectionOptions)
     else
       super(field)
+
+  set: (key, val, options) ->
+    super
+
+    _.extend(@unsavedAttributes || {}, @changed)
+
+  save: (key, val, options) ->
+    super
+
+    @unsavedAttributes = {}
 
   className: ->
     @paramRoot
@@ -191,7 +211,7 @@ class window.Brainstem.Model extends Backbone.Model
         json = @toJSON(options)
         blacklist = @defaultJSONBlacklist().concat @createJSONBlacklist()
       when "update"
-        json = _.pick(@toJSON(options), _.keys(@changed))
+        json = _.pick(@toJSON(options), _.keys(@unsavedAttributes))
         blacklist = @defaultJSONBlacklist().concat @updateJSONBlacklist()
 
     delete json[blacklistKey] for blacklistKey in blacklist
