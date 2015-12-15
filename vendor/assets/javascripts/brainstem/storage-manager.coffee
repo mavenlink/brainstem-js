@@ -137,6 +137,11 @@ class window.Brainstem.StorageManager
 
     loader
 
+  bootstrap: (name, response, loadOptions = {}) ->
+    loader = new Brainstem.CollectionLoader storageManager: base.data
+    loader.setup $.extend({}, loadOptions, name: name)
+    loader._updateStorageManagerFromResponse response
+
   collectionError: (name) ->
     Brainstem.Utils.throwError("""
       Unknown collection #{name} in StorageManager. Known collections: #{_(@collections).keys().join(", ")}
