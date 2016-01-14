@@ -80,7 +80,8 @@ describe 'Brainstem.Model', ->
           name: 'tasks',
           parse: true,
           error: jasmine.any(Function),
-          cache: false, returnValues: jasmine.any(Object)
+          cache: false,
+          returnValues: jasmine.any(Object)
         }
       )
 
