@@ -111,6 +111,7 @@ class window.Brainstem.Model extends Backbone.Model
     options.parse = options.parse ? true
     options.name = options.name ? @brainstemKey
     options.cache = false
+    options.returnValues ?= {}
 
     unless options.name
       Brainstem.Utils.throwError('Either model must have a brainstemKey defined or name option must be provided')
@@ -121,7 +122,7 @@ class window.Brainstem.Model extends Backbone.Model
       .done((response) =>
         @trigger('sync', response, options)
       )
-      .promise()
+      .promise(options.returnValues.jqXhr)
 
   # Handle create and update responses with JSON root keys
   parse: (resp, xhr) ->
