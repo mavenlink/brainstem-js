@@ -140,7 +140,7 @@ class window.Brainstem.StorageManager
   # Cache model(s) directly into the storage manager. Response should be structured exactly as a
   # brainstem AJAX response. Useful in avoiding unnecessary AJAX request(s) when rendering the page.
   bootstrap: (name, response, loadOptions = {}) ->
-    loader = new Brainstem.CollectionLoader storageManager: base.data
+    loader = new Brainstem.CollectionLoader storageManager: this
     loader.setup $.extend({}, loadOptions, name: name)
     loader._updateStorageManagerFromResponse response
 

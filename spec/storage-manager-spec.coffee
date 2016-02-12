@@ -784,7 +784,7 @@ describe 'Brainstem Storage Manager', ->
   describe 'bootstrap', ->
     it 'loads models into the storage manager', ->
       task = buildTask()
-      manager.bootstrap 'tasks',
+      base.data.bootstrap 'tasks',
         count: 1
         results: [{ key: 'tasks', id: task.id }]
         tasks:
