@@ -781,6 +781,21 @@ describe 'Brainstem Storage Manager', ->
           expect(funct).not.toBeUndefined()
           expect(funct.toString()).toEqual(baseXhr[functionName].toString())
 
+  describe 'bootstrap', ->
+    it 'loads models into the storage manager', ->
+      task = buildTask()
+      manager.bootstrap 'tasks',
+        count: 1
+        results: [{ key: 'tasks', id: task.id }]
+        tasks:
+          "#{task.id}": task.attributes
+
+      cachedTask = base.data.storage('tasks').get(task.id)
+      expect(cachedTask).toBeDefined()
+
+      for attribute, value of task.attributes
+        expect(cachedTask.get(attribute)).toEqual value
+
   describe "error handling", ->
     describe "passing in a custom error handler when loading a collection", ->
       it "gets called when there is an error", ->
