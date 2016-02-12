@@ -785,14 +785,17 @@ describe 'Brainstem Storage Manager', ->
           expect(funct.toString()).toEqual(baseXhr[functionName].toString())
 
   describe 'bootstrap', ->
-    it 'loads models into the storage manager', ->
-      task = buildTask()
+    task = null
+
+    beforeEach ->
+      task = buildTask(id: '17', title: 'Booting!', description: 'shenanigans')
       base.data.bootstrap 'tasks',
         count: 1
         results: [{ key: 'tasks', id: task.id }]
         tasks:
           "#{task.id}": task.attributes
 
+    it 'loads models into the storage manager', ->
       cachedTask = base.data.storage('tasks').get(task.id)
       expect(cachedTask).toBeDefined()
 
