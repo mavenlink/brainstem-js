@@ -31,9 +31,16 @@ describe 'Brainstem.Model', ->
         expect(-> model.fetch()).not.toThrow()
 
     it 'calls wrapError', ->
+      options =
+        only: [model.id],
+        parse: true,
+        name: 'posts',
+        cache: false
+        returnValues: jasmine.any(Object)
+
       spyOn(Brainstem.Utils, 'wrapError')
 
-      model.fetch(options = {only: [model.id], parse: true, name: 'posts', cache: false})
+      model.fetch(options)
 
       expect(Brainstem.Utils.wrapError).toHaveBeenCalledWith(model, options)
 
@@ -45,7 +52,14 @@ describe 'Brainstem.Model', ->
 
       expect(base.data.loadObject).toHaveBeenCalledWith(
         'tasks',
-        { only: [model.id], parse: true, name: 'tasks', error: jasmine.any(Function), cache: false },
+        {
+          only: [model.id],
+          parse: true,
+          name: 'tasks',
+          error: jasmine.any(Function),
+          cache: false
+          returnValues: jasmine.any(Object)
+        },
         isCollection: false
       )
 
@@ -59,7 +73,17 @@ describe 'Brainstem.Model', ->
       model.fetch()
       deferred.resolve(newModel)
 
-      expect(model.trigger).toHaveBeenCalledWith('sync', newModel, {only: [model.id], name: 'tasks', parse: true, error: jasmine.any(Function), cache: false})
+      expect(model.trigger).toHaveBeenCalledWith(
+        'sync', newModel,
+        {
+          only: [model.id],
+          name: 'tasks',
+          parse: true,
+          error: jasmine.any(Function),
+          cache: false,
+          returnValues: jasmine.any(Object)
+        }
+      )
 
     it 'returns a promise', ->
       promise = (new $.Deferred).promise()
@@ -79,6 +103,17 @@ describe 'Brainstem.Model', ->
 
         expect(model.attributes).toEqual(task.attributes)
 
+      it 'returns a promise with jqXhr methods', ->
+        task = buildTask()
+        respondWith(server, '/api/tasks/1', resultsFrom: 'tasks', data: task)
+
+        jqXhr = $.ajax()
+        promise = model.fetch()
+
+        for key, value of jqXhr
+          object = {}
+          object[key] = jasmine.any(value.constructor)
+          expect(promise).toEqual jasmine.objectContaining(object)
 
   describe '#parse', ->
     response = null
