@@ -788,12 +788,16 @@ describe 'Brainstem Storage Manager', ->
     task = null
 
     beforeEach ->
-      task = buildTask(id: '17', title: 'Booting!', description: 'shenanigans')
-      base.data.bootstrap 'tasks',
+      task = buildTask(title: 'Booting!', description: 'shenanigans')
+
+      responseJson =
         count: 1
         results: [{ key: 'tasks', id: task.id }]
         tasks:
           "#{task.id}": task.attributes
+
+      loadOptions = order: 'the other way', includes: 'foo', filters: { bar: 'baz' }
+      base.data.bootstrap 'tasks', responseJson, loadOptions
 
     it 'loads models into the storage manager', ->
       cachedTask = base.data.storage('tasks').get(task.id)
@@ -801,6 +805,10 @@ describe 'Brainstem Storage Manager', ->
 
       for attribute, value of task.attributes
         expect(cachedTask.get(attribute)).toEqual value
+
+    it 'caches response as it were an actual request', ->
+      cache = base.data.getCollectionDetails('tasks').cache['the other way|{"bar":"baz"}||||||']
+      expect(cache).toBeDefined()
 
   describe "error handling", ->
     describe "passing in a custom error handler when loading a collection", ->
