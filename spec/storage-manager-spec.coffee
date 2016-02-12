@@ -1,11 +1,9 @@
 describe 'Brainstem Storage Manager', ->
-  manager = null
-
-  beforeEach ->
-    manager = new Brainstem.StorageManager()
-
   describe "storage", ->
+    manager = null
+
     beforeEach ->
+      manager = new Brainstem.StorageManager()
       manager.addCollection 'time_entries', App.Collections.TimeEntries
 
     it "accesses a cached collection of the appropriate type", ->
@@ -16,6 +14,11 @@ describe 'Brainstem Storage Manager', ->
       expect(-> manager.storage('foo')).toThrow()
 
   describe 'addCollection and getCollectionDetails', ->
+    manager = null
+
+    beforeEach ->
+      manager = new Brainstem.StorageManager()
+
     it "tracks a named collection", ->
       manager.addCollection 'time_entries', App.Collections.TimeEntries
       expect(manager.getCollectionDetails("time_entries").klass).toBe App.Collections.TimeEntries
