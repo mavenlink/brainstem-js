@@ -1,11 +1,9 @@
 describe 'Brainstem Storage Manager', ->
-  manager = null
-
-  beforeEach ->
-    manager = new Brainstem.StorageManager()
-
   describe "storage", ->
+    manager = null
+
     beforeEach ->
+      manager = new Brainstem.StorageManager()
       manager.addCollection 'time_entries', App.Collections.TimeEntries
 
     it "accesses a cached collection of the appropriate type", ->
@@ -16,6 +14,11 @@ describe 'Brainstem Storage Manager', ->
       expect(-> manager.storage('foo')).toThrow()
 
   describe 'addCollection and getCollectionDetails', ->
+    manager = null
+
+    beforeEach ->
+      manager = new Brainstem.StorageManager()
+
     it "tracks a named collection", ->
       manager.addCollection 'time_entries', App.Collections.TimeEntries
       expect(manager.getCollectionDetails("time_entries").klass).toBe App.Collections.TimeEntries
@@ -780,6 +783,32 @@ describe 'Brainstem Storage Manager', ->
           funct = returnValues.jqXhr[functionName]
           expect(funct).not.toBeUndefined()
           expect(funct.toString()).toEqual(baseXhr[functionName].toString())
+
+  describe 'bootstrap', ->
+    task = null
+
+    beforeEach ->
+      task = buildTask(title: 'Booting!', description: 'shenanigans')
+
+      responseJson =
+        count: 1
+        results: [{ key: 'tasks', id: task.id }]
+        tasks:
+          "#{task.id}": task.attributes
+
+      loadOptions = order: 'the other way', includes: 'foo', filters: { bar: 'baz' }
+      base.data.bootstrap 'tasks', responseJson, loadOptions
+
+    it 'loads models into the storage manager', ->
+      cachedTask = base.data.storage('tasks').get(task.id)
+      expect(cachedTask).toBeDefined()
+
+      for attribute, value of task.attributes
+        expect(cachedTask.get(attribute)).toEqual value
+
+    it 'caches response as it were an actual request', ->
+      cache = base.data.getCollectionDetails('tasks').cache['the other way|{"bar":"baz"}||||||']
+      expect(cache).toBeDefined()
 
   describe "error handling", ->
     describe "passing in a custom error handler when loading a collection", ->
