@@ -4,4 +4,5 @@ class Error extends Error
     @name = 'BrainstemError'
     @message = (message || '')
 
+
 modules.export = Error

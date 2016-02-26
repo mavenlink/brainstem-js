@@ -43,10 +43,11 @@ class ModelLoader extends AbstractLoader
   _updateObjects: (object, data) ->
     if _.isArray(data) && data.length == 1
       data = data[0]
-    
+
     if data instanceof Backbone.Model
       data = data.attributes
 
     object.set(data)
+
 
 modules.export = ModelLoader

@@ -369,4 +369,5 @@ class AbstractLoader
     @_updateObjects(@externalObject, @internalObject)
     @_deferred.resolve(@externalObject)
 
+
 modules.export = AbstractLoader

@@ -1026,4 +1026,3 @@ describe 'Brainstem.Collection', ->
 
       it 'returns the maximum possible page', ->
         expect(collection._maxPage()).toEqual(collection.getServerCount() / collection.lastFetchOptions.perPage )
-    

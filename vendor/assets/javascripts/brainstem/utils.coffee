@@ -60,4 +60,5 @@ class Utils
       error(collection, response, options) if error
       collection.trigger('error', collection, response, options)
 
+
 modules.export = Utils
