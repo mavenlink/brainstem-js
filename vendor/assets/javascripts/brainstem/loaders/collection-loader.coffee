@@ -1,6 +1,9 @@
+AbstractLoader = require('./abstract-loader')
+
+
 Brainstem ?= {}
 
-class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
+class CollectionLoader extends AbstractLoader
 
   #
   # Accessors
@@ -78,3 +81,5 @@ class Brainstem.CollectionLoader extends Brainstem.AbstractLoader
     @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = cachedData
     _.map(results, (result) => @storageManager.storage(result.key).get(result.id))
 
+
+modules.export = CollectionLoader

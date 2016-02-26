@@ -1,6 +1,9 @@
+Error = require('./brainstem-error')
+
+
 Brainstem ?= {}
 
-class Brainstem.Utils
+class Utils
   @warn: (args...) ->
     console?.log "Error:", args...
 
@@ -10,7 +13,7 @@ class Brainstem.Utils
 
     message += ", fragment: #{fragment}" if fragment
 
-    throw new Brainstem.Error(message)
+    throw new Error(message)
 
   @matches: (obj1, obj2) ->
     if @empty(obj1) && @empty(obj2)
@@ -58,3 +61,5 @@ class Brainstem.Utils
     options.error = (response) ->
       error(collection, response, options) if error
       collection.trigger('error', collection, response, options)
+
+modules.export = Utils

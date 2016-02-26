@@ -1,3 +1,6 @@
+Expectation = require('./brainstem-expectation')
+
+
 Brainstem ?= {}
 
 # TODO: Record access timestamps on all Brainstem.Models by overloading #get and #set.
@@ -7,7 +10,7 @@ Brainstem ?= {}
 
 # The StorageManager class is used to manage a set of Brainstem.Collections.  It is responsible for loading data and
 # maintaining caches.
-class Brainstem.StorageManager
+class StorageManager
 
   #
   # Init
@@ -148,7 +151,7 @@ class Brainstem.StorageManager
 
   stub: (collectionName, options = {}) ->
     if @expectations?
-      expectation = new Brainstem.Expectation(collectionName, options, this)
+      expectation = new Expectation(collectionName, options, this)
       @expectations.push expectation
       expectation
     else
@@ -191,3 +194,5 @@ class Brainstem.StorageManager
       options.perPage = 1 if options.perPage < 1
       options.page = options.page || 1
       options.page = 1 if options.page < 1
+
+modules.export = StorageManager

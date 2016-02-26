@@ -1,6 +1,8 @@
+
+
 Brainstem ?= {}
 
-class Brainstem.Expectation
+class Expectation
 
   #
   # Init
@@ -133,3 +135,5 @@ class Brainstem.Expectation
 
     existingModel.set(attributes)
     existingModel
+
+modules.export = Expectation

@@ -1,6 +1,8 @@
+
+
 #= require ./loading-mixin
 
-class Brainstem.Collection extends Backbone.Collection
+class Collection extends Backbone.Collection
 
   model: Brainstem.Model
 
@@ -231,3 +233,5 @@ class Brainstem.Collection extends Backbone.Collection
 # Mixins
 
 _.extend(Brainstem.Collection.prototype, Brainstem.LoadingMixin)
+
+modules.export = Collection

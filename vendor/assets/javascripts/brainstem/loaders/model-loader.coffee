@@ -1,6 +1,9 @@
+AbstractLoader = require('./abstract-loader')
+
+
 Brainstem ?= {}
 
-class Brainstem.ModelLoader extends Brainstem.AbstractLoader
+class ModelLoader extends AbstractLoader
 
   #
   # Accessors
@@ -47,3 +50,5 @@ class Brainstem.ModelLoader extends Brainstem.AbstractLoader
       data = data.attributes
 
     object.set(data)
+
+modules.export = ModelLoader

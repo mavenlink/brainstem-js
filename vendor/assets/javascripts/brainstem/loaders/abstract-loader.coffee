@@ -1,6 +1,8 @@
+
+
 Brainstem ?= {}
 
-class Brainstem.AbstractLoader
+class AbstractLoader
 
   #
   # Properties
@@ -367,3 +369,5 @@ class Brainstem.AbstractLoader
   _onLoadingCompleted: =>
     @_updateObjects(@externalObject, @internalObject)
     @_deferred.resolve(@externalObject)
+
+modules.export = AbstractLoader

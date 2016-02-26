@@ -1,7 +1,9 @@
+
+
 #= require ./loading-mixin
 
 # Extend Backbone.Model to include associations.
-class Brainstem.Model extends Backbone.Model
+class Model extends Backbone.Model
 
   #
   # Properties
@@ -242,3 +244,5 @@ class Brainstem.Model extends Backbone.Model
 
   _onAssociatedCollectionChange: (field, collectionChangeDetails) =>
     @attributes[@constructor.associationDetails(field).key] = collectionChangeDetails[1].pluck('id')
+
+modules.export = Model
