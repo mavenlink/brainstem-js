@@ -1,6 +1,9 @@
+Model = require './model'
+Error = require './error'
+CollectionLoader = require './loaders/collection-loader'
 
+Utils = require './utils'
 
-Brainstem ?= {}
 
 class Expectation
 
@@ -39,7 +42,7 @@ class Expectation
 
     @_handleAssociations(loader)
 
-    if loader instanceof Brainstem.CollectionLoader
+    if loader instanceof CollectionLoader
       returnedData = @_handleCollectionResults(loader)
     else
       returnedData = @_handleModelResults(loader)
@@ -76,10 +79,10 @@ class Expectation
       expectedOption = _.compact(_.flatten([@options[optionType]]))
 
       if optionType == 'include'
-        option = Brainstem.Utils.wrapObjects(option)
-        expectedOption = Brainstem.Utils.wrapObjects(expectedOption)
+        option = Utils.wrapObjects(option)
+        expectedOption = Utils.wrapObjects(expectedOption)
 
-      Brainstem.Utils.matches(option, expectedOption)
+      Utils.matches(option, expectedOption)
 
 
   #
@@ -102,11 +105,11 @@ class Expectation
     @manager.getCollectionDetails(loader.loadOptions.name).cache[loader.loadOptions.cacheKey] = cachedData
 
     for result in @results
-      if result instanceof Brainstem.Model
+      if result instanceof Model
         @manager.storage(result.brainstemKey).update [result]
 
     returnedModels = _.map @results, (result) =>
-      if result instanceof Brainstem.Model
+      if result instanceof Model
         @manager.storage(result.brainstemKey).get(result.id)
       else
         @manager.storage(result.key).get(result.id)
@@ -117,7 +120,7 @@ class Expectation
     return if !@result
 
     # Put main (loader) model in storage manager.
-    if @result instanceof Brainstem.Model
+    if @result instanceof Model
       key = @result.brainstemKey
       attributes = @result.attributes
     else
@@ -125,7 +128,7 @@ class Expectation
       attributes = _.omit @result, 'key'
 
     if !key
-      throw Brainstem.Error('Brainstem key is required on the result (brainstemKey on model or key in JSON)')
+      throw Error('Brainstem key is required on the result (brainstemKey on model or key in JSON)')
 
     existingModel = @manager.storage(key).get(attributes.id)
 

@@ -1,6 +1,5 @@
+Utils = require('./utils')
 
-
-Brainstem ?= {}
 
 class AbstractLoader
 
@@ -142,13 +141,13 @@ class AbstractLoader
   _parseLoadOptions: (loadOptions = {}) ->
     @originalOptions = _.clone(loadOptions)
     @loadOptions = _.clone(loadOptions)
-    @loadOptions.include = Brainstem.Utils.wrapObjects(Brainstem.Utils.extractArray "include", @loadOptions)
-    @loadOptions.optionalFields = Brainstem.Utils.extractArray("optionalFields", @loadOptions)
+    @loadOptions.include = Utils.wrapObjects(Utils.extractArray "include", @loadOptions)
+    @loadOptions.optionalFields = Utils.extractArray("optionalFields", @loadOptions)
     @loadOptions.filters ?= {}
     @loadOptions.thisLayerInclude = _.map @loadOptions.include, (i) -> _.keys(i)[0] # pull off the top layer of includes
 
     if @loadOptions.only
-      @loadOptions.only = _.map((Brainstem.Utils.extractArray "only", @loadOptions), (id) -> String(id))
+      @loadOptions.only = _.map((Utils.extractArray "only", @loadOptions), (id) -> String(id))
     else
       @loadOptions.only = null
 

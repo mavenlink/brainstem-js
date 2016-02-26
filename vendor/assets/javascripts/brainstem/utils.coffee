@@ -1,8 +1,6 @@
 Error = require('./brainstem-error')
 
 
-Brainstem ?= {}
-
 class Utils
   @warn: (args...) ->
     console?.log "Error:", args...

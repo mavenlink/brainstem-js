@@ -1,8 +1,6 @@
 AbstractLoader = require('./abstract-loader')
 
 
-Brainstem ?= {}
-
 class ModelLoader extends AbstractLoader
 
   #

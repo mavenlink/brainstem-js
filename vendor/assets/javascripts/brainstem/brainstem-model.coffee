@@ -1,8 +1,6 @@
+Utils = require('./utils')
 
 
-#= require ./loading-mixin
-
-# Extend Backbone.Model to include associations.
 class Model extends Backbone.Model
 
   #
@@ -71,7 +69,7 @@ class Model extends Backbone.Model
           model = base.data.storage(collectionName).get(pointer)
 
           if not model && not options.silent
-            Brainstem.Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
+            Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
 
           model
       else
@@ -84,7 +82,7 @@ class Model extends Backbone.Model
             models.push(model)
             notFoundIds.push(id) unless model
           if notFoundIds.length && not options.silent
-            Brainstem.Utils.throwError("Unable to find #{field} with ids #{notFoundIds.join(", ")} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
+            Utils.throwError("Unable to find #{field} with ids #{notFoundIds.join(", ")} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
         if options.order
           comparator = base.data.getCollectionDetails(details.collectionName).klass.getComparatorWithIdFailover(options.order)
           collectionOptions = { comparator: comparator }
@@ -115,9 +113,9 @@ class Model extends Backbone.Model
     options.cache = false
 
     unless options.name
-      Brainstem.Utils.throwError('Either model must have a brainstemKey defined or name option must be provided')
+      Utils.throwError('Either model must have a brainstemKey defined or name option must be provided')
 
-    Brainstem.Utils.wrapError(this, options)
+    Utils.wrapError(this, options)
 
     base.data.loadObject(options.name, options, isCollection: false)
       .done((response) =>

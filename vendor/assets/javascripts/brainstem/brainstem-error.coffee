@@ -1,7 +1,3 @@
-
-
-Brainstem ?= {}
-
 class Error extends Error
 
   constructor: (message) ->

@@ -1,10 +1,12 @@
+Model = require('./model')
 
+LoadingMixin = require('./loading-mixin')
+Utils = require('./utils')
 
-#= require ./loading-mixin
 
 class Collection extends Backbone.Collection
 
-  model: Brainstem.Model
+  model: Model
 
   @OPTION_KEYS = [
     'name'
@@ -51,7 +53,7 @@ class Collection extends Backbone.Collection
 
   constructor: (models, options) ->
     super
-    @firstFetchOptions = Brainstem.Collection.pickFetchOptions(options) if options
+    @firstFetchOptions = Collection.pickFetchOptions(options) if options
     @setLoaded false
 
 
@@ -76,14 +78,14 @@ class Collection extends Backbone.Collection
     options.returnValues ?= {}
 
     unless options.name
-      Brainstem.Utils.throwError(
+      Utils.throwError(
         'Either collection must have model with brainstemKey defined or name option must be provided'
       )
 
     unless @firstFetchOptions
-      @firstFetchOptions = Brainstem.Collection.pickFetchOptions options
+      @firstFetchOptions = Collection.pickFetchOptions options
 
-    Brainstem.Utils.wrapError(this, options)
+    Utils.wrapError(this, options)
 
     loader = base.data.loadObject(options.name, _.extend({}, @firstFetchOptions, options))
     xhr = options.returnValues.jqXhr
@@ -120,7 +122,7 @@ class Collection extends Backbone.Collection
         else
           @add backboneModel
       else
-        Brainstem.Utils.warn "Unable to update collection with invalid model", model
+        Utils.warn "Unable to update collection with invalid model", model
 
   reload: (options) ->
     base.data.reset()
@@ -205,7 +207,7 @@ class Collection extends Backbone.Collection
 
     throwOrReturn = (message) ->
       if throwError
-        Brainstem.Utils.throwError message
+        Utils.throwError message
       else
         return false
 
@@ -217,12 +219,12 @@ class Collection extends Backbone.Collection
 
   _maxOffset: ->
     limit = @lastFetchOptions.limit
-    Brainstem.Utils.throwError('(pagination) you must define limit when using offset') if _.isUndefined(limit)
+    Utils.throwError('(pagination) you must define limit when using offset') if _.isUndefined(limit)
     limit * Math.ceil(@getServerCount() / limit) - limit
 
   _maxPage: ->
     perPage = @lastFetchOptions.perPage
-    Brainstem.Utils.throwError('(pagination) you must define perPage when using page') if _.isUndefined(perPage)
+    Utils.throwError('(pagination) you must define perPage when using page') if _.isUndefined(perPage)
     Math.ceil(@getServerCount() / perPage)
 
   _getCacheObject: ->
@@ -232,6 +234,7 @@ class Collection extends Backbone.Collection
 
 # Mixins
 
-_.extend(Brainstem.Collection.prototype, Brainstem.LoadingMixin)
+_.extend(Collection.prototype, LoadingMixin)
+
 
 modules.export = Collection

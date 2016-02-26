@@ -1,7 +1,9 @@
-Expectation = require('./brainstem-expectation')
+Expectation = require './brainstem-expectation'
+CollectionLoader = require './loaders/collection-loader'
+ModelLoader = require './loaders/model-loader'
 
+Utils = require './utils'
 
-Brainstem ?= {}
 
 # TODO: Record access timestamps on all Brainstem.Models by overloading #get and #set.
 #    - Keep a sorted list (Heap?) of model references
@@ -115,9 +117,9 @@ class StorageManager
     loadOptions = $.extend({}, loadOptions, name: name)
 
     if options.isCollection
-      loaderClass = Brainstem.CollectionLoader
+      loaderClass = CollectionLoader
     else
-      loaderClass = Brainstem.ModelLoader
+      loaderClass = ModelLoader
 
     @_checkPageSettings loadOptions
 
@@ -141,7 +143,7 @@ class StorageManager
     loader
 
   collectionError: (name) ->
-    Brainstem.Utils.throwError("""
+    Utils.throwError("""
       Unknown collection #{name} in StorageManager. Known collections: #{_(@collections).keys().join(", ")}
     """)
 

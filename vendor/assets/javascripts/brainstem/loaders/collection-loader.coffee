@@ -1,7 +1,6 @@
+Collection = require('../collection')
 AbstractLoader = require('./abstract-loader')
 
-
-Brainstem ?= {}
 
 class CollectionLoader extends AbstractLoader
 
@@ -38,7 +37,7 @@ class CollectionLoader extends AbstractLoader
     @externalObject = @loadOptions.collection || @storageManager.createNewCollection @loadOptions.name, []
     @externalObject.setLoaded false
     @externalObject.reset([], silent: false) if @loadOptions.reset
-    @externalObject.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), Brainstem.Collection.OPTION_KEYS)
+    @externalObject.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), Collection.OPTION_KEYS)
     @externalObject.lastFetchOptions.include = @originalOptions.include
 
   _updateObjects: (object, data, silent = false) ->
