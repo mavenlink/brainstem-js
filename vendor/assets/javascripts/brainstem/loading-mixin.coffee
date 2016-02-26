@@ -1,4 +1,4 @@
-window.Brainstem ?= {}
+Brainstem ?= {}
 
 Brainstem.LoadingMixin =
   setLoaded: (state, options) ->

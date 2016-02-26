@@ -1,4 +1,4 @@
-window.Brainstem ?= {}
+Brainstem ?= {}
 
 class Brainstem.Error extends Error
 

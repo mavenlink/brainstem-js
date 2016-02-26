@@ -1,4 +1,4 @@
-window.Brainstem ?= {}
+Brainstem ?= {}
 
 # TODO: Record access timestamps on all Brainstem.Models by overloading #get and #set.
 #    - Keep a sorted list (Heap?) of model references
@@ -7,7 +7,7 @@ window.Brainstem ?= {}
 
 # The StorageManager class is used to manage a set of Brainstem.Collections.  It is responsible for loading data and
 # maintaining caches.
-class window.Brainstem.StorageManager
+class Brainstem.StorageManager
 
   #
   # Init

@@ -1,6 +1,6 @@
-window.Brainstem ?= {}
+Brainstem ?= {}
 
-class window.Brainstem.Expectation
+class Brainstem.Expectation
 
   #
   # Init

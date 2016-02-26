@@ -1,6 +1,6 @@
-window.Brainstem ?= {}
+Brainstem ?= {}
 
-class window.Brainstem.Utils
+class Brainstem.Utils
   @warn: (args...) ->
     console?.log "Error:", args...
 

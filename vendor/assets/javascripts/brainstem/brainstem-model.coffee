@@ -1,7 +1,7 @@
 #= require ./loading-mixin
 
 # Extend Backbone.Model to include associations.
-class window.Brainstem.Model extends Backbone.Model
+class Brainstem.Model extends Backbone.Model
 
   #
   # Properties

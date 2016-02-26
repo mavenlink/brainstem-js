@@ -1,6 +1,6 @@
 #= require ./loading-mixin
 
-class window.Brainstem.Collection extends Backbone.Collection
+class Brainstem.Collection extends Backbone.Collection
 
   model: Brainstem.Model
 

@@ -1,4 +1,4 @@
-window.Brainstem ?= {}
+Brainstem ?= {}
 
 class Brainstem.ModelLoader extends Brainstem.AbstractLoader
 
