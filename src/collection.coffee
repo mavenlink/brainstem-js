@@ -1,7 +1,12 @@
-Model = require('./model')
+_ = require 'underscore'
+_ = require 'underscore'
+Backbone = require 'backbone'
+Model = require './model'
 
-LoadingMixin = require('./loading-mixin')
-Utils = require('./utils')
+LoadingMixin = require './loading-mixin'
+Utils = require './utils'
+
+storageManager = require './storage-manager'
 
 
 class Collection extends Backbone.Collection
@@ -87,7 +92,7 @@ class Collection extends Backbone.Collection
 
     Utils.wrapError(this, options)
 
-    loader = base.data.loadObject(options.name, _.extend({}, @firstFetchOptions, options))
+    loader = storageManager.loadObject(options.name, _.extend({}, @firstFetchOptions, options))
     xhr = options.returnValues.jqXhr
 
     @trigger('request', this, xhr, options)
@@ -125,11 +130,11 @@ class Collection extends Backbone.Collection
         Utils.warn "Unable to update collection with invalid model", model
 
   reload: (options) ->
-    base.data.reset()
+    storageManager.reset()
     @reset [], silent: true
     @setLoaded false
     loadOptions = _.extend({}, @lastFetchOptions, options, page: 1, collection: this)
-    base.data.loadCollection @lastFetchOptions.name, loadOptions
+    storageManager.loadCollection @lastFetchOptions.name, loadOptions
 
   loadNextPage: (options = {}) ->
     if _.isFunction(options.success)
@@ -229,7 +234,7 @@ class Collection extends Backbone.Collection
 
   _getCacheObject: ->
     if @lastFetchOptions
-      base.data.getCollectionDetails(@lastFetchOptions.name)?.cache[@lastFetchOptions.cacheKey]
+      storageManager.getCollectionDetails(@lastFetchOptions.name)?.cache[@lastFetchOptions.cacheKey]
 
 
 # Mixins
@@ -237,4 +242,4 @@ class Collection extends Backbone.Collection
 _.extend(Collection.prototype, LoadingMixin)
 
 
-modules.export = Collection
+module.exports = Collection

@@ -1,4 +1,8 @@
-Utils = require('./utils')
+_ = require 'underscore'
+Backbone = require 'backbone'
+Utils = require './utils'
+
+storageManager = require './storage-manager'
 
 
 class Model extends Backbone.Model
@@ -66,10 +70,10 @@ class Model extends Backbone.Model
             id = pointer
             collectionName = details.collectionName
 
-          model = base.data.storage(collectionName).get(pointer)
+          model = storageManager.storage(collectionName).get(pointer)
 
           if not model && not options.silent
-            Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
+            Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{storageManager.storage(details.collectionName).pluck("id").join(", ")}")
 
           model
       else
@@ -78,20 +82,20 @@ class Model extends Backbone.Model
         notFoundIds = []
         if ids
           for id in ids
-            model = base.data.storage(details.collectionName).get(id)
+            model = storageManager.storage(details.collectionName).get(id)
             models.push(model)
             notFoundIds.push(id) unless model
           if notFoundIds.length && not options.silent
-            Utils.throwError("Unable to find #{field} with ids #{notFoundIds.join(", ")} in our cached #{details.collectionName} collection.  We know about #{base.data.storage(details.collectionName).pluck("id").join(", ")}")
+            Utils.throwError("Unable to find #{field} with ids #{notFoundIds.join(", ")} in our cached #{details.collectionName} collection.  We know about #{storageManager.storage(details.collectionName).pluck("id").join(", ")}")
         if options.order
-          comparator = base.data.getCollectionDetails(details.collectionName).klass.getComparatorWithIdFailover(options.order)
+          comparator = storageManager.getCollectionDetails(details.collectionName).klass.getComparatorWithIdFailover(options.order)
           collectionOptions = { comparator: comparator }
         else
           collectionOptions = {}
         if options.link
           @_linkCollection(details.collectionName, models, collectionOptions, field)
         else
-          base.data.createNewCollection(details.collectionName, models, collectionOptions)
+          storageManager.createNewCollection(details.collectionName, models, collectionOptions)
     else
       super(field)
 
@@ -117,7 +121,7 @@ class Model extends Backbone.Model
 
     Utils.wrapError(this, options)
 
-    base.data.loadObject(options.name, options, isCollection: false)
+    storageManager.loadObject(options.name, options, isCollection: false)
       .done((response) =>
         @trigger('sync', response, options)
       )
@@ -142,7 +146,7 @@ class Model extends Backbone.Model
       models = resp[underscoredModelName]
       for id, attributes of models
         @constructor.parse(attributes)
-        collection = base.data.storage(underscoredModelName)
+        collection = storageManager.storage(underscoredModelName)
         collectionModel = collection.get(id)
         if collectionModel
           collectionModel.set(attributes)
@@ -180,15 +184,15 @@ class Model extends Backbone.Model
         if pointer == null
           true
         else if details.polymorphic
-          base.data.storage(pointer.key).get(pointer.id)
+          storageManager.storage(pointer.key).get(pointer.id)
         else
-          base.data.storage(details.collectionName).get(pointer)
+          storageManager.storage(details.collectionName).get(pointer)
       else
         _.all pointer, (id) ->
-          base.data.storage(details.collectionName).get(id)
+          storageManager.storage(details.collectionName).get(id)
 
   invalidateCache: ->
-    for cacheKey, cacheObject of base.data.getCollectionDetails(@brainstemKey).cache
+    for cacheKey, cacheObject of storageManager.getCollectionDetails(@brainstemKey).cache
       if _.find(cacheObject.results, (result) => result.id == @id)
         cacheObject.valid = false
 
@@ -234,7 +238,7 @@ class Model extends Backbone.Model
     @_associatedCollections ?= {}
 
     unless @_associatedCollections[field]
-      @_associatedCollections[field] = base.data.createNewCollection(collectionName, models, collectionOptions)
+      @_associatedCollections[field] = storageManager.createNewCollection(collectionName, models, collectionOptions)
       @_associatedCollections[field].on 'add', => @_onAssociatedCollectionChange.call(this, field, arguments)
       @_associatedCollections[field].on 'remove', => @_onAssociatedCollectionChange.call(this, field, arguments)
 
@@ -244,4 +248,4 @@ class Model extends Backbone.Model
     @attributes[@constructor.associationDetails(field).key] = collectionChangeDetails[1].pluck('id')
 
 
-modules.export = Model
+module.exports = Model

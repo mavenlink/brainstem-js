@@ -1,8 +1,8 @@
-class Error extends Error
+class BrainstemError extends Error
 
   constructor: (message) ->
     @name = 'BrainstemError'
     @message = (message || '')
 
 
-modules.export = Error
+module.exports = Error

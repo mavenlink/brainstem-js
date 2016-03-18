@@ -1,3 +1,4 @@
+_ = require 'underscore'
 Model = require './model'
 Error = require './error'
 CollectionLoader = require './loaders/collection-loader'
@@ -9,7 +10,7 @@ class Expectation
 
   #
   # Init
-  
+
   constructor: (name, options, manager) ->
     @name = name
     @manager = manager
@@ -140,4 +141,4 @@ class Expectation
     existingModel
 
 
-modules.export = Expectation
+module.exports = Expectation
