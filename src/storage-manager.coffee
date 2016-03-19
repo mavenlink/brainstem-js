@@ -1,4 +1,4 @@
-Expectation = require './brainstem-expectation'
+Expectation = require './expectation'
 CollectionLoader = require './loaders/collection-loader'
 ModelLoader = require './loaders/model-loader'
 
@@ -198,4 +198,4 @@ class StorageManager
       options.page = 1 if options.page < 1
 
 
-modules.export = StorageManager
+module.exports = StorageManager

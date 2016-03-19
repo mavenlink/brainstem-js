@@ -1,4 +1,4 @@
-Collection = require '../../src/collection'
+Collection = require '../../../src/collection'
 
 TimeEntry = require './time-entry'
 

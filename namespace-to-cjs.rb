@@ -111,7 +111,7 @@ def require_dependencies!(filename, dependencies)
       file.puts line
     end
 
-    file.puts "\nmodules.export = #{short_class_name}\n"
+    file.puts "\nmodule.exports = #{short_class_name}\n"
   end
 end
 

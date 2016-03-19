@@ -1,4 +1,7 @@
-class App.Models.Task extends Brainstem.Model
+Model = require '../../../src/model'
+
+
+class Task extends Model
   brainstemKey: "tasks"
   paramRoot: 'task'
   urlRoot: '/api/tasks'
@@ -9,6 +12,5 @@ class App.Models.Task extends Brainstem.Model
     sub_tasks: ["tasks"]
     parent: "tasks"
 
-class App.Collections.Tasks extends Brainstem.Collection
-  model: App.Models.Task
-  url: '/api/tasks'
+
+module.exports = Task

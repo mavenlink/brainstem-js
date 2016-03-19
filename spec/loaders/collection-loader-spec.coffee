@@ -1,14 +1,22 @@
+Backbone = require 'backbone'
+StorageManager = require '../../src/storage-manager'
+CollectionLoader = require '../../src/loaders/collection-loader'
+
+Task = require '../helpers/models/task'
+Tasks = require '../helpers/models/tasks'
+
+
 describe 'Loaders CollectionLoader', ->
   loader = opts = null
   fakeNestedInclude = ['parent', { project: ['participants'] }, { assignees: ['something_else'] }]
-  loaderClass = Brainstem.CollectionLoader
+  loaderClass = CollectionLoader
   
   defaultLoadOptions = ->
     name: 'tasks'
 
   createLoader = (opts = {}) ->
-    storageManager = new Brainstem.StorageManager()
-    storageManager.addCollection('tasks', App.Collections.Tasks)
+    storageManager = new StorageManager()
+    storageManager.addCollection('tasks', Tasks)
 
     defaults = 
       storageManager: storageManager
@@ -37,7 +45,7 @@ describe 'Loaders CollectionLoader', ->
     describe '#_getModel', ->
       it 'returns the model from the internal collection', ->
         loader.setup(opts)
-        expect(loader._getModel()).toEqual App.Models.Task
+        expect(loader._getModel()).toEqual Task
 
     describe '#_getModelsForAssociation', ->
       it 'returns the models for a given association from all of the models in the internal collection', ->
@@ -45,8 +53,8 @@ describe 'Loaders CollectionLoader', ->
         user = buildAndCacheUser()
         user2 = buildAndCacheUser()
 
-        loader.internalObject.add(new App.Models.Task(assignee_ids: [user.id]))
-        loader.internalObject.add(new App.Models.Task(assignee_ids: [user2.id]))
+        loader.internalObject.add(new Task(assignee_ids: [user.id]))
+        loader.internalObject.add(new Task(assignee_ids: [user2.id]))
 
         expect(loader._getModelsForAssociation('assignees')).toEqual [[user], [user2]] # Association with a model in it
         expect(loader._getModelsForAssociation('parent')).toEqual [[], []] # Association without any models
@@ -56,7 +64,7 @@ describe 'Loaders CollectionLoader', ->
       collection = null
 
       beforeEach ->
-        collection = new App.Collections.Tasks()
+        collection = new Tasks()
         spyOn(loader.storageManager, 'createNewCollection').andReturn collection
 
       it 'creates a new collection from the name in loadOptions', ->
@@ -66,7 +74,7 @@ describe 'Loaders CollectionLoader', ->
 
       context 'collection is passed in to loadOptions', ->
         it 'uses the collection that is passed in', ->
-          opts.collection ?= new App.Collections.Tasks()
+          opts.collection ?= new Tasks()
           loader.setup(opts)
           expect(loader.externalObject).toEqual opts.collection
 

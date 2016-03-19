@@ -1,4 +1,7 @@
-class App.Models.TimeEntry extends Brainstem.Model
+Model = require '../../../src/model'
+
+
+class TimeEntry extends Model
   brainstemKey: "time_entries"
   paramRoot: 'time_entry'
   urlRoot: '/api/time_entries'
@@ -8,6 +11,5 @@ class App.Models.TimeEntry extends Brainstem.Model
     task: "tasks"
     user: "users"
 
-class App.Collections.TimeEntries extends Brainstem.Collection
-  model: App.Models.TimeEntry
-  url: '/api/time_entries'
+
+module.exports = TimeEntry

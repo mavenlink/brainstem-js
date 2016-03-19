@@ -81,4 +81,4 @@ class CollectionLoader extends AbstractLoader
     _.map(results, (result) => @storageManager.storage(result.key).get(result.id))
 
 
-modules.export = CollectionLoader
+module.exports = CollectionLoader

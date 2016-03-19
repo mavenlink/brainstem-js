@@ -1,9 +1,9 @@
-Collection = require '../../collection'
+Collection = require '../../../src/collection'
 
 Post = require './post'
 
 
-class Posts extends Brainstem.Collection
+class Posts extends Collection
   model: Post
   url: '/api/posts'
 

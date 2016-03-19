@@ -1,4 +1,7 @@
-class App.Models.Project extends Brainstem.Model
+Model = require '../../../src/model'
+
+
+class Project extends Model
   brainstemKey: "projects"
   paramRoot: 'project'
   urlRoot: '/api/projects'
@@ -8,6 +11,5 @@ class App.Models.Project extends Brainstem.Model
     time_entries: ["time_entries"]
     primary_counterpart: "users"
 
-class App.Collections.Projects extends Brainstem.Collection
-  model: App.Models.Project
-  url: '/api/projects'
+
+module.exports = Project

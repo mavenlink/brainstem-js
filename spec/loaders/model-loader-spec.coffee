@@ -1,7 +1,15 @@
+Backbone = require 'backbone'
+StorageManger = require '../../src/storage-manager'
+ModelLoader = require '../../src/loaders/model-loader'
+
+Task = require '../helpers/models/task'
+Tasks = require '../helpers/models/tasks'
+
+
 describe 'Loaders ModelLoader', ->
   loader = opts = null
   fakeNestedInclude = ['parent', { project: ['participants'] }, { assignees: ['something_else'] }]
-  loaderClass = Brainstem.ModelLoader
+  loaderClass = ModelLoader
   
   defaultLoadOptions = ->
     name: 'task'
@@ -9,7 +17,7 @@ describe 'Loaders ModelLoader', ->
 
   createLoader = (opts = {}) ->
     storageManager = base.data
-    storageManager.addCollection('tasks', App.Collections.Tasks)
+    storageManager.addCollection('tasks', Tasks)
 
     defaults = 
       storageManager: storageManager
@@ -38,7 +46,7 @@ describe 'Loaders ModelLoader', ->
     describe '#_getModel', ->
       it 'returns the constructor of the internalObject', ->
         loader.setup(opts)
-        expect(loader._getModel()).toEqual App.Models.Task
+        expect(loader._getModel()).toEqual Task
 
     describe '#_getModelsForAssociation', ->
       it 'returns the models from the internalObject for a given association', ->
@@ -61,7 +69,7 @@ describe 'Loaders ModelLoader', ->
 
       context 'there is not a matching model in the storageManager', ->
         it 'creates a new model and uses that as the internalObject', ->
-          model = new App.Models.Task()
+          model = new Task()
           spyOn(loader.storageManager, 'createNewModel').andReturn model
           loader.setup(opts)
           expect(loader.internalObject).toEqual model

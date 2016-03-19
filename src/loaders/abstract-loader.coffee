@@ -1,4 +1,4 @@
-Utils = require('./utils')
+Utils = require('../utils')
 
 
 class AbstractLoader
@@ -370,4 +370,4 @@ class AbstractLoader
     @_deferred.resolve(@externalObject)
 
 
-modules.export = AbstractLoader
+module.exports = AbstractLoader

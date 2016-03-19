@@ -50,4 +50,4 @@ class ModelLoader extends AbstractLoader
     object.set(data)
 
 
-modules.export = ModelLoader
+module.exports = ModelLoader

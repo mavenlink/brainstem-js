@@ -1,4 +1,4 @@
-Error = require('./brainstem-error')
+Error = require('./error')
 
 
 class Utils
@@ -61,4 +61,4 @@ class Utils
       collection.trigger('error', collection, response, options)
 
 
-modules.export = Utils
+module.exports = Utils

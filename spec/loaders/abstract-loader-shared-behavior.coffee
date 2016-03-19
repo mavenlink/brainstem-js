@@ -1,3 +1,6 @@
+Backbone = require('backbone')
+
+
 registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
   loader = loaderClass = null
 

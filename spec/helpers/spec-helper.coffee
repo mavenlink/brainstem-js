@@ -1,7 +1,3 @@
-window.App ?= {}
-window.App.Models ?= {}
-window.App.Collections ?= {}
-
 window.resultsArray = (key, models) ->
   _(models).map (model) -> { key: key, id: model.get("id") }
 
@@ -49,7 +45,7 @@ beforeEach ->
   spec.defineBuilders()
 
   # Mock out all Ajax requests.
-  window.server = sinon.fakeServer.create()
+  window.server = require('sinon').fakeServer.create()
   sinon.log = -> console.log arguments
 
   # Prevent any actual navigation.
