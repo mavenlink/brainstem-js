@@ -9,3 +9,4 @@ pkg
 .DS_Store
 node_modules/
 tags
+*.log
