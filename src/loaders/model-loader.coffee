@@ -1,4 +1,8 @@
-AbstractLoader = require('./abstract-loader')
+_ = require 'underscore'
+Backbone = require 'backbone'
+inflection = require 'inflection'
+
+AbstractLoader = require './abstract-loader'
 
 
 class ModelLoader extends AbstractLoader
@@ -16,7 +20,7 @@ class ModelLoader extends AbstractLoader
   # Accessors
 
   _getCollectionName: ->
-    @loadOptions.name.pluralize()
+    @loadOptions.name = inflection.pluralize(@loadOptions.name)
 
   _getExpectationName: ->
     @loadOptions.name

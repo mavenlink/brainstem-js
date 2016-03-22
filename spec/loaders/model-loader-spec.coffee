@@ -1,5 +1,5 @@
 Backbone = require 'backbone'
-StorageManger = require '../../src/storage-manager'
+StorageManager = require '../../src/storage-manager'
 ModelLoader = require '../../src/loaders/model-loader'
 
 Task = require '../helpers/models/task'
@@ -16,7 +16,7 @@ describe 'Loaders ModelLoader', ->
     only: 1
 
   createLoader = (opts = {}) ->
-    storageManager = base.data
+    storageManager = StorageManager.get()
     storageManager.addCollection('tasks', Tasks)
 
     defaults = 
@@ -70,7 +70,7 @@ describe 'Loaders ModelLoader', ->
       context 'there is not a matching model in the storageManager', ->
         it 'creates a new model and uses that as the internalObject', ->
           model = new Task()
-          spyOn(loader.storageManager, 'createNewModel').andReturn model
+          spyOn(loader.storageManager, 'createNewModel').and.returnValue model
           loader.setup(opts)
           expect(loader.internalObject).toEqual model
 

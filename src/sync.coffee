@@ -1,3 +1,7 @@
+_ = require 'underscore'
+Backbone = require 'backbone'
+
+
 Backbone.sync = (method, model, options) ->
   methodMap =
     create: 'POST'

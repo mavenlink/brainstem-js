@@ -1,8 +1,9 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
-Utils = require './utils'
+inflection = require 'inflection'
 
-storageManager = require './storage-manager'
+Utils = require './utils'
+StorageManager = require './storage-manager'
 
 
 class Model extends Backbone.Model
@@ -36,7 +37,7 @@ class Model extends Backbone.Model
           {
             type: "HasMany"
             collectionName: associator[0]
-            key: "#{association.singularize()}_ids"
+            key: "#{inflection.singularize(association)}_ids"
           }
         else
           {
@@ -55,6 +56,13 @@ class Model extends Backbone.Model
 
 
   #
+  # Init
+
+  constructor: (options = {}) ->
+    super
+    @storageManager = StorageManager.get()
+
+  #
   # Accessors
 
   # Override Model#get to access associations as well as fields.
@@ -70,10 +78,10 @@ class Model extends Backbone.Model
             id = pointer
             collectionName = details.collectionName
 
-          model = storageManager.storage(collectionName).get(pointer)
+          model = @storageManager.storage(collectionName).get(pointer)
 
           if not model && not options.silent
-            Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{storageManager.storage(details.collectionName).pluck("id").join(", ")}")
+            Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{@storageManager.storage(details.collectionName).pluck("id").join(", ")}")
 
           model
       else
@@ -82,20 +90,20 @@ class Model extends Backbone.Model
         notFoundIds = []
         if ids
           for id in ids
-            model = storageManager.storage(details.collectionName).get(id)
+            model = @storageManager.storage(details.collectionName).get(id)
             models.push(model)
             notFoundIds.push(id) unless model
           if notFoundIds.length && not options.silent
-            Utils.throwError("Unable to find #{field} with ids #{notFoundIds.join(", ")} in our cached #{details.collectionName} collection.  We know about #{storageManager.storage(details.collectionName).pluck("id").join(", ")}")
+            Utils.throwError("Unable to find #{field} with ids #{notFoundIds.join(", ")} in our cached #{details.collectionName} collection.  We know about #{@storageManager.storage(details.collectionName).pluck("id").join(", ")}")
         if options.order
-          comparator = storageManager.getCollectionDetails(details.collectionName).klass.getComparatorWithIdFailover(options.order)
+          comparator = @storageManager.getCollectionDetails(details.collectionName).klass.getComparatorWithIdFailover(options.order)
           collectionOptions = { comparator: comparator }
         else
           collectionOptions = {}
         if options.link
           @_linkCollection(details.collectionName, models, collectionOptions, field)
         else
-          storageManager.createNewCollection(details.collectionName, models, collectionOptions)
+          @storageManager.createNewCollection(details.collectionName, models, collectionOptions)
     else
       super(field)
 
@@ -121,7 +129,7 @@ class Model extends Backbone.Model
 
     Utils.wrapError(this, options)
 
-    storageManager.loadObject(options.name, options, isCollection: false)
+    @storageManager.loadObject(options.name, options, isCollection: false)
       .done((response) =>
         @trigger('sync', response, options)
       )
@@ -146,7 +154,7 @@ class Model extends Backbone.Model
       models = resp[underscoredModelName]
       for id, attributes of models
         @constructor.parse(attributes)
-        collection = storageManager.storage(underscoredModelName)
+        collection = @storageManager.storage(underscoredModelName)
         collectionModel = collection.get(id)
         if collectionModel
           collectionModel.set(attributes)
@@ -184,15 +192,20 @@ class Model extends Backbone.Model
         if pointer == null
           true
         else if details.polymorphic
-          storageManager.storage(pointer.key).get(pointer.id)
+          @storageManager.storage(pointer.key).get(pointer.id)
         else
-          storageManager.storage(details.collectionName).get(pointer)
+          @storageManager.storage(details.collectionName).get(pointer)
       else
-        _.all pointer, (id) ->
-          storageManager.storage(details.collectionName).get(id)
+        _.all pointer, (id) =>
+          @storageManager.storage(details.collectionName).get(id)
+
+  setLoaded: (state, options) ->
+    options = { trigger: true } unless options? && options.trigger? && !options.trigger
+    @loaded = state
+    @trigger 'loaded', this if state && options.trigger
 
   invalidateCache: ->
-    for cacheKey, cacheObject of storageManager.getCollectionDetails(@brainstemKey).cache
+    for cacheKey, cacheObject of @storageManager.getCollectionDetails(@brainstemKey).cache
       if _.find(cacheObject.results, (result) => result.id == @id)
         cacheObject.valid = false
 
@@ -238,7 +251,7 @@ class Model extends Backbone.Model
     @_associatedCollections ?= {}
 
     unless @_associatedCollections[field]
-      @_associatedCollections[field] = storageManager.createNewCollection(collectionName, models, collectionOptions)
+      @_associatedCollections[field] = @storageManager.createNewCollection(collectionName, models, collectionOptions)
       @_associatedCollections[field].on 'add', => @_onAssociatedCollectionChange.call(this, field, arguments)
       @_associatedCollections[field].on 'remove', => @_onAssociatedCollectionChange.call(this, field, arguments)
 

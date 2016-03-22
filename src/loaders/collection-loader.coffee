@@ -1,5 +1,8 @@
-Collection = require('../collection')
-AbstractLoader = require('./abstract-loader')
+$ = require 'jquery'
+_ = require 'underscore'
+
+Collection = require '../collection'
+AbstractLoader = require './abstract-loader'
 
 
 class CollectionLoader extends AbstractLoader

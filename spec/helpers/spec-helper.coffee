@@ -1,3 +1,19 @@
+$ = require 'jquery'
+_ = require 'underscore'
+Backbone = require 'backbone'
+
+jqueryMatchers = require 'jasmine-jquery-matchers'
+BackboneFactory = require 'backbone-factory'
+
+StorageManager = require '../../src/storage-manager'
+
+TimeEntries = require './models/time-entries'
+Posts = require './models/posts'
+Tasks = require './models/tasks'
+Projects = require './models/projects'
+Users = require './models/users'
+
+
 window.resultsArray = (key, models) ->
   _(models).map (model) -> { key: key, id: model.get("id") }
 
@@ -29,23 +45,28 @@ beforeEach ->
   $.fx.off = true
 
   # Basic page fixture
-  $('#jasmine_content').html("<div id='wrapper'></div><div id='overlays'></div><div id='side-nav'></div><div id='main-view'></div></div>")
+  $(document.body).html('''
+    <div id="jasmine_content">
+      <div id="wrapper"></div>
+      <div id="overlays"></div>
+      <div id="side-nav"></div>
+      <div id="main-view"></div>
+    </div>
+  ''')
 
-  # Setup a new base.
-  window.base = {}
-  window.base.data = new Brainstem.StorageManager()
-  window.base.data.addCollection 'time_entries', App.Collections.TimeEntries
-  window.base.data.addCollection 'posts', App.Collections.Posts
-  window.base.data.addCollection 'tasks', App.Collections.Tasks
-  window.base.data.addCollection 'projects', App.Collections.Projects
-  window.base.data.addCollection 'users', App.Collections.Users
-
+  # Instantiate storage manager
+  storageManager = StorageManager.get()
+  storageManager.addCollection 'time_entries', TimeEntries
+  storageManager.addCollection 'posts', Posts
+  storageManager.addCollection 'tasks', Tasks
+  storageManager.addCollection 'projects', Projects
+  storageManager.addCollection 'users', Users
 
   # Define builders
   spec.defineBuilders()
 
   # Mock out all Ajax requests.
-  window.server = require('sinon').fakeServer.create()
+  window.server = sinon.fakeServer.create()
   sinon.log = -> console.log arguments
 
   # Prevent any actual navigation.
@@ -53,16 +74,20 @@ beforeEach ->
   spyOn Backbone.History.prototype, 'navigate'
 
   # Use Jasmine's mock clock.  You can make time pass with jasmine.Clock.tick(N).
-  jasmine.Clock.useMock()
+  jasmine.clock().install()
+
+  jasmine.addMatchers(jqueryMatchers)
 
 afterEach ->
   window.clearLiveEventBindings()
   window.server.restore()
-  $('#jasmine_content').html("")
-  jasmine.Clock.reset()
+
+  $(document.body).empty()
+
+  jasmine.clock().uninstall()
 
 window.clearLiveEventBindings = ->
-  events = jQuery.data document, "events"
+  events = $.data document, "events"
   for key, value of events
     delete events[key]
 

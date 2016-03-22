@@ -1,4 +1,6 @@
-Error = require('./error')
+_ = require 'underscore'
+
+Error = require './error'
 
 
 class Utils

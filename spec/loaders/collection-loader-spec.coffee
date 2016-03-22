@@ -15,10 +15,10 @@ describe 'Loaders CollectionLoader', ->
     name: 'tasks'
 
   createLoader = (opts = {}) ->
-    storageManager = new StorageManager()
+    storageManager = StorageManager.get()
     storageManager.addCollection('tasks', Tasks)
 
-    defaults = 
+    defaults =
       storageManager: storageManager
 
     loader = new loaderClass(_.extend {}, defaults, opts)
@@ -65,7 +65,7 @@ describe 'Loaders CollectionLoader', ->
 
       beforeEach ->
         collection = new Tasks()
-        spyOn(loader.storageManager, 'createNewCollection').andReturn collection
+        spyOn(loader.storageManager, 'createNewCollection').and.returnValue collection
 
       it 'creates a new collection from the name in loadOptions', ->
         loader.setup(opts)
@@ -123,7 +123,7 @@ describe 'Loaders CollectionLoader', ->
 
     describe '#_updateObject', ->
       it 'triggers loaded on the object after the attributes have been set', ->
-        loadedSpy = jasmine.createSpy().andCallFake -> 
+        loadedSpy = jasmine.createSpy().and.callFake -> 
           expect(this.length).toEqual 1 # make sure that the spy is called after the models have been added (tests the trigger: false)
 
         loader.setup(opts)

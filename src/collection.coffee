@@ -1,17 +1,11 @@
-_ = require 'underscore'
+$ = require 'jquery'
 _ = require 'underscore'
 Backbone = require 'backbone'
-Model = require './model'
 
-LoadingMixin = require './loading-mixin'
 Utils = require './utils'
 
-storageManager = require './storage-manager'
 
-
-class Collection extends Backbone.Collection
-
-  model: Model
+module.exports = class Collection extends Backbone.Collection
 
   @OPTION_KEYS = [
     'name'
@@ -57,7 +51,11 @@ class Collection extends Backbone.Collection
   # Init
 
   constructor: (models, options) ->
+    @model = require('./model')
+    @storageManager = require('./storage-manager').get()
+
     super
+
     @firstFetchOptions = Collection.pickFetchOptions(options) if options
     @setLoaded false
 
@@ -92,7 +90,7 @@ class Collection extends Backbone.Collection
 
     Utils.wrapError(this, options)
 
-    loader = storageManager.loadObject(options.name, _.extend({}, @firstFetchOptions, options))
+    loader = @storageManager.loadObject(options.name, _.extend({}, @firstFetchOptions, options))
     xhr = options.returnValues.jqXhr
 
     @trigger('request', this, xhr, options)
@@ -116,6 +114,11 @@ class Collection extends Backbone.Collection
   refresh: (options = {}) ->
     @fetch _.extend(@lastFetchOptions, options, cache: false)
 
+  setLoaded: (state, options) ->
+    options = { trigger: true } unless options? && options.trigger? && !options.trigger
+    @loaded = state
+    @trigger 'loaded', this if state && options.trigger
+
   update: (models) ->
     models = models.models if models.models?
     for model in models
@@ -130,11 +133,11 @@ class Collection extends Backbone.Collection
         Utils.warn "Unable to update collection with invalid model", model
 
   reload: (options) ->
-    storageManager.reset()
+    @storageManager.reset()
     @reset [], silent: true
     @setLoaded false
     loadOptions = _.extend({}, @lastFetchOptions, options, page: 1, collection: this)
-    storageManager.loadCollection @lastFetchOptions.name, loadOptions
+    @storageManager.loadCollection @lastFetchOptions.name, loadOptions
 
   loadNextPage: (options = {}) ->
     if _.isFunction(options.success)
@@ -234,12 +237,4 @@ class Collection extends Backbone.Collection
 
   _getCacheObject: ->
     if @lastFetchOptions
-      storageManager.getCollectionDetails(@lastFetchOptions.name)?.cache[@lastFetchOptions.cacheKey]
-
-
-# Mixins
-
-_.extend(Collection.prototype, LoadingMixin)
-
-
-module.exports = Collection
+      @storageManager.getCollectionDetails(@lastFetchOptions.name)?.cache[@lastFetchOptions.cacheKey]

@@ -1,4 +1,8 @@
-Utils = require('../utils')
+$ = require 'jquery'
+_ = require 'underscore'
+Backbone = require 'backbone'
+
+Utils = require '../utils'
 
 
 class AbstractLoader
@@ -85,7 +89,7 @@ class AbstractLoader
   ###*
    * This needs to return a constructor for the model that associations will be compared with.
    * This typically will be the current collection's model/current model constructor.
-   * @return {Brainstem.Model}
+   * @return {Model}
   ###
   _getModel: ->
     throw new Error('Implement in your subclass')

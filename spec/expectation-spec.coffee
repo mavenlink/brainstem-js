@@ -1,14 +1,16 @@
+Collection = require '../src/collection'
 AbstractLoader = require '../src/loaders/abstract-loader'
 CollectionLoader = require '../src/loaders/collection-loader'
 Expectation = require '../src/expectation'
 
-storageManager = require '../src/storage-manager'
+StorageManager = require '../src/storage-manager'
 
 
 describe 'Expectations', ->
-  project1 = project2 = task1 = null
+  storageManager = project1 = project2 = task1 = null
 
   beforeEach ->
+    storageManager = StorageManager.get()
     storageManager.enableExpectations()
 
     project1 = buildProject(id: 1, task_ids: [1])

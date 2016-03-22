@@ -1,19 +1,22 @@
-Collection = require '../src/collection'
+$ = require 'jquery'
+_ = require 'underscore'
+Backbone = require 'Backbone'
+
+Utils = require '../src/utils'
 Model = require '../src/model'
+Collection = require '../src/collection'
+StorageManager = require '../src/storage-manager'
 
 Post = require './helpers/models/post'
 Posts = require './helpers/models/posts'
 Tasks = require './helpers/models/tasks'
 
-Utils = require '../src/utils'
-
-storageManager = require '../src/storage-manager'
-
 
 describe 'Collection', ->
-  collection = updateArray = null
+  collection = storageManager = updateArray = null
 
   beforeEach ->
+    storageManager = StorageManager.get()
     collection = new Collection([{id: 2, title: '1'}, {id: 3, title: '2'}, {title: '3'}])
     updateArray = [{id: 2, title: '1 new'}, {id: 4, title: 'this is new'}]
 

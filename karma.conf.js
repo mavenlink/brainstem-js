@@ -11,16 +11,19 @@ module.exports = function (config) {
 
     plugins: [
       'karma-jasmine',
+      'karma-sinon',
       'karma-chrome-launcher',
       'karma-browserify'
     ],
 
     browsers: ['Chrome'],
 
-    frameworks: ['jasmine', 'browserify'],
+    frameworks: ['jasmine', 'sinon', 'browserify'],
 
     files: [
-      'spec/**/*.coffee'
+      'spec/helpers/**/*.coffee',
+      'spec/**/*-behavior.coffee',
+      'spec/**/*-spec.coffee'
     ],
 
     preprocessors: {

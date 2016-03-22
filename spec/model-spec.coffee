@@ -1,17 +1,21 @@
+$ = require 'jquery'
+Backbone = require 'backbone'
+
+Utils = require '../src/utils'
 Model = require '../src/model'
+StorageManager = require '../src/storage-manager'
 
 Post = require './helpers/models/post'
 Project = require './helpers/models/project'
 Task = require './helpers/models/task'
 TimeEntry = require './helpers/models/time-entry'
 
-storageManager = require '../src/storage-manager'
-
 
 describe 'Model', ->
-  model = null
+  model = storageManager = null
 
   beforeEach ->
+    storageManager = StorageManager.get()
     storageManager.reset()
 
   describe '#fetch', ->
@@ -41,11 +45,11 @@ describe 'Model', ->
         expect(-> model.fetch()).not.toThrow()
 
     it 'calls wrapError', ->
-      spyOn(Brainstem.Utils, 'wrapError')
+      spyOn(Utils, 'wrapError')
 
       model.fetch(options = {only: [model.id], parse: true, name: 'posts', cache: false})
 
-      expect(Brainstem.Utils.wrapError).toHaveBeenCalledWith(model, options)
+      expect(Utils.wrapError).toHaveBeenCalledWith(model, options)
 
     it 'calls loadObject', ->
       promise = done: (-> {promise: (->)})
@@ -212,7 +216,7 @@ describe 'Model', ->
 
   describe 'associations', ->
 
-    class TestClass extends Brainstem.Model
+    class TestClass extends Model
       @associations:
         user: "users"
         project: "projects"

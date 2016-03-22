@@ -3,6 +3,7 @@ import minimist from 'minimist';
 import rename from 'gulp-rename';
 import path from 'path';
 import del from 'del';
+import coffee from 'gulp-coffee';
 import stream from 'vinyl-source-stream';
 import browserify from 'browserify';
 import coffeeify from 'coffeeify';
@@ -19,6 +20,12 @@ const options = minimist(process.argv.slice(2));
 
 
 // Tasks
+
+gulp.task('prebuild', function () {
+  return gulp.src('./src/**/*.coffee')
+    .pipe(coffee())
+    .pipe(gulp.dest(output));
+});
 
 gulp.task('build-gem', function () {
   return browserify(source, {
@@ -39,7 +46,6 @@ gulp.task('clean-gem', function () {
 var karmaConfigFile = path.join(__dirname, 'karma.conf.js');
 
 gulp.task('test', function (done) {
-  debugger
   karma.start({
     configFile: karmaConfigFile,
     singleRun: true

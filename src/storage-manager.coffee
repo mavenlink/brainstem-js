@@ -1,24 +1,29 @@
-Expectation = require './expectation'
-CollectionLoader = require './loaders/collection-loader'
-ModelLoader = require './loaders/model-loader'
+$ = require 'jquery'
+inflection = require 'inflection'
+sinon = require 'sinon'
 
 Utils = require './utils'
+Expectation = require './expectation'
+ModelLoader = require './loaders/model-loader'
+CollectionLoader = require './loaders/collection-loader'
 
 
-# TODO: Record access timestamps on all Brainstem.Models by overloading #get and #set.
+# TODO: Record access timestamps on all Models by overloading #get and #set.
 #    - Keep a sorted list (Heap?) of model references
 #    - Clean up the oldest ones if memory is low
 #    - Allow passing a recency parameter to the StorageManager
 
-# The StorageManager class is used to manage a set of Brainstem.Collections.  It is responsible for loading data and
-# maintaining caches.
-class StorageManager
+# The StorageManager class is used to manage a set of Collections.
+# It is responsible for loading data and maintaining caches.
+class _StorageManager
 
   #
   # Init
 
   constructor: (options = {}) ->
     @collections = {}
+
+    this
 
 
   #
@@ -50,7 +55,7 @@ class StorageManager
   # Control
 
   # Add a collection to the StorageManager.  All collections that will be loaded or used in associations must be added.
-  #    manager.addCollection "time_entries", App.Collections.TimeEntries
+  #    manager.addCollection "time_entries", TimeEntries
   addCollection: (name, collectionClass) ->
     collection = new collectionClass()
 
@@ -76,7 +81,7 @@ class StorageManager
     collection
 
   createNewModel: (modelName, options) ->
-    new (@getCollectionDetails(modelName.pluralize()).modelKlass)(options || {})
+    new (@getCollectionDetails(inflection.pluralize(modelName)).modelKlass)(options || {})
 
   # Request a model to be loaded, optionally ensuring that associations be included as well.
   # A loader (which is a jQuery promise) is returned immediately and is resolved with the model
@@ -196,6 +201,12 @@ class StorageManager
       options.perPage = 1 if options.perPage < 1
       options.page = options.page || 1
       options.page = 1 if options.page < 1
+
+class StorageManager
+  instance = null
+
+  @get: ->
+    instance ?= new _StorageManager(arguments)
 
 
 module.exports = StorageManager

@@ -1,33 +1,31 @@
+Backbone = require 'backbone'
+
 Error = require '../src/error'
 Utils = require '../src/utils'
 
 
 describe 'Brainstem Utils', ->
   describe '.throwError', ->
-    beforeEach ->
-      spyOn(Brainstem, 'Error').and.callThrough()
+    throwError = ->
+      Utils.throwError('the error')
 
     context 'Backbone.history.getFragment returns a fragment', ->
+
       beforeEach ->
         spyOn(Backbone.history, 'getFragment').and.returnValue('the/fragment#hash')
 
       it 'throws an error including the message', ->
-        expect(-> Utils.throwError('the error')).toThrow()
-        expect(Error).toHaveBeenCalled()
-        expect(Error.calls.mostRecent().args[0]).toMatch(/the error/)
+        expect(throwError).toThrow(Error, /the error/)
 
       it 'throws an error including the fragment', ->
-        expect(-> Utils.throwError('the error')).toThrow()
-        expect(Error.calls.mostRecent().args[0]).toMatch(/the\/fragment#hash/)
+        expect(throwError).toThrow(Error, /the\/fragment#hash/)
 
     context 'Backbone.history.getFragment throws an error', ->
       beforeEach ->
         spyOn(Backbone.history, 'getFragment').and.callFake(-> throw new Error('error'))
 
       it 'throws an error including the message', ->
-        expect(-> Utils.throwError('the error')).toThrow()
-        expect(Error).toHaveBeenCalled()
-        expect(Error.calls.mostRecent().args[0]).toMatch(/the error/)
+        expect(throwError).toThrow(Error, /the error/)
 
   describe ".matches", ->
     it "should recursively compare objects and arrays", ->
