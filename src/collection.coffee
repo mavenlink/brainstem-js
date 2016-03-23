@@ -51,10 +51,10 @@ module.exports = class Collection extends Backbone.Collection
   # Init
 
   constructor: (models, options) ->
-    @model = require('./model')
-    @storageManager = require('./storage-manager').get()
-
     super
+
+    @model ?= require('./model')
+    @storageManager = require('./storage-manager').get()
 
     @firstFetchOptions = Collection.pickFetchOptions(options) if options
     @setLoaded false
