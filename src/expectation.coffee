@@ -1,17 +1,18 @@
 _ = require 'underscore'
-Model = require './model'
 Error = require './error'
 CollectionLoader = require './loaders/collection-loader'
 
 Utils = require './utils'
 
 
-class Expectation
+module.exports = class Expectation
 
   #
   # Init
 
   constructor: (name, options, manager) ->
+    @Model = require './model'
+
     @name = name
     @manager = manager
     @manager._setDefaultPageSettings options
@@ -106,11 +107,11 @@ class Expectation
     @manager.getCollectionDetails(loader.loadOptions.name).cache[loader.loadOptions.cacheKey] = cachedData
 
     for result in @results
-      if result instanceof Model
+      if result instanceof @Model
         @manager.storage(result.brainstemKey).update [result]
 
     returnedModels = _.map @results, (result) =>
-      if result instanceof Model
+      if result instanceof @Model
         @manager.storage(result.brainstemKey).get(result.id)
       else
         @manager.storage(result.key).get(result.id)
@@ -121,7 +122,7 @@ class Expectation
     return if !@result
 
     # Put main (loader) model in storage manager.
-    if @result instanceof Model
+    if @result instanceof @Model
       key = @result.brainstemKey
       attributes = @result.attributes
     else
@@ -139,6 +140,3 @@ class Expectation
 
     existingModel.set(attributes)
     existingModel
-
-
-module.exports = Expectation
