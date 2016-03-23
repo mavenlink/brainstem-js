@@ -12,6 +12,7 @@ module.exports = function (config) {
     plugins: [
       'karma-jasmine',
       'karma-sinon',
+      'karma-spec-reporter',
       'karma-chrome-launcher',
       'karma-browserify'
     ],
@@ -19,6 +20,8 @@ module.exports = function (config) {
     browsers: ['Chrome'],
 
     frameworks: ['jasmine', 'sinon', 'browserify'],
+
+    reporters: ['spec'],
 
     files: [
       'spec/helpers/**/*.coffee',
