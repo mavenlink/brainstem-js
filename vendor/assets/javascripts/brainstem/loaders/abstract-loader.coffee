@@ -318,9 +318,12 @@ class Brainstem.AbstractLoader
   _modelsOrObj: (obj) ->
     if obj instanceof Backbone.Collection
       obj.models
+    else if obj instanceof Array
+      obj
+    else if obj
+      [obj]
     else
-      obj || [] # TODO: revisit this.. we shouldn't be getting to this stage.
-
+      []
 
   # Events
 
