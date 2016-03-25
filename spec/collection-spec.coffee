@@ -425,8 +425,8 @@ describe 'Collection', ->
       server.respond()
       expect(collection.length).toEqual 1
       expect(collection.models[0].get('message')).toEqual 'new post'
-      expect(resetCounter.callCount).toEqual 1
-      expect(loadedCounter.callCount).toEqual 1
+      expect(resetCounter.calls.count()).toEqual 1
+      expect(loadedCounter.calls.count()).toEqual 1
       expect(callback).toHaveBeenCalledWith(collection)
 
   describe '#loadNextPage', ->

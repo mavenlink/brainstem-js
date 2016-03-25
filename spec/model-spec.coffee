@@ -174,8 +174,8 @@ describe 'Model', ->
 
         spy = spyOn(storageManager, 'storage').and.callThrough()
         model.updateStorageManager(response)
-        expect(spy.calls[0].args[0]).toEqual('users')
-        expect(spy.calls[1].args[0]).toEqual('tasks')
+        expect(spy.calls.argsFor(0)[0]).toEqual('users')
+        expect(spy.calls.argsFor(1)[0]).toEqual('tasks')
 
       it 'should work with an empty response', ->
         expect( -> model.updateStorageManager(count: 0, results: [])).not.toThrow()

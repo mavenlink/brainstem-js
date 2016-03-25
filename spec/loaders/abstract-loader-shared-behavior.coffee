@@ -300,7 +300,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         it 'calls #_onLoadSuccess with the models from the cache', ->
           loader.setup(opts)
           loader._checkCacheForData()
-          expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne, taskTwo])
+          expect(loader._onLoadSuccess.calls.argsFor(0)[0]).toEqual([taskOne, taskTwo])
 
       context 'the requested IDs have not all been loaded', ->
         beforeEach ->
@@ -334,7 +334,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           loader._checkCacheForData()
 
         it 'calls #_onLoadSuccess with the models from the cache', ->
-          expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne, taskTwo])
+          expect(loader._onLoadSuccess.calls.argsFor(0)[0]).toEqual([taskOne, taskTwo])
 
     context 'not an only query', ->
       context 'there exists a cache with this cacheKey', ->
@@ -358,7 +358,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
               opts.include = ['project']
               loader.setup(opts)
               loader._checkCacheForData()
-              expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne])
+              expect(loader._onLoadSuccess.calls.argsFor(0)[0]).toEqual([taskOne])
 
           context 'all of the cached models do not have their associations loaded', ->
             it 'returns false and does not call #_onLoadSuccess', ->
@@ -482,7 +482,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         promise
 
       loader._loadAdditionalIncludes()
-      expect(loader.storageManager.loadObject.callCount).toEqual 2
+      expect(loader.storageManager.loadObject.calls.count()).toEqual 2
       expect(promises.length).toEqual 2
       expect(loader._onLoadingCompleted).not.toHaveBeenCalled()
 

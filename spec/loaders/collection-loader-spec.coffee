@@ -69,7 +69,7 @@ describe 'Loaders CollectionLoader', ->
 
       it 'creates a new collection from the name in loadOptions', ->
         loader.setup(opts)
-        expect(loader.storageManager.createNewCollection.callCount).toEqual 2
+        expect(loader.storageManager.createNewCollection.calls.count()).toEqual 2
         expect(loader.internalObject).toEqual collection
 
       context 'collection is passed in to loadOptions', ->
@@ -81,7 +81,7 @@ describe 'Loaders CollectionLoader', ->
       context 'collection is not passed in to loadOptions', ->
         it 'creates a new collection from the name in loadOptions', ->
           loader.setup(opts)
-          expect(loader.storageManager.createNewCollection.callCount).toEqual 2
+          expect(loader.storageManager.createNewCollection.calls.count()).toEqual 2
           expect(loader.externalObject).toEqual collection
 
       it 'sets the collection to not loaded', ->

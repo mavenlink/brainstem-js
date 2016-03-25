@@ -15,17 +15,17 @@ describe 'Brainstem Utils', ->
         spyOn(Backbone.history, 'getFragment').and.returnValue('the/fragment#hash')
 
       it 'throws an error including the message', ->
-        expect(throwError).toThrow(Error, /the error/)
+        expect(throwError).toThrowError(Error, /the error/)
 
       it 'throws an error including the fragment', ->
-        expect(throwError).toThrow(Error, /the\/fragment#hash/)
+        expect(throwError).toThrowError(Error, /the\/fragment#hash/)
 
     context 'Backbone.history.getFragment throws an error', ->
       beforeEach ->
         spyOn(Backbone.history, 'getFragment').and.callFake(-> throw new Error('error'))
 
       it 'throws an error including the message', ->
-        expect(throwError).toThrow(Error, /the error/)
+        expect(throwError).toThrowError(Error, 'the error')
 
   describe ".matches", ->
     it "should recursively compare objects and arrays", ->

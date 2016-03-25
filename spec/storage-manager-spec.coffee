@@ -234,7 +234,7 @@ describe 'Brainstem Storage Manager', ->
       expect(loaded).toBe false
       server.respond()
       expect(spy).toHaveBeenCalled()
-      expect(spy.callCount).toEqual 1
+      expect(spy.calls.count()).toEqual 1
       expect(loaded).toBe true
 
     it "accepts a success function", ->
@@ -815,4 +815,4 @@ describe 'Brainstem Storage Manager', ->
         server.respond()
         expect(successHandler).not.toHaveBeenCalled()
         expect(errorHandler).toHaveBeenCalled()
-        expect(errorHandler.callCount).toEqual(1)
+        expect(errorHandler.calls.count()).toEqual(1)
