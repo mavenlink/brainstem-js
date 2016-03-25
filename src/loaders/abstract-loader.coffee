@@ -108,7 +108,10 @@ class AbstractLoader
   ###
   _getIdsForAssociation: (association) ->
     models = @_getModelsForAssociation(association)
-    _(models).chain().flatten().pluck("id").compact().uniq().sort().value()
+    if _.isArray(models)
+      _(models).chain().flatten().pluck("id").compact().uniq().sort().value()
+    else
+      [models.id]
 
 
   # Control
