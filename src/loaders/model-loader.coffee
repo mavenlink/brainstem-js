@@ -23,7 +23,7 @@ class ModelLoader extends AbstractLoader
     @loadOptions.name = inflection.pluralize(@loadOptions.name)
 
   _getExpectationName: ->
-    @loadOptions.name
+    inflection.singularize(@loadOptions.name)
 
   _getModel: ->
     @internalObject.constructor
