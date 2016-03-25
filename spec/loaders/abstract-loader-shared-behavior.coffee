@@ -669,11 +669,18 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         collection.add([new Backbone.Model(), new Backbone.Model])
         expect(loader._modelsOrObj(collection)).toEqual(collection.models)
 
-    context 'obj is not a Backbone.Collection', ->
-      it 'returns the obj or an empty array', ->
+    context 'obj is a single object', ->
+      it 'returns obj wrapped in an array', ->
+        obj = new Backbone.Model()
+        expect(loader._modelsOrObj(obj)).toEqual([obj])
+
+    context 'obj is an array', ->
+      it 'returns obj', ->
         obj = []
         expect(loader._modelsOrObj(obj)).toEqual(obj)
 
+    context 'obj is undefined', ->
+      it 'returns an empty array', ->
         obj = null
         expect(loader._modelsOrObj(obj)).toEqual([])
 

@@ -49,9 +49,16 @@ describe 'Model', ->
         expect(-> model.fetch()).not.toThrow()
 
     it 'calls wrapError', ->
+      options =
+        only: [model.id],
+        parse: true,
+        name: 'posts',
+        cache: false
+        returnValues: jasmine.any(Object)
+
       spyOn(Utils, 'wrapError')
 
-      model.fetch(options = {only: [model.id], parse: true, name: 'posts', cache: false})
+      model.fetch(options)
 
       expect(Utils.wrapError).toHaveBeenCalledWith(model, options)
 
@@ -60,7 +67,14 @@ describe 'Model', ->
 
       expect(storageManager.loadObject).toHaveBeenCalledWith(
         'tasks',
-        { only: [model.id], parse: true, name: 'tasks', error: jasmine.any(Function), cache: false },
+        {
+          only: [model.id],
+          parse: true,
+          name: 'tasks',
+          error: jasmine.any(Function),
+          cache: false
+          returnValues: jasmine.any(Object)
+        },
         isCollection: false
       )
 
@@ -75,7 +89,14 @@ describe 'Model', ->
       expect(model.trigger).toHaveBeenCalledWith(
         'sync',
         newModel,
-        { only: [model.id], name: 'tasks', parse: true, error: jasmine.any(Function), cache: false }
+        {
+          only: [model.id],
+          name: 'tasks',
+          parse: true,
+          error: jasmine.any(Function),
+          cache: false,
+          returnValues: jasmine.any(Object)
+        }
       )
 
     it 'returns a promise', ->
@@ -573,6 +594,14 @@ describe 'Model', ->
 
             it "should return association", ->
               expect(post.get("subject")).toEqual storageManager.storage("projects").get(10)
+
+        describe 'when a form sets an association id to an empty string', ->
+          beforeEach ->
+            timeEntry.set('project_id', '')
+
+          it 'should not throw a Brainstem error', ->
+            expect(-> timeEntry.get("project")).not.toThrow()
+            expect(timeEntry.get("project")).toBe(undefined)
 
       describe "HasMany associations", ->
         project = null

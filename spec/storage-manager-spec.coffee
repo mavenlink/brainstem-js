@@ -16,7 +16,7 @@ describe 'Brainstem Storage Manager', ->
     manager = StorageManager.get()
     manager.reset()
 
-  describe "storage", ->
+  describe 'storage', ->
     beforeEach ->
       manager.addCollection 'time_entries', TimeEntries
 
@@ -28,6 +28,7 @@ describe 'Brainstem Storage Manager', ->
       expect(-> manager.storage('foo')).toThrow()
 
   describe 'addCollection and getCollectionDetails', ->
+
     it "tracks a named collection", ->
       manager.addCollection 'time_entries', TimeEntries
       expect(manager.getCollectionDetails("time_entries").klass).toBe TimeEntries
@@ -826,6 +827,32 @@ describe 'Brainstem Storage Manager', ->
           funct = returnValues.jqXhr[functionName]
           expect(funct).not.toBeUndefined()
           expect(funct.toString()).toEqual(baseXhr[functionName].toString())
+
+  describe 'bootstrap', ->
+    task = null
+
+    beforeEach ->
+      task = buildTask(title: 'Booting!', description: 'shenanigans')
+
+      responseJson =
+        count: 1
+        results: [{ key: 'tasks', id: task.id }]
+        tasks:
+          "#{task.id}": task.attributes
+
+      loadOptions = order: 'the other way', includes: 'foo', filters: { bar: 'baz' }
+      manager.bootstrap 'tasks', responseJson, loadOptions
+
+    it 'loads models into the storage manager', ->
+      cachedTask = manager.storage('tasks').get(task.id)
+      expect(cachedTask).toBeDefined()
+
+      for attribute, value of task.attributes
+        expect(cachedTask.get(attribute)).toEqual value
+
+    it 'caches response as it were an actual request', ->
+      cache = manager.getCollectionDetails('tasks').cache['the other way|{"bar":"baz"}||||||']
+      expect(cache).toBeDefined()
 
   describe "error handling", ->
     describe "passing in a custom error handler when loading a collection", ->
