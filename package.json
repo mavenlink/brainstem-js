@@ -54,6 +54,6 @@
     "backbone": "global:Backbone"
   },
   "engines": {
-    "node": ">=5.8.0"
+    "node": ">=5.1.1"
   }
 }
