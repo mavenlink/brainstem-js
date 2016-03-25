@@ -23,13 +23,13 @@ const gemOutput = './vendor/assets/javascripts';
 
 // Tasks
 
-gulp.task('prebuild', function () {
+gulp.task('build-module', () => {
   return gulp.src('./src/**/*.coffee')
     .pipe(coffee())
     .pipe(gulp.dest(moduleOutput));
 });
 
-gulp.task('build-gem', function () {
+gulp.task('build-gem', () => {
   return browserify(source, {
     standalone,
     transform: [coffeeify, shim],
@@ -40,11 +40,11 @@ gulp.task('build-gem', function () {
     .pipe(gulp.dest(gemOutput));
 });
 
-gulp.task('clean-module', function () {
+gulp.task('clean-module', () => {
   return del(`${moduleOutput}/**/*.js`);
 });
 
-gulp.task('clean-gem', function () {
+gulp.task('clean-gem', () => {
   return del(`${gemOutput}/**/*.js`);
 });
 
@@ -66,7 +66,7 @@ gulp.task('test-ci', (done) => {
   }, done).start();
 });
 
-gulp.task('test-watch', function (done) {
+gulp.task('test-watch', (done) => {
   var config = {
     configFile: karmaConfigFile,
     singleRun: false,
