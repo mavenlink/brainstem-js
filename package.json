@@ -9,7 +9,8 @@
   },
   "main": "lib/brainstem.js",
   "scripts": {
-    "prepublish": "gulp build-module"
+    "prepublish": "gulp build-module",
+    "test": "gulp test"
   },
   "dependencies": {
     "backbone": "^1.1.2",
