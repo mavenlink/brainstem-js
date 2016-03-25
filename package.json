@@ -1,5 +1,6 @@
 {
   "name": "brainstem-js",
+  "repository": "https://github.com/mavenlink/brainstem-js",
   "filename": "brainstem",
   "standalone": "Brainstem",
   "version": "0.3.1",
