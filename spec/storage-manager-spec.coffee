@@ -151,15 +151,42 @@ describe 'Brainstem Storage Manager', ->
       subTaskAssignee = buildUser(name: 'Slice')
       subTask.set('assignee_ids', [subTaskAssignee.id])
 
-      respondWith server, "/api/tasks/#{mainTask.id}?include=assignees%2Csub_tasks%2Cproject", resultsFrom: "tasks", data: { results: resultsArray("tasks", [mainTask]), tasks: resultsObject([mainTask, subTask]), projects: resultsObject([mainProject]), users: resultsObject([mainTaskAssignee]) }
-      respondWith server, "/api/tasks?include=assignees&only=#{subTask.id}&apply_default_filters=false", resultsFrom: "tasks", data: { results: resultsArray("tasks", [subTask]), tasks: resultsObject([subTask]), users: resultsObject([subTaskAssignee]) }
-      respondWith server, "/api/projects?include=time_entries&only=#{mainProject.id}&apply_default_filters=false", resultsFrom: "projects", data: { results: resultsArray("projects", [mainProject]), time_entries: resultsObject([timeEntry]), projects: resultsObject([mainProject]) }
-      respondWith server, "/api/time_entries?include=task&only=" + timeEntry.id + "&apply_default_filters=false", resultsFrom: "time_entries", data: { results: resultsArray("time_entries", [timeEntry]), time_entries: resultsObject([timeEntry]), tasks: resultsObject([timeTask]) }
+      respondWith server, "/api/tasks/#{mainTask.id}?include=assignees%2Csub_tasks%2Cproject",
+        resultsFrom: "tasks"
+        data:
+          results: resultsArray("tasks", [mainTask])
+          tasks: resultsObject([mainTask, subTask])
+          projects: resultsObject([mainProject])
+          users: resultsObject([mainTaskAssignee])
+      respondWith server, "/api/tasks?include=assignees&only=#{subTask.id}&apply_default_filters=false",
+        resultsFrom: "tasks"
+        data:
+          results: resultsArray("tasks", [subTask])
+          tasks: resultsObject([subTask])
+          users: resultsObject([subTaskAssignee])
+      respondWith server, "/api/projects?include=time_entries&only=#{mainProject.id}&apply_default_filters=false",
+        resultsFrom: "projects"
+        data:
+          results: resultsArray("projects", [mainProject])
+          time_entries: resultsObject([timeEntry])
+          projects: resultsObject([mainProject])
+      respondWith server, "/api/time_entries?include=task&only=#{timeEntry.id}&apply_default_filters=false",
+        resultsFrom: "time_entries"
+        data:
+          results: resultsArray("time_entries", [timeEntry])
+          time_entries: resultsObject([timeEntry])
+          tasks: resultsObject([timeTask])
 
-      loader = manager.loadModel "task", mainTask.id, include: ["assignees", {"sub_tasks": ["assignees"]}, { "project" : [{ "time_entries": ["task"] }] }]
+      loader = manager.loadModel "task", mainTask.id,
+        include: [
+          "assignees",
+          { sub_tasks: ["assignees"] },
+          { project: [{ time_entries: ["task"] }] }
+        ]
+
       model = loader.getModel()
 
-      server.respond()
+      server.respond() until server.queue.length == 0
 
       # check main model
       expect(model.attributes).toEqual(mainTask.attributes)
@@ -459,7 +486,9 @@ describe 'Brainstem Storage Manager', ->
           collection.bind "loaded", checkStructure
           collection.bind "reset", checkStructure
           expect(success).not.toHaveBeenCalled()
-          server.respond()
+
+          server.respond() until server.queue.length == 0
+
           expect(success).toHaveBeenCalledWith(collection)
           expect(callCount).toEqual 3
 
@@ -815,6 +844,7 @@ describe 'Brainstem Storage Manager', ->
 
         expect(successHandler).not.toHaveBeenCalled()
         expect(errorHandler).not.toHaveBeenCalled()
+        server.respond()
         server.respond()
         expect(successHandler).not.toHaveBeenCalled()
         expect(errorHandler).toHaveBeenCalled()
