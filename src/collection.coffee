@@ -46,6 +46,10 @@ module.exports = class Collection extends Backbone.Collection
   lastFetchOptions: null
   firstFetchOptions: null
 
+  model: (attrs, options) ->
+    Model = require('./model')
+    new Model(attrs, options)
+
 
   #
   # Init
@@ -53,7 +57,6 @@ module.exports = class Collection extends Backbone.Collection
   constructor: (models, options) ->
     super
 
-    @model ?= require('./model')
     @storageManager = require('./storage-manager').get()
 
     @firstFetchOptions = Collection.pickFetchOptions(options) if options
