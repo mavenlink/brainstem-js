@@ -1,11 +1,12 @@
 $ = require 'jquery'
+Backbone = require 'backbone'
 inflection = require 'inflection'
-sinon = require 'sinon'
 
 Utils = require './utils'
 Expectation = require './expectation'
 ModelLoader = require './loaders/model-loader'
 CollectionLoader = require './loaders/collection-loader'
+sync = require './sync'
 
 
 # TODO: Record access timestamps on all Models by overloading #get and #set.
@@ -21,6 +22,8 @@ class _StorageManager
   # Init
 
   constructor: (options = {}) ->
+    Backbone.sync = sync
+
     @collections = {}
 
     this

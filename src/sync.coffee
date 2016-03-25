@@ -1,8 +1,10 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
 
+Utils = require './utils'
 
-Backbone.sync = (method, model, options) ->
+
+module.exports = (method, model, options) ->
   methodMap =
     create: 'POST'
     update: 'PUT'
