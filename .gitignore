@@ -1,6 +1,6 @@
 /.bundle/
 /bin/
-/lib/
+/lib/**/*.js
 !/lib/*.rb
 /tmp/
 /.idea/
