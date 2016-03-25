@@ -7,6 +7,7 @@ import coffee from 'gulp-coffee';
 import stream from 'vinyl-source-stream';
 import browserify from 'browserify';
 import coffeeify from 'coffeeify';
+import shim from 'browserify-shim';
 import { Server as Karma } from 'karma';
 
 import { standalone } from './package';
@@ -14,9 +15,10 @@ import { filename } from './package';
 
 
 const source = './src/brainstem.coffee';
-const output = './lib';
-const gemOutput = './vendor/assets/javascripts/';
 const options = minimist(process.argv.slice(2));
+
+const moduleOutput = './lib';
+const gemOutput = './vendor/assets/javascripts';
 
 
 // Tasks
@@ -24,13 +26,13 @@ const options = minimist(process.argv.slice(2));
 gulp.task('prebuild', function () {
   return gulp.src('./src/**/*.coffee')
     .pipe(coffee())
-    .pipe(gulp.dest(output));
+    .pipe(gulp.dest(moduleOutput));
 });
 
 gulp.task('build-gem', function () {
   return browserify(source, {
     standalone,
-    transform: [coffeeify],
+    transform: [coffeeify, shim],
     extensions: ['.coffee']
   }).bundle()
     .pipe(stream(source))
@@ -38,8 +40,12 @@ gulp.task('build-gem', function () {
     .pipe(gulp.dest(gemOutput));
 });
 
+gulp.task('clean-module', function () {
+  return del(`${moduleOutput}/**/*.js`);
+});
+
 gulp.task('clean-gem', function () {
-  return del(`${gemOutput}**/*.js`);
+  return del(`${gemOutput}/**/*.js`);
 });
 
 
