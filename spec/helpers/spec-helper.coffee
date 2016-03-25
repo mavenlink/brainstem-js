@@ -67,7 +67,6 @@ beforeEach ->
 
   # Mock out all Ajax requests.
   window.server = sinon.fakeServer.create()
-  sinon.log = -> console.log arguments
 
   # Prevent any actual navigation.
   spyOn Backbone.History.prototype, 'start'
