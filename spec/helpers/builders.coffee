@@ -2,6 +2,8 @@ $ = require 'jquery'
 _ = require 'underscore'
 inflection = require 'inflection'
 
+StorageManager = require '../../src/storage-manager'
+
 Post = require './models/post'
 Project = require './models/project'
 Task = require './models/task'
@@ -31,13 +33,14 @@ spec.defineBuilders = ->
       BackboneFactory.create(name, $.extend({}, class_defaults, idsToStrings(opts)))
 
     creator = (opts) ->
+      storageManager = StorageManager.get()
       obj = builder(idsToStrings(opts))
       storageName = inflection.transform(name, ['underscore', 'pluralize'])
-      window.base.data.storage(storageName).add obj if window.base.data.collectionExists(storageName)
+      storageManager.storage(storageName).add obj if storageManager.collectionExists(storageName)
       obj
 
     window[inflection.camelize("build_#{inflection.underscore(name)}", true)] = builder
-    window[inflection.camelize("build_and_cache_#{inflection.underscore(name)}", true)] = builder
+    window[inflection.camelize("build_and_cache_#{inflection.underscore(name)}", true)] = creator
 
   isIdAttr = (attrName) ->
     attrName == 'id' || attrName.match(/_id$/) || (attrName.match(/_ids$/))

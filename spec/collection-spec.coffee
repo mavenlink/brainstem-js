@@ -103,7 +103,7 @@ describe 'Collection', ->
 
     context 'collection has model without a brainstemKey defined', ->
       beforeEach ->
-        collection.model = new Backbone.Model()
+        collection.model = Backbone.Model
 
       it 'throws a "BrainstemError"', ->
         expect(-> collection.fetch()).toThrow()
@@ -203,6 +203,9 @@ describe 'Collection', ->
 
         storageManager.enableExpectations()
         expectation = storageManager.stub 'posts', options
+
+      afterEach ->
+        storageManager.disableExpectations()
 
       it 'updates `lastFetchOptions` on the collection instance', ->
         expect(collection.lastFetchOptions).toBeNull()
@@ -870,7 +873,7 @@ describe 'Collection', ->
       posts = (buildPost(message: 'old post', reply_ids: []) for i in [1..5])
       respondWith server, '/api/posts?include=replies&parents_only=true&per_page=5&page=1', resultsFrom: 'posts', data: { count: posts.length, posts: posts }
       loader = storageManager.loadObject 'posts', include: ['replies'], filters: { parents_only: 'true' }, perPage: 5
-      
+
       expect(loader.getCacheObject()).toBeUndefined()
       server.respond()
 

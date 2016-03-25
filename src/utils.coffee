@@ -1,4 +1,5 @@
 _ = require 'underscore'
+Backbone = require 'backbone'
 
 Error = require './error'
 

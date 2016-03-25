@@ -19,9 +19,13 @@ describe 'Model', ->
     storageManager.reset()
 
   describe '#fetch', ->
+    deferred = null
+
     beforeEach ->
-      model = buildTask()
-      storageManager.storage('tasks').add model
+      deferred = $.Deferred()
+      model = buildAndCacheTask()
+
+      spyOn(storageManager, 'loadObject').and.returnValue(deferred)
 
     context 'options has no name property and the model does not have a brainstem key', ->
       beforeEach ->
@@ -35,7 +39,7 @@ describe 'Model', ->
         model.brainstemKey = undefined
 
       it 'does not throw a brainstem error', ->
-        expect(-> model.fetch({name: 'posts'})).not.toThrow()
+        expect(-> model.fetch({ name: 'posts' })).not.toThrow()
 
     context 'options has no name property and the model does have a brainstem key', ->
       beforeEach ->
@@ -52,9 +56,6 @@ describe 'Model', ->
       expect(Utils.wrapError).toHaveBeenCalledWith(model, options)
 
     it 'calls loadObject', ->
-      promise = done: (-> {promise: (->)})
-      spyOn(storageManager, 'loadObject').and.returnValue(promise)
-
       model.fetch()
 
       expect(storageManager.loadObject).toHaveBeenCalledWith(
@@ -64,35 +65,38 @@ describe 'Model', ->
       )
 
     it 'on success, triggers sync', ->
-      deferred = new $.Deferred
       newModel = {}
 
-      spyOn(storageManager, 'loadObject').and.returnValue(deferred)
       spyOn(model, 'trigger')
 
       model.fetch()
       deferred.resolve(newModel)
 
-      expect(model.trigger).toHaveBeenCalledWith('sync', newModel, {only: [model.id], name: 'tasks', parse: true, error: jasmine.any(Function), cache: false})
+      expect(model.trigger).toHaveBeenCalledWith(
+        'sync',
+        newModel,
+        { only: [model.id], name: 'tasks', parse: true, error: jasmine.any(Function), cache: false }
+      )
 
     it 'returns a promise', ->
-      promise = (new $.Deferred).promise()
-
-      spyOn(storageManager, 'loadObject').and.returnValue(promise)
       spyOn(model, 'trigger')
 
-      expect(model.fetch()).toEqual(promise)
+      expect(model.fetch()).toEqual(jasmine.objectContaining({
+        done: jasmine.any(Function),
+        fail: jasmine.any(Function),
+        always: jasmine.any(Function)
+      }))
 
-    describe 'integration', ->
-      it 'something', ->
-        task = buildTask()
-        respondWith(server, '/api/tasks/1', resultsFrom: 'tasks', data: task)
+  describe 'fetch integration', ->
+    it 'updates model with fetched attributes', ->
+      task = buildTask()
+      respondWith(server, "/api/tasks/#{task.id}", resultsFrom: 'tasks', data: task)
 
-        model.fetch()
-        server.respond()
+      model.id = task.id
+      model.fetch()
+      server.respond()
 
-        expect(model.attributes).toEqual(task.attributes)
-
+      expect(model.attributes).toEqual(task.attributes)
 
   describe '#parse', ->
     response = null

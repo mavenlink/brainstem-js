@@ -3,6 +3,7 @@ Backbone = require 'backbone'
 
 StorageManager = require '../src/storage-manager'
 AbstractLoader = require '../src/loaders/abstract-loader'
+ModelLoader = require '../src/loaders/model-loader'
 
 Tasks = require './helpers/models/tasks'
 TimeEntries = require './helpers/models/time-entries'
@@ -298,6 +299,8 @@ describe 'Brainstem Storage Manager', ->
 
       taskWithAssigneesExpectation.respond()
       expect(resolvedSpy).toHaveBeenCalled()
+
+      manager.disableExpectations()
 
   describe 'loadCollection', ->
     it "loads a collection of models", ->

@@ -173,6 +173,9 @@ class _StorageManager
   enableExpectations: ->
     @expectations = []
 
+  disableExpectations: ->
+    @expectations = null
+
   handleExpectations: (loader) ->
     for expectation in @expectations
       if expectation.loaderOptionsMatch(loader)

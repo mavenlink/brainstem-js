@@ -17,6 +17,9 @@ describe 'Expectations', ->
     project2 = buildProject(id: 2)
     task1 = buildTask(id: 1, project_id: project1.id)
 
+  afterEach ->
+    storageManager.disableExpectations()
+
   describe "stubbing responses", ->
     it "should update returned collections", ->
       expectation = storageManager.stub "projects", response: (stub) ->
@@ -328,7 +331,7 @@ describe 'Expectations', ->
           stub.result = buildProject(id: project.id, title: 'foobar')
 
         loaderSpy = jasmine.createSpy('loader').and.callFake (model) ->
-          expect(model).toEqual project
+          expect(model.id).toEqual project.id
           expect(model.get('title')).toEqual 'foobar'
 
         loader = storageManager.loadModel 'project', project.id
