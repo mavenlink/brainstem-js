@@ -51,10 +51,13 @@ describe 'Brainstem Storage Manager', ->
     it "should clear all storage and sort lengths", ->
       buildAndCacheTask()
       buildAndCacheProject()
+
       expect(manager.storage("projects").length).toEqual 1
       expect(manager.storage("tasks").length).toEqual 1
+
       manager.collections["projects"].cache = { "foo": "bar" }
       manager.reset()
+
       expect(manager.collections["projects"].cache).toEqual {}
       expect(manager.storage("projects").length).toEqual 0
       expect(manager.storage("tasks").length).toEqual 0
