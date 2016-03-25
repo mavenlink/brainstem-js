@@ -7,7 +7,7 @@ import coffee from 'gulp-coffee';
 import stream from 'vinyl-source-stream';
 import browserify from 'browserify';
 import coffeeify from 'coffeeify';
-import { server as karma } from 'karma';
+import { Server as Karma } from 'karma';
 
 import { standalone } from './package';
 import { filename } from './package';
@@ -45,19 +45,19 @@ gulp.task('clean-gem', function () {
 
 var karmaConfigFile = path.join(__dirname, 'karma.conf.js');
 
-gulp.task('test', function (done) {
-  karma.start({
+gulp.task('test', (done) => {
+  new Karma({
     configFile: karmaConfigFile,
     singleRun: true
-  }, done);
+  }, done).start();
 });
 
-gulp.task('test-ci', function (done) {
-  karma.start({
+gulp.task('test-ci', (done) => {
+  new Karma({
     configFile: karmaConfigFile,
     singleRun: true,
     browsers: ['Firefox']
-  }, done);
+  }, done).start();
 });
 
 gulp.task('test-watch', function (done) {
@@ -71,6 +71,6 @@ gulp.task('test-watch', function (done) {
     config.browsers = options.browsers.split();
   }
 
-  karma.start(config, done);
+  new Karma(config, done).start();
 });
 
