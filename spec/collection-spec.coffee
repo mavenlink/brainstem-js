@@ -1,6 +1,6 @@
 $ = require 'jquery'
 _ = require 'underscore'
-Backbone = require 'Backbone'
+Backbone = require 'backbone'
 
 Utils = require '../src/utils'
 Model = require '../src/model'
