@@ -2,6 +2,7 @@ import gulp from 'gulp';
 import util from 'gulp-util';
 import minimist from 'minimist';
 import rename from 'gulp-rename';
+import replace from 'gulp-replace';
 import path from 'path';
 import del from 'del';
 import coffee from 'gulp-coffee';
@@ -11,6 +12,7 @@ import coffeeify from 'coffeeify';
 import shim from 'browserify-shim';
 import { Server as Karma } from 'karma';
 
+import { version } from './package';
 import { standalone } from './package';
 import { filename } from './package';
 
@@ -42,6 +44,16 @@ gulp.task('build-gem', () => {
     .pipe(gulp.dest(gemOutput))
     .on('error', util.log);
 });
+
+gulp.task('version-gem', () => {
+  const base = './lib/brainstem/js/';
+
+  return gulp.src(path.join(base, 'version.rb'), { base : base })
+    .pipe(replace(/(VERSION = ").*(")/, `$1${version}$2`))
+    .pipe(gulp.dest(base));
+});
+
+gulp.task('publish-gem', ['build-gem', 'version-gem']);
 
 gulp.task('clean-module', () => {
   return del(`${moduleOutput}/**/*.js`);
