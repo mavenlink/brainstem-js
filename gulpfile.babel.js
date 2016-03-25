@@ -1,4 +1,5 @@
 import gulp from 'gulp';
+import util from 'gulp-util';
 import minimist from 'minimist';
 import rename from 'gulp-rename';
 import path from 'path';
@@ -26,7 +27,8 @@ const gemOutput = './vendor/assets/javascripts';
 gulp.task('build-module', () => {
   return gulp.src('./src/**/*.coffee')
     .pipe(coffee())
-    .pipe(gulp.dest(moduleOutput));
+    .pipe(gulp.dest(moduleOutput))
+    .on('error', util.log);
 });
 
 gulp.task('build-gem', () => {
@@ -37,7 +39,8 @@ gulp.task('build-gem', () => {
   }).bundle()
     .pipe(stream(source))
     .pipe(rename(`${filename}.js`))
-    .pipe(gulp.dest(gemOutput));
+    .pipe(gulp.dest(gemOutput))
+    .on('error', util.log);
 });
 
 gulp.task('clean-module', () => {
@@ -49,13 +52,21 @@ gulp.task('clean-gem', () => {
 });
 
 
-var karmaConfigFile = path.join(__dirname, 'karma.conf.js');
+const karmaConfigFile = path.join(__dirname, 'karma.conf.js');
+const karmaErrorHandler = function(code) {
+  if (code === 1) {
+    util.log(util.colors.red('Tests finished with failures.'));
+    process.exit(1);
+  } else {
+    this();
+  }
+};
 
 gulp.task('test', (done) => {
   new Karma({
     configFile: karmaConfigFile,
     singleRun: true
-  }, done).start();
+  }, karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('test-ci', (done) => {
@@ -63,7 +74,7 @@ gulp.task('test-ci', (done) => {
     configFile: karmaConfigFile,
     singleRun: true,
     browsers: ['Firefox']
-  }, done).start();
+  }, karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('test-watch', (done) => {
@@ -77,6 +88,6 @@ gulp.task('test-watch', (done) => {
     config.browsers = options.browsers.split();
   }
 
-  new Karma(config, done).start();
+  new Karma(config, karmaErrorHandler.bind(done)).start();
 });
 
