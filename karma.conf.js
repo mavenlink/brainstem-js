@@ -14,6 +14,7 @@ module.exports = function (config) {
       'karma-sinon',
       'karma-spec-reporter',
       'karma-chrome-launcher',
+      'karma-firefox-launcher',
       'karma-browserify'
     ],
 
