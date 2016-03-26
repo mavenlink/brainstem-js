@@ -138,9 +138,9 @@ storageManager.addCollection([brainstem key], [collection class])
 
 ```javascript
 StorageManager = require('brainstem/storage-manager');
-Users = require('./collections/users);
-Posts = require('./collections/posts);
-Comments = require('./collections/comments);
+Users = require('./collections/users');
+Posts = require('./collections/posts');
+Comments = require('./collections/comments');
 
 storageManger = StorageManager.get();
 storageManager.addCollection('users', Users);
