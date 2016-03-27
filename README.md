@@ -122,7 +122,6 @@ Application.Collections.Posts = Brainstem.Collection.extend({
 });
 ```
 
--
 
 ### StorageManager
 
@@ -213,7 +212,6 @@ new Posts().fetch({
 }).done(/* handle result */)
   .fail(/* handle error */);
 ```
--
 
 ### Accessing Model Associations
 
@@ -237,8 +235,6 @@ console.log('user');
 console.log('comments');
 // Comments [BackboneCollection]
 ```
-
--
 
 ### Manipulating Collections
 
