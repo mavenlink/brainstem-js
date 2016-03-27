@@ -3,7 +3,7 @@
   "repository": "https://github.com/mavenlink/brainstem-js",
   "filename": "brainstem",
   "standalone": "Brainstem",
-  "version": "4.0.2-0",
+  "version": "4.0.0-2",
   "author": {
     "name": "Mavenlink",
     "email": "dev@mavenlink.com"
