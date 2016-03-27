@@ -1,6 +1,7 @@
 # Brainstem.js
 
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mavenlink/brainstem-js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/mavenlink/brainstem-js.png)](https://travis-ci.org/mavenlink/brainstem-js)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mavenlink/brainstem-js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/mavenlink/brainstem-js.png)](https://travis-ci.org/mavenlink/brainstem-js)
 
 [Brainstem](https://github.com/mavenlink/brainstem) is designed to power rich APIs in Rails. The Brainstem gem provides a presenter library that handles converting ActiveRecord objects into structured JSON and a set of API abstractions that allow users to request sorts, filters, and association loads, allowing for simpler implementations, fewer requests, and smaller responses.
 
@@ -123,7 +124,7 @@ Application.Collections.Posts = Brainstem.Collection.extend({
 
 ### StorageManager
 
-The Brainstem.js `StorageManager` is the data store in charge of loading data from a Brainstem API as well as managing cached data. The StorageManager should be set up when your application starts.
+The Brainstem.js `StorageManager` is the data store in charge of loading data from a Brainstem API as well as managing cached data. The StorageManager should be set up when your application starts.z
 
 Use the StorageManager `addCollection` API to register Brainstem.js collections that map to your Brainstem server API endpoints.
 
