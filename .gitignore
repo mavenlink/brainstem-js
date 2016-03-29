@@ -1,10 +1,9 @@
-/.bundle/
-/bin/
-/lib/**/*.js
-!/lib/*.rb
-/tmp/
-/.idea/
-projectFilesBackup
+.bundle/
+bin/
+lib/**/*.js
+!lib/*.rb
+tmp/
+.idea/
 pkg
 .DS_Store
 node_modules/
