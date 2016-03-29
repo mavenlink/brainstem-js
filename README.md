@@ -155,7 +155,7 @@ storageManager.addCollection('comments', Comments);
 ```javascript
 Application = {};
 
-Application.storageManager = StorageManager.get();
+Application.storageManager = Brainstem.StorageManager.get();
 Application.storageManager.addCollection('users', Application.Collections.Users);
 Application.storageManager.addCollection('posts', Application.Collections.Posts);
 Application.storageManager.addCollection('comments', Application.Collections.Comments);
