@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "backbone": "^1.1.2",
+    "inflection": "^1.8.0",
     "jquery": "^2.1.4",
     "underscore": "^1.4.4"
   },
@@ -36,7 +37,6 @@
     "gulp-streamify": "^1.0.2",
     "gulp-uglify": "^1.5.3",
     "gulp-util": "^3.0.7",
-    "inflection": "^1.8.0",
     "jasmine-core": "^2.4.1",
     "jasmine-jquery-matchers": "^1.1.1",
     "karma": "^0.13.22",
