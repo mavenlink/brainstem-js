@@ -63,7 +63,7 @@ Assocations are defined as a map in the class property **associations** to decla
 Model:
 
 ```javascript
-BrainstemModel = require('brainstem/model');
+BrainstemModel = require('brainstem-js').Model;
 
 Post = BrainstemModel.extend({
   paramRoot: 'post',
@@ -83,7 +83,7 @@ module.exports = Post;
 Collection:
 
 ```javascript
-BrainstemCollection = require('brainstem/collection');
+BrainstemCollection = require('brainstem-js').Collection;
 Post = require('./models/post');
 
 Posts = BrainstemCollection.extend({
@@ -139,7 +139,7 @@ storageManager.addCollection([brainstem key], [collection class])
 ##### CommonJS
 
 ```javascript
-StorageManager = require('brainstem/storage-manager');
+StorageManager = require('brainstem-js').StorageManager;
 Users = require('./collections/users');
 Posts = require('./collections/posts');
 );
