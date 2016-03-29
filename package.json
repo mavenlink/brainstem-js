@@ -9,7 +9,7 @@
     "email": "dev@mavenlink.com"
   },
   "license": "MIT",
-  "main": "lib/brainstem.js",
+  "main": "lib/",
   "scripts": {
     "prepublish": "gulp build-module",
     "test": "gulp test"
