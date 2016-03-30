@@ -146,5 +146,3 @@ And when you're done, run:
 # License
 
 Brainstem and Brainstem.js were created by Mavenlink, Inc. and are available under the MIT License.
-
-`this space intentionally left blank`
