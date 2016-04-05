@@ -139,14 +139,6 @@ describe 'Brainstem.Collection', ->
       expect(wrapSpy).toHaveBeenCalledWith(collection, jasmine.any(Object))
       expect(wrapSpy.mostRecentCall.args[1].error).toBe(options.error)
 
-    it 'returns a promise', ->
-      deferred =
-        pipe: -> { done: (-> { promise: -> 'le-promise' }) }
-
-      spyOn(base.data, 'loadObject').andReturn(deferred)
-      collection.model = App.Models.Post
-      expect(collection.fetch()).toEqual('le-promise')
-
     describe 'loading brainstem object', ->
       loadObjectSpy = options = null
 
@@ -313,6 +305,17 @@ describe 'Brainstem.Collection', ->
           object = {}
           object[key] = jasmine.any(value.constructor)
           expect(promise).toEqual jasmine.objectContaining(object)
+
+      it 'passes collection instance to chained done method', ->
+        onDoneSpy = jasmine.createSpy('onDone')
+
+        respondWith(server, '/api/posts?per_page=5&page=1', resultsFrom: 'posts', data: { posts: posts1 })
+
+        collection.fetch().done(onDoneSpy)
+        server.respond()
+
+        response = onDoneSpy.mostRecentCall.args[0]
+        expect(response.toJSON()).toEqual(collection.toJSON())
 
       it 'updates collection with response', ->
         respondWith(server, '/api/posts?per_page=5&page=1', resultsFrom: 'posts', data: { posts: posts1 })
