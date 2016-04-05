@@ -42,7 +42,7 @@ describe 'Brainstem.Model', ->
 
       model.fetch(options)
 
-      expect(Brainstem.Utils.wrapError).toHaveBeenCalledWith(model, options)
+      expect(Brainstem.Utils.wrapError).toHaveBeenCalledWith(model, jasmine.objectContaining(options))
 
     it 'calls loadObject', ->
       promise = done: (-> {promise: (->)})
@@ -59,6 +59,7 @@ describe 'Brainstem.Model', ->
           error: jasmine.any(Function),
           cache: false
           returnValues: jasmine.any(Object)
+          model: model
         },
         isCollection: false
       )
@@ -82,6 +83,7 @@ describe 'Brainstem.Model', ->
           error: jasmine.any(Function),
           cache: false,
           returnValues: jasmine.any(Object)
+          model: model
         }
       )
 
@@ -94,7 +96,7 @@ describe 'Brainstem.Model', ->
       expect(model.fetch()).toEqual(promise)
 
     describe 'integration', ->
-      it 'something', ->
+      it 'fetches model', ->
         task = buildTask()
         respondWith(server, '/api/tasks/1', resultsFrom: 'tasks', data: task)
 
@@ -102,6 +104,14 @@ describe 'Brainstem.Model', ->
         server.respond()
 
         expect(model.attributes).toEqual(task.attributes)
+
+      it 'caches new model reference on fetch', ->
+        respondWith(server, '/api/tasks/1', resultsFrom: 'tasks', data: model)
+
+        model.fetch()
+        server.respond()
+
+        expect(base.data.storage('tasks').get(model.id)).toEqual(model)
 
       it 'returns a promise with jqXhr methods', ->
         task = buildTask()

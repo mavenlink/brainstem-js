@@ -31,9 +31,12 @@ class Brainstem.ModelLoader extends Brainstem.AbstractLoader
 
   _createObjects: ->
     id = @loadOptions.only[0]
+    storage = @storageManager.storage(@_getCollectionName())
+    model = @loadOptions.model
 
-    @internalObject = @storageManager.storage(@_getCollectionName()).get(id) ||
-                      @storageManager.createNewModel(@loadOptions.name, id: id)
+    storage.add(model, remove: false) if model
+
+    @internalObject = model || storage.get(id) || @storageManager.createNewModel(@loadOptions.name, id: id)
     @externalObject = @internalObject
 
   _updateStorageManagerFromResponse: (resp) ->
