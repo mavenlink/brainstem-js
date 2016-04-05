@@ -113,6 +113,15 @@ describe 'Brainstem.Model', ->
 
         expect(base.data.storage('tasks').get(model.id)).toEqual(model)
 
+      context 'model reference already exists in cache', ->
+        it 'does not duplicate model reference ', ->
+          respondWith(server, '/api/tasks/1', resultsFrom: 'tasks', data: model)
+
+          model.fetch()
+          server.respond()
+
+          expect(base.data.storage('tasks').where(id: model.id).length).toEqual(1)
+
       it 'returns a promise with jqXhr methods', ->
         task = buildTask()
         respondWith(server, '/api/tasks/1', resultsFrom: 'tasks', data: task)
