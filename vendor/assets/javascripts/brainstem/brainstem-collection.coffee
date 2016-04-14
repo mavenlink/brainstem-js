@@ -102,7 +102,9 @@ class window.Brainstem.Collection extends Backbone.Collection
         @[method](response, options)
 
         @trigger('sync', this, response, options)
-      ).promise(xhr)
+      )
+      .pipe(-> loader.externalObject)
+      .promise(xhr)
 
   refresh: (options = {}) ->
     @fetch _.extend(@lastFetchOptions, options, cache: false)
