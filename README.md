@@ -125,7 +125,7 @@ Application.Collections.Posts = Brainstem.Collection.extend({
 
 ### StorageManager
 
-The Brainstem.js `StorageManager` is the data store in charge of loading data from a Brainstem API as well as managing cached data. The StorageManager should be set up when your application starts.z
+The Brainstem.js `StorageManager` is the data store in charge of loading data from a Brainstem API as well as managing cached data. The StorageManager should be set up when your application starts.
 
 Use the StorageManager `addCollection` API to register Brainstem.js collections that map to your Brainstem server API endpoints.
 
@@ -240,7 +240,7 @@ console.log('comments');
 
 #### Filter Scoping
 
-Brainstem.js collections provide a filter scoping mechanism that allows a base scope to be defined either by providing base `filter` and `order` options to the Brainste.js Collection constructor, or by passing said options to the *first* `fetch` call.
+Brainstem.js collections provide a filter scoping mechanism that allows a base scope to be defined either by providing base `filter` and `order` options to the Brainstem.js Collection constructor, or by passing said options to the *first* `fetch` call.
 
 The collection can be restored to the original base scope by simply invoking `fetch` on the collection without passing any options.
 
@@ -251,7 +251,7 @@ The base scope is stored in the `firstFetchOptions` property on the collection a
 ```javascript
 Posts = require('./collections/posts');
 
-posts = new Posts([], { filters: { account_id: 1 } })
+posts = new Posts([], { filters: { account_id: 1 } });
 
 console.log(posts.firstFetchOptions);
 // { filters: { account_id: 1 } }
@@ -301,7 +301,7 @@ Supported pagination methods:
 ```javascript
 Posts = require('./collections/posts');
 
-posts = new Posts([], page: 1, perPage: 10)
+posts = new Posts([], page: 1, perPage: 10);
 
 console.log(posts.firstFetchOptions);
 // { page: 1, perPage: 10 }
