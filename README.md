@@ -71,10 +71,10 @@ Post = BrainstemModel.extend({
   urlRoot: '/api/v1/posts'
 }, {
   associations: {
-    user: 'users', # has_one
-    comments: ['comments'], # has_many
-    account: 'accounts', # belongs_to
-    parent: ['category', 'post'] # belongs_to (polymorphic)
+    user: 'users', // has_one
+    comments: ['comments'], // has_many
+    account: 'accounts', // belongs_to
+    parent: ['category', 'post'] // belongs_to (polymorphic)
   }
 });
 
@@ -105,10 +105,10 @@ Application.Models.Post = Brainstem.Model.extend({
   urlRoot: '/api/v1/posts'
 }, {
   associations: {
-    user: 'users', # has_one
-    comments: ['comments'], # has_many
-    account: 'accounts', # belongs_to
-    parent: ['category', 'post'] # belongs_to (polymorphic)
+    user: 'users', // has_one
+    comments: ['comments'], // has_many
+    account: 'accounts', // belongs_to
+    parent: ['category', 'post'] // belongs_to (polymorphic)
   }
 });
 ```
