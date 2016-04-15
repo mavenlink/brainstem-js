@@ -12,9 +12,7 @@ import coffeeify from 'coffeeify';
 import shim from 'browserify-shim';
 import { Server as Karma } from 'karma';
 
-import { version } from './package';
-import { standalone } from './package';
-import { filename } from './package';
+import { version, standalone, filename } from './package';
 
 
 const source = './src/brainstem.coffee';
