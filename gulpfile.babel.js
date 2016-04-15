@@ -83,7 +83,7 @@ gulp.task('test-ci', (done) => {
   new Karma({
     configFile: karmaConfigFile,
     singleRun: true,
-    browsers: ['Firefox']
+    browsers: ['Firefox', 'PhantomJS']
   }, karmaErrorHandler.bind(done)).start();
 });
 
