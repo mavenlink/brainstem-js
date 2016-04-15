@@ -100,4 +100,3 @@ gulp.task('test-watch', (done) => {
 
   new Karma(config, karmaErrorHandler.bind(done)).start();
 });
-
