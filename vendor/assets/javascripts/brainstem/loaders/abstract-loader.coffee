@@ -1,6 +1,6 @@
 window.Brainstem ?= {}
 
-class Brainstem.AbstractLoader
+class window.Brainstem.AbstractLoader
 
   #
   # Properties
