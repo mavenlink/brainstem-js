@@ -28,7 +28,7 @@ Brainstem.js is a companion library for Backbone.js that makes integration with 
 
 Add Brainstem.js to your `Gemfile`:
 
-`gem 'brainstem-js`
+`gem 'brainstem-js'`
 
 Require using Sprockets directive:
 
