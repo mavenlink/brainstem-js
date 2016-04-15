@@ -342,7 +342,6 @@ We're always open to pull requests!
 
   - [Node](https://nodejs.org/en/)
   - [Gulp](http://gulpjs.com/)
-  - [Google Chrome](https://www.google.com/chrome/browser/desktop/)
 
 ### Development Environment
 
