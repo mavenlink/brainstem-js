@@ -164,7 +164,7 @@ Application.storageManager.addCollection('comments', Application.Collections.Com
 <br>
 
 
-#### *Note: all preceding examples assume a CommonJS environment, however the same functionality applies to vanilla JavaScript environments*
+#### *Note: all following examples assume a CommonJS environment, however the same functionality applies to vanilla JavaScript environments*
 
 ---
 
@@ -288,7 +288,7 @@ Backbone.js collections support pagination natively. The default page size is 20
 
 As mentioned, collections support both `page` and `perPage` options or `offset` and `limit` options. If no pagination options are specified, collections will default to `page` and `perPage` options. The `offset` and `limit` paginations options can be substitued in any of the following examples.
 
-Support pagination methods:
+Supported pagination methods:
 
 - `getNextPage()`
 - `getPreviousPage()`
