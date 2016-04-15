@@ -53,7 +53,7 @@ Assocations are defined as a map in the class property **associations** to decla
 
 - **Strings** inidicate `has_one` or `belongs_to` relationships
 - **Arrays** with a single item indicate `has_many` relationships
-- **Arrays** with *multiple items* indecate polymorphic `belongs_to` relationships
+- **Arrays** with *multiple items* indicate polymorphic `belongs_to` relationships
 
 
 #### Examples
