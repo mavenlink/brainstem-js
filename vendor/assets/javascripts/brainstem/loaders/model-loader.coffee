@@ -34,18 +34,19 @@ class Brainstem.ModelLoader extends Brainstem.AbstractLoader
     storage = @storageManager.storage(@_getCollectionName())
     model = @loadOptions.model
 
-    storage.add(model, remove: false) if model
+    storage.add(model, remove: false) if model && model.id
 
-    @internalObject = model || storage.get(id) || @storageManager.createNewModel(@loadOptions.name, id: id)
-    @externalObject = @internalObject
+    @internalObject = storage.get(id) || @storageManager.createNewModel(@loadOptions.name, id: id)
+    @externalObject = model || @internalObject
 
   _updateStorageManagerFromResponse: (resp) ->
-    @internalObject.parse(resp)
+    attributes = @internalObject.parse(resp)
+    # @externalObject.set(attributes)
 
   _updateObjects: (object, data) ->
     if _.isArray(data) && data.length == 1
       data = data[0]
-    
+
     if data instanceof Backbone.Model
       data = data.attributes
 

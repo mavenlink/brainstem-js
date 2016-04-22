@@ -97,21 +97,38 @@ describe 'Brainstem.Model', ->
 
     describe 'integration', ->
       it 'fetches model', ->
-        task = buildTask()
-        respondWith(server, '/api/tasks/1', resultsFrom: 'tasks', data: task)
+        updatedModel = buildTask()
+
+        respondWith(server, "/api/tasks/#{model.id}", resultsFrom: 'tasks', data: updatedModel)
 
         model.fetch()
         server.respond()
 
-        expect(model.attributes).toEqual(task.attributes)
+        expect(model.attributes).toEqual(updatedModel.attributes)
 
       it 'caches new model reference on fetch', ->
-        respondWith(server, '/api/tasks/1', resultsFrom: 'tasks', data: model)
+        newTask = buildTask()
 
-        model.fetch()
+        respondWith(server, "/api/tasks/#{newTask.id}", resultsFrom: 'tasks', data: newTask)
+
+        newModel = new App.Models.Task(id: newTask.id)
+        newModel.fetch()
+
         server.respond()
 
-        expect(base.data.storage('tasks').get(model.id)).toEqual(model)
+        expect(base.data.storage('tasks').get(newModel.id)).toEqual(newModel)
+
+      it 'updates new model reference', ->
+        task = buildAndCacheTask()
+
+        respondWith(server, "/api/tasks/#{task.id}", resultsFrom: 'tasks', data: task)
+
+        newModel = new App.Models.Task(id: task.id)
+        newModel.fetch()
+
+        server.respond()
+
+        expect(task.attributes).toEqual(newModel.attributes)
 
       context 'model reference already exists in cache', ->
         it 'does not duplicate model reference ', ->
