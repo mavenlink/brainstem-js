@@ -4,6 +4,49 @@ describe 'Brainstem.Model', ->
   beforeEach ->
     base.data.reset()
 
+  describe 'instantiation', ->
+    newModel = null
+
+    itReturnsCachedInstance = ->
+      it 'returns cached instance', ->
+        expect(newModel).toEqual model
+
+    itReturnsNewInstance = ->
+      it 'returns new instance', ->
+        expect(newModel).not.toEqual model
+        expect(newModel).toEqual jasmine.any(App.Models.Task)
+
+    beforeEach ->
+      model = base.data.storage('tasks').add(buildTask())
+
+    context 'id is provided', ->
+      context 'model is cached in storage manager', ->
+        context 'new model attributes are valid', ->
+          beforeEach ->
+            spyOn(model, '_validate').andReturn(true)
+            newModel = new App.Models.Task(id: model.id)
+
+          itReturnsCachedInstance()
+
+        context 'new model attributes are invalid', ->
+          beforeEach ->
+            spyOn(model, '_validate').andReturn(false)
+            newModel = new App.Models.Task(id: model.id)
+
+          itReturnsNewInstance()
+
+      context 'model is not cached in storage manager', ->
+        beforeEach ->
+          newModel = new App.Models.Task(id: model.id + 1)
+
+        itReturnsNewInstance()
+
+    context 'id is not provided', ->
+      beforeEach ->
+        newModel = new App.Models.Task()
+
+      itReturnsNewInstance()
+
   describe '#fetch', ->
     beforeEach ->
       model = buildTask()
@@ -226,13 +269,16 @@ describe 'Brainstem.Model', ->
 
     describe 'updateStorageManager', ->
       it 'should update the associations before the new model', ->
+        spyOn(base.data, 'storage').andCallThrough()
+
+        findIndex = (key) -> base.data.storage.calls.findIndex((call) -> call.args[0] == key)
+
         response.tasks[1].assignee_ids = [5]
         response.users = { 5: {id: 5, name: 'Jon'} }
 
-        spy = spyOn(base.data, 'storage').andCallThrough()
         model.updateStorageManager(response)
-        expect(spy.calls[0].args[0]).toEqual('users')
-        expect(spy.calls[1].args[0]).toEqual('tasks')
+
+        expect(findIndex('users')).toBeLessThan(findIndex('tasks'))
 
       it 'should work with an empty response', ->
         expect( -> model.updateStorageManager(count: 0, results: [])).not.toThrow()

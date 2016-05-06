@@ -10,6 +10,19 @@ class window.Brainstem.Model extends Backbone.Model
 
 
   #
+  # Init
+
+  constructor: (attributes = {}, options = {}) ->
+    if attributes.id && @brainstemKey
+      existing = base.data.storage(@brainstemKey).get(attributes.id)
+      valid = existing?.set(attributes)
+
+      return existing if valid
+
+    super
+
+
+  #
   # Class Methods
 
   # Retreive details about a named association.  This is a class method.
