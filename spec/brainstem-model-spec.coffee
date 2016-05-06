@@ -271,14 +271,19 @@ describe 'Brainstem.Model', ->
       it 'should update the associations before the new model', ->
         spyOn(base.data, 'storage').andCallThrough()
 
-        findIndex = (key) -> base.data.storage.calls.findIndex((call) -> call.args[0] == key)
-
         response.tasks[1].assignee_ids = [5]
         response.users = { 5: {id: 5, name: 'Jon'} }
 
         model.updateStorageManager(response)
 
-        expect(findIndex('users')).toBeLessThan(findIndex('tasks'))
+        usersIndex = tasksIndex = null
+
+        _.each base.data.storage.calls, (call, index) ->
+          switch call.args[0]
+            when 'users' then usersIndex = index
+            when 'tasks' then tasksIndex = index
+
+        expect(usersIndex).toBeLessThan(tasksIndex)
 
       it 'should work with an empty response', ->
         expect( -> model.updateStorageManager(count: 0, results: [])).not.toThrow()
