@@ -62,7 +62,16 @@ gulp.task('clean-gem', () => {
 });
 
 
-const karmaConfigFile = path.join(__dirname, 'karma.conf.js');
+let karmaConfig = {
+  configFile: path.join(__dirname, 'karma.conf.js'),
+  singleRun: true,
+  sourceMaps: false
+};
+
+if (typeof options.browsers === 'string') {
+  karmaConfig.browsers = options.browsers.split();
+}
+
 const karmaErrorHandler = function(code) {
   if (code === 1) {
     util.log(util.colors.red('Tests finished with failures.'));
@@ -73,30 +82,20 @@ const karmaErrorHandler = function(code) {
 };
 
 gulp.task('test', (done) => {
-  new Karma({
-    configFile: karmaConfigFile,
-    singleRun: true
-  }, karmaErrorHandler.bind(done)).start();
+  new Karma(karmaConfig, karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('test-ci', (done) => {
-  new Karma({
-    configFile: karmaConfigFile,
-    singleRun: true,
+  new Karma(Object.assign({}, karmaConfig, {
     browsers: ['Firefox', 'PhantomJS']
-  }, karmaErrorHandler.bind(done)).start();
+  }), karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('test-watch', (done) => {
-  var config = {
-    configFile: karmaConfigFile,
+  var config = Object.assign({}, karmaConfig, {
     singleRun: false,
     autoWatch: true
-  };
-
-  if (typeof options.browsers === 'string' && options.browsers.length) {
-    config.browsers = options.browsers.split();
-  }
+  });
 
   new Karma(config, karmaErrorHandler.bind(done)).start();
 });
