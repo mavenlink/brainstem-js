@@ -72,6 +72,10 @@ if (typeof options.browsers === 'string') {
   karmaConfig.browsers = options.browsers.split();
 }
 
+if (typeof options.grep === 'string') {
+  karmaConfig.client = { args: ['--grep', options.grep] };
+}
+
 const karmaErrorHandler = function(code) {
   if (code === 1) {
     util.log(util.colors.red('Tests finished with failures.'));
