@@ -20,6 +20,19 @@ describe 'Brainstem.Model', ->
       model = base.data.storage('tasks').add(buildTask())
 
     context 'id is provided', ->
+      context 'storage manager has not been created', ->
+        storageManager = null
+
+        beforeEach ->
+          storageManager = base.data
+          delete window.base
+
+        afterEach ->
+          base = { data: storageManager }
+
+        it 'does not throw an error trying to access storage manager', ->
+          expect(-> new App.Models.Task(id: model.id)).not.toThrow()
+
       context 'model is cached in storage manager', ->
         context 'new model attributes are valid', ->
           beforeEach ->

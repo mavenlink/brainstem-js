@@ -13,7 +13,7 @@ class window.Brainstem.Model extends Backbone.Model
   # Init
 
   constructor: (attributes = {}, options = {}) ->
-    if attributes.id && @brainstemKey
+    if attributes.id && @brainstemKey && base?.data
       existing = base.data.storage(@brainstemKey).get(attributes.id)
       valid = existing?.set(attributes)
 
