@@ -449,7 +449,7 @@ describe 'Brainstem Storage Manager', ->
           collection.bind "reset", checkStructure
           expect(success).not.toHaveBeenCalled()
           server.respond()
-          expect(success).toHaveBeenCalledWith(collection)
+          expect(success.mostRecentCall.args[0].toJSON()).toEqual(collection.toJSON())
           expect(callCount).toEqual 3
 
       describe "caching", ->

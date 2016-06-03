@@ -15,11 +15,20 @@ class window.Brainstem.Model extends Backbone.Model
   constructor: (attributes = {}, options = {}) ->
     if attributes.id && @brainstemKey && base?.data
       existing = base.data.storage(@brainstemKey).get(attributes.id)
-      valid = existing?.set(attributes)
+      blacklist = options.blacklist || @_associationKeyBlacklist()
+      valid = existing?.set(_.omit(attributes, blacklist))
 
       return existing if valid
 
     super
+
+  _associationKeyBlacklist: ->
+    return [] unless @constructor.associations
+
+    _.chain(@constructor.associations)
+      .keys()
+      .map((association) => @constructor.associationDetails(association).key)
+      .value()
 
 
   #

@@ -113,7 +113,7 @@ class window.Brainstem.Collection extends Backbone.Collection
     models = models.models if models.models?
     for model in models
       model = this.model.parse(model) if this.model.parse?
-      backboneModel = @_prepareModel(model)
+      backboneModel = @_prepareModel(model, blacklist: [])
       if backboneModel
         if modelInCollection = @get(backboneModel.id)
           modelInCollection.set backboneModel.attributes

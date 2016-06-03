@@ -17,7 +17,7 @@ describe 'Brainstem.Model', ->
         expect(newModel).toEqual jasmine.any(App.Models.Task)
 
     beforeEach ->
-      model = base.data.storage('tasks').add(buildTask())
+      model = base.data.storage('tasks').add(buildTask(project_id: 1))
 
     context 'id is provided', ->
       context 'storage manager has not been created', ->
@@ -40,6 +40,29 @@ describe 'Brainstem.Model', ->
             newModel = new App.Models.Task(id: model.id)
 
           itReturnsCachedInstance()
+
+          context 'model class does not define associations', ->
+            beforeEach ->
+              model = base.data.storage('users').add(buildUser())
+              newModel = new App.Models.User(id: model.id)
+
+            itReturnsCachedInstance()
+
+          context 'association attributes are provided', ->
+            beforeEach ->
+              newModel = new App.Models.Task(id: model.id, project_id: 2)
+
+            itReturnsCachedInstance()
+
+            it 'does not overwrite existing association attributes', ->
+              expect(+newModel.get('project_id')).toEqual 1
+
+            context 'with blacklist option', ->
+              beforeEach ->
+                newModel = new App.Models.Task({ id: model.id, project_id: 2 }, { blacklist: [] })
+
+              it 'does overwrite the existing association attributes', ->
+                expect(+newModel.get('project_id')).toEqual 2
 
         context 'new model attributes are invalid', ->
           beforeEach ->
