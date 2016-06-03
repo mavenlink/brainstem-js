@@ -1,4 +1,5 @@
 Backbone = require 'backbone'
+Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 StorageManager = require '../../src/storage-manager'
 ModelLoader = require '../../src/loaders/model-loader'
 
