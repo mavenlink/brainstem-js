@@ -348,68 +348,70 @@
 
   var regex = {
     plural : {
-      men       : new RegExp( '^(m|wom)en$'             , 'gi' ),
-      people    : new RegExp( '(pe)ople$'               , 'gi' ),
-      children  : new RegExp( '(child)ren$'             , 'gi' ),
-      tia       : new RegExp( '([ti])a$'                , 'gi' ),
+      men       : new RegExp( '^(m|wom)en$'                    , 'gi' ),
+      people    : new RegExp( '(pe)ople$'                      , 'gi' ),
+      children  : new RegExp( '(child)ren$'                    , 'gi' ),
+      tia       : new RegExp( '([ti])a$'                       , 'gi' ),
       analyses  : new RegExp( '((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$','gi' ),
-      hives     : new RegExp( '(hi|ti)ves$'             , 'gi' ),
-      curves    : new RegExp( '(curve)s$'               , 'gi' ),
-      lrves     : new RegExp( '([lr])ves$'              , 'gi' ),
-      foves     : new RegExp( '([^fo])ves$'             , 'gi' ),
-      movies    : new RegExp( '(m)ovies$'               , 'gi' ),
-      aeiouyies : new RegExp( '([^aeiouy]|qu)ies$'      , 'gi' ),
-      series    : new RegExp( '(s)eries$'               , 'gi' ),
-      xes       : new RegExp( '(x|ch|ss|sh)es$'         , 'gi' ),
-      mice      : new RegExp( '([m|l])ice$'             , 'gi' ),
-      buses     : new RegExp( '(bus)es$'                , 'gi' ),
-      oes       : new RegExp( '(o)es$'                  , 'gi' ),
-      shoes     : new RegExp( '(shoe)s$'                , 'gi' ),
-      crises    : new RegExp( '(cris|ax|test)es$'       , 'gi' ),
-      octopi    : new RegExp( '(octop|vir)i$'           , 'gi' ),
-      aliases   : new RegExp( '(alias|canvas|status)es$', 'gi' ),
-      summonses : new RegExp( '^(summons)es$'           , 'gi' ),
-      oxen      : new RegExp( '^(ox)en'                 , 'gi' ),
-      matrices  : new RegExp( '(matr)ices$'             , 'gi' ),
-      vertices  : new RegExp( '(vert|ind)ices$'         , 'gi' ),
-      feet      : new RegExp( '^feet$'                  , 'gi' ),
-      teeth     : new RegExp( '^teeth$'                 , 'gi' ),
-      geese     : new RegExp( '^geese$'                 , 'gi' ),
-      quizzes   : new RegExp( '(quiz)zes$'              , 'gi' ),
-      whereases : new RegExp( '^(whereas)es$'           , 'gi' ),
-      criteria  : new RegExp( '^(criteri)a$'            , 'gi' ),
-      ss        : new RegExp( 'ss$'                     , 'gi' ),
-      s         : new RegExp( 's$'                      , 'gi' )
+      hives     : new RegExp( '(hi|ti)ves$'                    , 'gi' ),
+      curves    : new RegExp( '(curve)s$'                      , 'gi' ),
+      lrves     : new RegExp( '([lr])ves$'                     , 'gi' ),
+      foves     : new RegExp( '([^fo])ves$'                    , 'gi' ),
+      movies    : new RegExp( '(m)ovies$'                      , 'gi' ),
+      aeiouyies : new RegExp( '([^aeiouy]|qu)ies$'             , 'gi' ),
+      series    : new RegExp( '(s)eries$'                      , 'gi' ),
+      xes       : new RegExp( '(x|ch|ss|sh)es$'                , 'gi' ),
+      mice      : new RegExp( '([m|l])ice$'                    , 'gi' ),
+      buses     : new RegExp( '(bus)es$'                       , 'gi' ),
+      oes       : new RegExp( '(o)es$'                         , 'gi' ),
+      shoes     : new RegExp( '(shoe)s$'                       , 'gi' ),
+      crises    : new RegExp( '(cris|ax|test)es$'              , 'gi' ),
+      octopi    : new RegExp( '(octop|vir)i$'                  , 'gi' ),
+      aliases   : new RegExp( '(alias|canvas|status|campus)es$', 'gi' ),
+      summonses : new RegExp( '^(summons)es$'                  , 'gi' ),
+      oxen      : new RegExp( '^(ox)en'                        , 'gi' ),
+      matrices  : new RegExp( '(matr)ices$'                    , 'gi' ),
+      vertices  : new RegExp( '(vert|ind)ices$'                , 'gi' ),
+      feet      : new RegExp( '^feet$'                         , 'gi' ),
+      teeth     : new RegExp( '^teeth$'                        , 'gi' ),
+      geese     : new RegExp( '^geese$'                        , 'gi' ),
+      quizzes   : new RegExp( '(quiz)zes$'                     , 'gi' ),
+      whereases : new RegExp( '^(whereas)es$'                  , 'gi' ),
+      criteria  : new RegExp( '^(criteri)a$'                   , 'gi' ),
+      genera    : new RegExp( '^genera$'                       , 'gi' ),
+      ss        : new RegExp( 'ss$'                            , 'gi' ),
+      s         : new RegExp( 's$'                             , 'gi' )
     },
 
     singular : {
-      man     : new RegExp( '^(m|wom)an$'           , 'gi' ),
-      person  : new RegExp( '(pe)rson$'             , 'gi' ),
-      child   : new RegExp( '(child)$'              , 'gi' ),
-      ox      : new RegExp( '^(ox)$'                , 'gi' ),
-      axis    : new RegExp( '(ax|test)is$'          , 'gi' ),
-      octopus : new RegExp( '(octop|vir)us$'        , 'gi' ),
-      alias   : new RegExp( '(alias|status|canvas)$', 'gi' ),
-      summons : new RegExp( '^(summons)$'           , 'gi' ),
-      bus     : new RegExp( '(bu)s$'                , 'gi' ),
-      buffalo : new RegExp( '(buffal|tomat|potat)o$', 'gi' ),
-      tium    : new RegExp( '([ti])um$'             , 'gi' ),
-      sis     : new RegExp( 'sis$'                  , 'gi' ),
-      ffe     : new RegExp( '(?:([^f])fe|([lr])f)$' , 'gi' ),
-      hive    : new RegExp( '(hi|ti)ve$'            , 'gi' ),
-      aeiouyy : new RegExp( '([^aeiouy]|qu)y$'      , 'gi' ),
-      x       : new RegExp( '(x|ch|ss|sh)$'         , 'gi' ),
-      matrix  : new RegExp( '(matr)ix$'             , 'gi' ),
-      vertex  : new RegExp( '(vert|ind)ex$'         , 'gi' ),
-      mouse   : new RegExp( '([m|l])ouse$'          , 'gi' ),
-      foot    : new RegExp( '^foot$'                , 'gi' ),
-      tooth   : new RegExp( '^tooth$'               , 'gi' ),
-      goose   : new RegExp( '^goose$'               , 'gi' ),
-      quiz    : new RegExp( '(quiz)$'               , 'gi' ),
-      whereas : new RegExp( '^(whereas)$'           , 'gi' ),
-      criterion : new RegExp( '^(criteri)on$'       , 'gi' ),
-      s       : new RegExp( 's$'                    , 'gi' ),
-      common  : new RegExp( '$'                     , 'gi' )
+      man       : new RegExp( '^(m|wom)an$'                  , 'gi' ),
+      person    : new RegExp( '(pe)rson$'                    , 'gi' ),
+      child     : new RegExp( '(child)$'                     , 'gi' ),
+      ox        : new RegExp( '^(ox)$'                       , 'gi' ),
+      axis      : new RegExp( '(ax|test)is$'                 , 'gi' ),
+      octopus   : new RegExp( '(octop|vir)us$'               , 'gi' ),
+      alias     : new RegExp( '(alias|status|canvas|campus)$', 'gi' ),
+      summons   : new RegExp( '^(summons)$'                  , 'gi' ),
+      bus       : new RegExp( '(bu)s$'                       , 'gi' ),
+      buffalo   : new RegExp( '(buffal|tomat|potat)o$'       , 'gi' ),
+      tium      : new RegExp( '([ti])um$'                    , 'gi' ),
+      sis       : new RegExp( 'sis$'                         , 'gi' ),
+      ffe       : new RegExp( '(?:([^f])fe|([lr])f)$'        , 'gi' ),
+      hive      : new RegExp( '(hi|ti)ve$'                   , 'gi' ),
+      aeiouyy   : new RegExp( '([^aeiouy]|qu)y$'             , 'gi' ),
+      x         : new RegExp( '(x|ch|ss|sh)$'                , 'gi' ),
+      matrix    : new RegExp( '(matr)ix$'                    , 'gi' ),
+      vertex    : new RegExp( '(vert|ind)ex$'                , 'gi' ),
+      mouse     : new RegExp( '([m|l])ouse$'                 , 'gi' ),
+      foot      : new RegExp( '^foot$'                       , 'gi' ),
+      tooth     : new RegExp( '^tooth$'                      , 'gi' ),
+      goose     : new RegExp( '^goose$'                      , 'gi' ),
+      quiz      : new RegExp( '(quiz)$'                      , 'gi' ),
+      whereas   : new RegExp( '^(whereas)$'                  , 'gi' ),
+      criterion : new RegExp( '^(criteri)on$'                , 'gi' ),
+      genus     : new RegExp( '^genus$'                      , 'gi' ),
+      s         : new RegExp( 's$'                           , 'gi' ),
+      common    : new RegExp( '$'                            , 'gi' )
     }
   };
 
@@ -445,33 +447,35 @@
     [ regex.plural.quizzes   ],
     [ regex.plural.whereases ],
     [ regex.plural.criteria  ],
+    [ regex.plural.genera    ],
 
     // original rule
-    [ regex.singular.man    , '$1en' ],
-    [ regex.singular.person , '$1ople' ],
-    [ regex.singular.child  , '$1ren' ],
-    [ regex.singular.ox     , '$1en' ],
-    [ regex.singular.axis   , '$1es' ],
-    [ regex.singular.octopus, '$1i' ],
-    [ regex.singular.alias  , '$1es' ],
-    [ regex.singular.summons, '$1es' ],
-    [ regex.singular.bus    , '$1ses' ],
-    [ regex.singular.buffalo, '$1oes' ],
-    [ regex.singular.tium   , '$1a' ],
-    [ regex.singular.sis    , 'ses' ],
-    [ regex.singular.ffe    , '$1$2ves' ],
-    [ regex.singular.hive   , '$1ves' ],
-    [ regex.singular.aeiouyy, '$1ies' ],
-    [ regex.singular.matrix , '$1ices' ],
-    [ regex.singular.vertex , '$1ices' ],
-    [ regex.singular.x      , '$1es' ],
-    [ regex.singular.mouse  , '$1ice' ],
-    [ regex.singular.foot   , 'feet' ],
-    [ regex.singular.tooth  , 'teeth' ],
-    [ regex.singular.goose  , 'geese' ],
-    [ regex.singular.quiz   , '$1zes' ],
-    [ regex.singular.whereas, '$1es' ],
+    [ regex.singular.man      , '$1en' ],
+    [ regex.singular.person   , '$1ople' ],
+    [ regex.singular.child    , '$1ren' ],
+    [ regex.singular.ox       , '$1en' ],
+    [ regex.singular.axis     , '$1es' ],
+    [ regex.singular.octopus  , '$1i' ],
+    [ regex.singular.alias    , '$1es' ],
+    [ regex.singular.summons  , '$1es' ],
+    [ regex.singular.bus      , '$1ses' ],
+    [ regex.singular.buffalo  , '$1oes' ],
+    [ regex.singular.tium     , '$1a' ],
+    [ regex.singular.sis      , 'ses' ],
+    [ regex.singular.ffe      , '$1$2ves' ],
+    [ regex.singular.hive     , '$1ves' ],
+    [ regex.singular.aeiouyy  , '$1ies' ],
+    [ regex.singular.matrix   , '$1ices' ],
+    [ regex.singular.vertex   , '$1ices' ],
+    [ regex.singular.x        , '$1es' ],
+    [ regex.singular.mouse    , '$1ice' ],
+    [ regex.singular.foot     , 'feet' ],
+    [ regex.singular.tooth    , 'teeth' ],
+    [ regex.singular.goose    , 'geese' ],
+    [ regex.singular.quiz     , '$1zes' ],
+    [ regex.singular.whereas  , '$1es' ],
     [ regex.singular.criterion, '$1a' ],
+    [ regex.singular.genus    , 'genera' ],
 
     [ regex.singular.s     , 's' ],
     [ regex.singular.common, 's' ]
@@ -508,12 +512,14 @@
     [ regex.singular.quiz    ],
     [ regex.singular.whereas ],
     [ regex.singular.criterion ],
+    [ regex.singular.genus ],
 
     // original rule
     [ regex.plural.men      , '$1an' ],
     [ regex.plural.people   , '$1rson' ],
     [ regex.plural.children , '$1' ],
-    [ regex.plural.criteria, '$1on'],
+    [ regex.plural.genera   , 'genus'],
+    [ regex.plural.criteria , '$1on'],
     [ regex.plural.tia      , '$1um' ],
     [ regex.plural.analyses , '$1$2sis' ],
     [ regex.plural.hives    , '$1ve' ],
@@ -1072,7 +1078,7 @@
 /**
  * @public
  */
-  inflector.version = '1.8.0';
+  inflector.version = '1.10.0';
 
   return inflector;
 }));
@@ -1096,6 +1102,8 @@ $ = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined"
 _ = (typeof window !== "undefined" ? window['_'] : typeof global !== "undefined" ? global['_'] : null);
 
 Backbone = (typeof window !== "undefined" ? window['Backbone'] : typeof global !== "undefined" ? global['Backbone'] : null);
+
+Backbone.$ = $;
 
 Utils = require('./utils');
 
@@ -1663,6 +1671,8 @@ $ = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined"
 _ = (typeof window !== "undefined" ? window['_'] : typeof global !== "undefined" ? global['_'] : null);
 
 Backbone = (typeof window !== "undefined" ? window['Backbone'] : typeof global !== "undefined" ? global['Backbone'] : null);
+
+Backbone.$ = $;
 
 Utils = require('../utils');
 
@@ -2266,6 +2276,8 @@ _ = (typeof window !== "undefined" ? window['_'] : typeof global !== "undefined"
 
 Backbone = (typeof window !== "undefined" ? window['Backbone'] : typeof global !== "undefined" ? global['Backbone'] : null);
 
+Backbone.$ = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined" ? global['$'] : null);
+
 inflection = require('inflection');
 
 AbstractLoader = require('./abstract-loader');
@@ -2338,6 +2350,8 @@ var Backbone, Model, StorageManager, Utils, _, inflection,
 _ = (typeof window !== "undefined" ? window['_'] : typeof global !== "undefined" ? global['_'] : null);
 
 Backbone = (typeof window !== "undefined" ? window['Backbone'] : typeof global !== "undefined" ? global['Backbone'] : null);
+
+Backbone.$ = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined" ? global['$'] : null);
 
 inflection = require('inflection');
 
@@ -2703,6 +2717,8 @@ $ = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined"
 
 Backbone = (typeof window !== "undefined" ? window['Backbone'] : typeof global !== "undefined" ? global['Backbone'] : null);
 
+Backbone.$ = $;
+
 inflection = require('inflection');
 
 Utils = require('./utils');
@@ -2999,6 +3015,8 @@ _ = (typeof window !== "undefined" ? window['_'] : typeof global !== "undefined"
 
 Backbone = (typeof window !== "undefined" ? window['Backbone'] : typeof global !== "undefined" ? global['Backbone'] : null);
 
+Backbone.$ = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined" ? global['$'] : null);
+
 Utils = require('./utils');
 
 module.exports = function(method, model, options) {
@@ -3085,6 +3103,8 @@ var Backbone, Error, Utils, _,
 _ = (typeof window !== "undefined" ? window['_'] : typeof global !== "undefined" ? global['_'] : null);
 
 Backbone = (typeof window !== "undefined" ? window['Backbone'] : typeof global !== "undefined" ? global['Backbone'] : null);
+
+Backbone.$ = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined" ? global['$'] : null);
 
 Error = require('./error');
 
