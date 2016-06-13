@@ -10,6 +10,28 @@ class window.Brainstem.Model extends Backbone.Model
 
 
   #
+  # Init
+
+  constructor: (attributes = {}, options = {}) ->
+    if options.cached != false && attributes.id && @brainstemKey && base?.data
+      existing = base.data.storage(@brainstemKey).get(attributes.id)
+      blacklist = options.blacklist || @_associationKeyBlacklist()
+      valid = existing?.set(_.omit(attributes, blacklist))
+
+      return existing if valid
+
+    super
+
+  _associationKeyBlacklist: ->
+    return [] unless @constructor.associations
+
+    _.chain(@constructor.associations)
+      .keys()
+      .map((association) => @constructor.associationDetails(association).key)
+      .value()
+
+
+  #
   # Class Methods
 
   # Retreive details about a named association.  This is a class method.
@@ -112,6 +134,7 @@ class window.Brainstem.Model extends Backbone.Model
     options.name = options.name ? @brainstemKey
     options.cache = false
     options.returnValues ?= {}
+    options.model = this
 
     unless options.name
       Brainstem.Utils.throwError('Either model must have a brainstemKey defined or name option must be provided')
@@ -220,6 +243,9 @@ class window.Brainstem.Model extends Backbone.Model
 
   #
   # Private
+
+  clone: ->
+    new this.constructor(this.attributes, { cached: false })
 
   _parseResultsResponse: (resp) ->
     return resp unless resp['results']
