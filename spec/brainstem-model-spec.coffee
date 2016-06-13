@@ -36,7 +36,7 @@ describe 'Brainstem.Model', ->
       context 'model is cached in storage manager', ->
         context '"cached" option is set to `false`', ->
           beforeEach ->
-            newModel = new App.Models.Task({ id: model.id}, { cached: false })
+            newModel = new App.Models.Task({ id: model.id }, { cached: false })
 
           itReturnsNewInstance()
 
