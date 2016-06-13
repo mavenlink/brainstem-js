@@ -200,7 +200,7 @@ describe 'Brainstem.Model', ->
 
     describe 'integration', ->
       it 'fetches model', ->
-        updatedModel = buildTask()
+        updatedModel = buildTask(description: 'updated description')
 
         respondWith(server, "/api/tasks/#{model.id}", resultsFrom: 'tasks', data: updatedModel)
 
