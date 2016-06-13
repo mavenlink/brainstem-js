@@ -34,6 +34,12 @@ describe 'Brainstem.Model', ->
           expect(-> new App.Models.Task(id: model.id)).not.toThrow()
 
       context 'model is cached in storage manager', ->
+        context '"cached" option is set to `false`', ->
+          beforeEach ->
+            newModel = new App.Models.Task({ id: model.id}, { cached: false })
+
+          itReturnsNewInstance()
+
         context 'new model attributes are valid', ->
           beforeEach ->
             spyOn(model, '_validate').andReturn(true)
@@ -82,6 +88,24 @@ describe 'Brainstem.Model', ->
         newModel = new App.Models.Task()
 
       itReturnsNewInstance()
+
+  describe '#clone', ->
+    cachedModel = clonedModel = clonedCachedModel = null
+
+    beforeEach ->
+      model = buildTask()
+      cachedModel = buildAndCacheTask()
+
+      clonedModel = model.clone()
+      clonedCachedModel = cachedModel.clone()
+
+    it 'clones model', ->
+      expect(model.attributes).toEqual(clonedModel.attributes)
+      expect(model.cid).not.toEqual(clonedModel.cid)
+
+    it 'clones cached model', ->
+      expect(cachedModel.attributes).toEqual(clonedCachedModel.attributes)
+      expect(cachedModel.cid).not.toEqual(clonedCachedModel.cid)
 
   describe '#fetch', ->
     beforeEach ->

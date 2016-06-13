@@ -13,7 +13,7 @@ class window.Brainstem.Model extends Backbone.Model
   # Init
 
   constructor: (attributes = {}, options = {}) ->
-    if attributes.id && @brainstemKey && base?.data
+    if options.cached != false && attributes.id && @brainstemKey && base?.data
       existing = base.data.storage(@brainstemKey).get(attributes.id)
       blacklist = options.blacklist || @_associationKeyBlacklist()
       valid = existing?.set(_.omit(attributes, blacklist))
@@ -243,6 +243,9 @@ class window.Brainstem.Model extends Backbone.Model
 
   #
   # Private
+
+  clone: ->
+    new this.constructor(this.attributes, { cached: false })
 
   _parseResultsResponse: (resp) ->
     return resp unless resp['results']
