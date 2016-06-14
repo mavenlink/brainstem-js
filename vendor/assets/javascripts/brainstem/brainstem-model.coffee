@@ -8,6 +8,8 @@ class window.Brainstem.Model extends Backbone.Model
 
   @OPTION_KEYS =  ['name', 'include', 'cacheKey']
 
+  unsavedAttributes: null
+
 
   #
   # Init
@@ -73,6 +75,14 @@ class window.Brainstem.Model extends Backbone.Model
 
 
   #
+  # Init
+
+  constructor: (options = {}) ->
+    super
+    @unsavedAttributes = {}
+
+
+  #
   # Accessors
 
   # Override Model#get to access associations as well as fields.
@@ -116,6 +126,16 @@ class window.Brainstem.Model extends Backbone.Model
           base.data.createNewCollection(details.collectionName, models, collectionOptions)
     else
       super(field)
+
+  set: (key, val, options) ->
+    super
+
+    _.extend(@unsavedAttributes || {}, @changed)
+
+  save: (key, val, options) ->
+    super
+
+    @unsavedAttributes = {}
 
   className: ->
     @paramRoot
@@ -217,17 +237,16 @@ class window.Brainstem.Model extends Backbone.Model
         cacheObject.valid = false
 
   toServerJSON: (method, options) ->
-    json = @toJSON(options)
     blacklist = @defaultJSONBlacklist()
 
-    switch method
-      when "create"
-        blacklist = blacklist.concat @createJSONBlacklist()
-      when "update"
-        blacklist = blacklist.concat @updateJSONBlacklist()
+    if method == "update"
+      json = _.pick(@toJSON(options), _.keys(@unsavedAttributes))
+      blacklist = blacklist.concat @updateJSONBlacklist()
+    else
+      json = @toJSON(options)
+      blacklist = blacklist.concat @createJSONBlacklist()
 
-    for blacklistKey in blacklist
-      delete json[blacklistKey]
+    delete json[blacklistKey] for blacklistKey in blacklist
 
     json
 

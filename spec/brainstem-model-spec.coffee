@@ -3,6 +3,7 @@ describe 'Brainstem.Model', ->
 
   beforeEach ->
     base.data.reset()
+    model = buildTask()
 
   describe 'instantiation', ->
     newModel = null
@@ -109,7 +110,6 @@ describe 'Brainstem.Model', ->
 
   describe '#fetch', ->
     beforeEach ->
-      model = buildTask()
       base.data.storage('tasks').add model
 
     context 'options has no name property and the model does not have a brainstem key', ->
@@ -836,7 +836,7 @@ describe 'Brainstem.Model', ->
   describe '#toServerJSON', ->
     it "calls toJSON", ->
       spy = spyOn(model, "toJSON").andCallThrough()
-      model.toServerJSON()
+      model.toServerJSON('create')
       expect(spy).toHaveBeenCalled()
 
     it "always removes default blacklisted keys", ->
@@ -873,6 +873,28 @@ describe 'Brainstem.Model', ->
       json = model.toServerJSON("update")
       for key in updateBlacklist
         expect(json[key]).toBeUndefined()
+
+    it "only sends back changed fields on update actions", ->
+      expect(_.keys(model.toServerJSON('update'))).toEqual []
+
+      model.set('title', 'new title')
+
+      expect(_.keys(model.toServerJSON('update'))).toEqual ['title']
+
+    it "resets changed fields on save", ->
+      model.set('title', 'new title')
+      model.set('description', 'new description')
+
+      expect(_.keys(model.toServerJSON('update'))).toEqual ['title', 'description']
+
+      model.save()
+
+      model.set('description', 'another description')
+
+      expect(_.keys(model.toServerJSON('update'))).toEqual ['description']
+
+    it "sends back all fields on create actions", ->
+      expect(_.keys(model.toServerJSON('create'))).toEqual _.chain(model.attributes).keys().without('id').value()
 
   describe '#_linkCollection', ->
     story = null
