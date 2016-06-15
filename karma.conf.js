@@ -16,7 +16,8 @@ module.exports = function (config) {
       'karma-phantomjs-launcher',
       'karma-chrome-launcher',
       'karma-firefox-launcher',
-      'karma-browserify'
+      'karma-browserify',
+      'karma-sourcemap-loader'
     ],
 
     browsers: ['PhantomJS'],
@@ -32,8 +33,8 @@ module.exports = function (config) {
     ],
 
     preprocessors: {
-      'src/**/*.coffee': ['browserify'],
-      'spec/**/*.coffee': ['browserify']
+      'src/**/*.coffee': ['browserify', 'sourcemap'],
+      'spec/**/*.coffee': ['browserify', 'sourcemap']
     },
 
     browserify: {
