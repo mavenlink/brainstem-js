@@ -176,7 +176,7 @@ class _StorageManager
       throw new Error("You must call #enableExpectations on your instance of Brainstem.StorageManager before you can set expectations.")
 
   stubModel: (modelName, modelId, options = {}) ->
-    @stub(modelName, $.extend({}, options, only: modelId))
+    @stub(inflection.pluralize(modelName), $.extend({}, options, only: modelId))
 
   stubImmediate: (collectionName, options) ->
     @stub collectionName, $.extend({}, options, immediate: true)
