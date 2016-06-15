@@ -1186,7 +1186,7 @@ module.exports = Collection = (function(superClass) {
     loader = this.storageManager.loadObject(options.name, _.extend({}, this.firstFetchOptions, options));
     xhr = options.returnValues.jqXhr;
     this.trigger('request', this, xhr, options);
-    return loader.pipe(function() {
+    return loader.then(function() {
       return loader.internalObject.models;
     }).done((function(_this) {
       return function(response) {
@@ -1202,7 +1202,9 @@ module.exports = Collection = (function(superClass) {
         _this[method](response, options);
         return _this.trigger('sync', _this, response, options);
       };
-    })(this)).promise(xhr);
+    })(this)).then(function() {
+      return loader.externalObject;
+    }).promise(xhr);
   };
 
   Collection.prototype.refresh = function(options) {
