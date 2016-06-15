@@ -2298,7 +2298,7 @@ ModelLoader = (function(superClass) {
   };
 
   ModelLoader.prototype._getExpectationName = function() {
-    return inflection.singularize(this.loadOptions.name);
+    return this.loadOptions.name;
   };
 
   ModelLoader.prototype._getModel = function() {
@@ -2923,7 +2923,7 @@ _StorageManager = (function() {
     if (options == null) {
       options = {};
     }
-    return this.stub(modelName, $.extend({}, options, {
+    return this.stub(inflection.pluralize(modelName), $.extend({}, options, {
       only: modelId
     }));
   };
