@@ -78,8 +78,7 @@ gulp.task('clean-styleguide', () => {
 
 let karmaConfig = {
   configFile: path.join(__dirname, 'karma.conf.js'),
-  singleRun: true,
-  sourceMaps: false
+  singleRun: true
 };
 
 if (typeof options.browsers === 'string') {
