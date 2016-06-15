@@ -3,6 +3,7 @@ import util from 'gulp-util';
 import minimist from 'minimist';
 import rename from 'gulp-rename';
 import replace from 'gulp-replace';
+import download from 'gulp-download';
 import path from 'path';
 import del from 'del';
 import coffee from 'gulp-coffee';
@@ -20,6 +21,9 @@ const options = minimist(process.argv.slice(2));
 
 const moduleOutput = './lib';
 const gemOutput = './vendor/assets/javascripts';
+
+const styleguide = 'https://raw.githubusercontent.com/mavenlink/coffeescript-style-guide/master';
+const lintConfig = 'coffeelint.json';
 
 
 // Tasks
@@ -53,12 +57,22 @@ gulp.task('version-gem', () => {
 
 gulp.task('publish-gem', ['build-gem', 'version-gem']);
 
+gulp.task('fetch-styleguide', () => {
+  const url = `${styleguide}/${lintConfig}`;
+
+  return download(url).pipe(gulp.dest('.'));
+});
+
 gulp.task('clean-module', () => {
   return del(`${moduleOutput}/**/*.js`);
 });
 
 gulp.task('clean-gem', () => {
   return del(`${gemOutput}/**/*.js`);
+});
+
+gulp.task('clean-styleguide', () => {
+  return del(lintConfig);
 });
 
 
