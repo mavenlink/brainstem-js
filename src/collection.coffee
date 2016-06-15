@@ -99,7 +99,7 @@ module.exports = class Collection extends Backbone.Collection
 
     @trigger('request', this, xhr, options)
 
-    loader.pipe(-> loader.internalObject.models)
+    loader.then(-> loader.internalObject.models)
       .done((response) =>
         @lastFetchOptions = loader.externalObject.lastFetchOptions
 
@@ -113,7 +113,9 @@ module.exports = class Collection extends Backbone.Collection
         @[method](response, options)
 
         @trigger('sync', this, response, options)
-      ).promise(xhr)
+      )
+      .then(-> loader.externalObject)
+      .promise(xhr)
 
   refresh: (options = {}) ->
     @fetch _.extend(@lastFetchOptions, options, cache: false)
