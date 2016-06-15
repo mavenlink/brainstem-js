@@ -1,5 +1,6 @@
 $ = require 'jquery'
 Backbone = require 'backbone'
+Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 
 StorageManager = require '../src/storage-manager'
 AbstractLoader = require '../src/loaders/abstract-loader'

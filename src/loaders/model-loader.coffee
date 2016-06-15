@@ -1,5 +1,6 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
+Backbone.$ = require 'jquery' # TODO remove after upgrading to backbone 1.2+
 inflection = require 'inflection'
 
 AbstractLoader = require './abstract-loader'
