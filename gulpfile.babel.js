@@ -11,12 +11,14 @@ import stream from 'vinyl-source-stream';
 import browserify from 'browserify';
 import coffeeify from 'coffeeify';
 import shim from 'browserify-shim';
+import coffeelint from 'gulp-coffeelint';
 import { Server as Karma } from 'karma';
 
 import { version, standalone, filename } from './package';
 
 
-const source = './src/brainstem.coffee';
+const source = './src/**/*.coffee';
+const gemSource = './src/brainstem.coffee';
 const options = minimist(process.argv.slice(2));
 
 const moduleOutput = './lib';
@@ -29,19 +31,19 @@ const lintConfig = 'coffeelint.json';
 // Tasks
 
 gulp.task('build-module', () => {
-  return gulp.src('./src/**/*.coffee')
+  return gulp.src(source)
     .pipe(coffee())
     .pipe(gulp.dest(moduleOutput))
     .on('error', util.log);
 });
 
 gulp.task('build-gem', () => {
-  return browserify(source, {
+  return browserify(gemSource, {
     standalone,
     transform: [coffeeify, shim],
     extensions: ['.coffee']
   }).bundle()
-    .pipe(stream(source))
+    .pipe(stream(gemSource))
     .pipe(rename(`${filename}.js`))
     .pipe(gulp.dest(gemOutput))
     .on('error', util.log);
@@ -61,6 +63,13 @@ gulp.task('fetch-styleguide', () => {
   const url = `${styleguide}/${lintConfig}`;
 
   return download(url).pipe(gulp.dest('.'));
+});
+
+gulp.task('coffeelint', ['fetch-styleguide'], () => {
+  return gulp.src(source)
+    .pipe(coffeelint())
+    .pipe(coffeelint.reporter('coffeelint-stylish'))
+    .pipe(coffeelint.reporter('fail'));
 });
 
 gulp.task('clean-module', () => {
