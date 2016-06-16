@@ -1,9 +1,9 @@
-sudo: false
-language: ruby
-rvm:
-  - 2.1.5
-
-before_install: gem install bundler
-
-git:
-  depth: 1
+language: node_js
+node_js:
+  - "5.1.1"
+before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+before_script:
+  - npm install -g gulp
+script: gulp ci

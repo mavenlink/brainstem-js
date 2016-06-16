@@ -1,3 +1,11 @@
+Backbone = require 'backbone'
+Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
+
+StorageManager = require '../../src/storage-manager'
+
+Tasks = require '../helpers/models/tasks'
+
+
 registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
   loader = loaderClass = null
 
@@ -10,8 +18,8 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     name: 'tasks'
 
   createLoader = (opts = {}) ->
-    storageManager = new Brainstem.StorageManager()
-    storageManager.addCollection('tasks', App.Collections.Tasks)
+    storageManager = StorageManager.get()
+    storageManager.addCollection('tasks', Tasks)
 
     defaults =
       storageManager: storageManager
@@ -23,7 +31,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       @externalObject = foo: 'bar'
 
     loader._getModelsForAssociation = -> [{ id: 5 }, { id: 2 }, { id: 1 }, { id: 4 }, { id: 1 }, [{ id: 6 }], { id: null }]
-    loader._getModel = -> App.Collections.Tasks::model
+    loader._getModel = -> Tasks::model
     loader._updateStorageManagerFromResponse = jasmine.createSpy()
     loader._updateObjects = (obj, data, silent) ->
       obj.setLoaded true unless silent
@@ -34,7 +42,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
   describe '#constructor', ->
     it 'saves off a reference to the passed in StorageManager', ->
-      storageManager = new Brainstem.StorageManager()
+      storageManager = StorageManager.get()
       loader = createLoader(storageManager: storageManager)
       expect(loader.storageManager).toEqual storageManager
 
@@ -131,7 +139,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         context '#_checkCacheForData returns data', ->
           it 'returns the data', ->
             fakeData = ['some', 'stuff']
-            loader._checkCacheForData.andReturn(fakeData)
+            loader._checkCacheForData.and.returnValue(fakeData)
 
             loader.setup()
             expect(loader.load()).toEqual(fakeData)
@@ -165,7 +173,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     beforeEach ->
       loader = createLoader()
       fakeObj = setLoaded: jasmine.createSpy()
-      loader._updateObjects.andCallThrough()
+      loader._updateObjects.and.callThrough()
 
     it 'sets the object to loaded if silent is false', ->
       loader._updateObjects(fakeObj, {})
@@ -293,7 +301,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         it 'calls #_onLoadSuccess with the models from the cache', ->
           loader.setup(opts)
           loader._checkCacheForData()
-          expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne, taskTwo])
+          expect(loader._onLoadSuccess.calls.argsFor(0)[0]).toEqual([taskOne, taskTwo])
 
       context 'the requested IDs have not all been loaded', ->
         beforeEach ->
@@ -327,7 +335,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
           loader._checkCacheForData()
 
         it 'calls #_onLoadSuccess with the models from the cache', ->
-          expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne, taskTwo])
+          expect(loader._onLoadSuccess.calls.argsFor(0)[0]).toEqual([taskOne, taskTwo])
 
     context 'not an only query', ->
       context 'there exists a cache with this cacheKey', ->
@@ -351,7 +359,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
               opts.include = ['project']
               loader.setup(opts)
               loader._checkCacheForData()
-              expect(loader._onLoadSuccess).toHaveBeenCalledWith([taskOne])
+              expect(loader._onLoadSuccess.calls.argsFor(0)[0]).toEqual([taskOne])
 
           context 'all of the cached models do not have their associations loaded', ->
             it 'returns false and does not call #_onLoadSuccess', ->
@@ -407,8 +415,8 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       opts = defaultLoadOptions()
       syncOpts = data: 'foo'
 
-      spyOn(Backbone, 'sync').andReturn $.ajax()
-      spyOn(loader, '_buildSyncOptions').andReturn(syncOpts)
+      spyOn(Backbone, 'sync').and.returnValue $.ajax()
+      spyOn(loader, '_buildSyncOptions').and.returnValue(syncOpts)
 
     it 'calls Backbone.sync with the read, the, internalObject, and #_buildSyncOptions', ->
       loader.setup(opts)
@@ -434,7 +442,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       loader = createLoader()
       opts = defaultLoadOptions()
 
-      spyOn(loader, '_getIdsForAssociation').andReturn [1, 2]
+      spyOn(loader, '_getIdsForAssociation').and.returnValue [1, 2]
 
     it 'adds each additional (sub) include to the additionalIncludes array', ->
       opts.include = fakeNestedInclude
@@ -469,13 +477,13 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
     it 'creates a request for each additional include and calls #_onLoadingCompleted when they all are done', ->
       promises = []
-      spyOn(loader.storageManager, 'loadObject').andCallFake ->
+      spyOn(loader.storageManager, 'loadObject').and.callFake ->
         promise = $.Deferred()
         promises.push(promise)
         promise
 
       loader._loadAdditionalIncludes()
-      expect(loader.storageManager.loadObject.callCount).toEqual 2
+      expect(loader.storageManager.loadObject.calls.count()).toEqual 2
       expect(promises.length).toEqual 2
       expect(loader._onLoadingCompleted).not.toHaveBeenCalled()
 
@@ -516,7 +524,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       context 'this is an only load', ->
         context '#_shouldUseOnly returns true', ->
           beforeEach ->
-            spyOn(loader, '_shouldUseOnly').andReturn(true)
+            spyOn(loader, '_shouldUseOnly').and.returnValue(true)
 
           it 'sets data.only to comma separated ids', ->
             opts.only = [1, 2, 3, 4]
@@ -524,7 +532,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
         context '#_shouldUseOnly returns false', ->
           beforeEach ->
-            spyOn(loader, '_shouldUseOnly').andReturn(true)
+            spyOn(loader, '_shouldUseOnly').and.returnValue(true)
 
           it 'does not set data.only', ->
             expect(getSyncOptions(loader, opts).data.only).toBeUndefined()
@@ -687,7 +695,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       expect(loader._updateStorageManagerFromResponse).toHaveBeenCalledWith 'response'
 
     it 'calls #_onServerLoadSuccess with the result from #_updateStorageManagerFromResponse', ->
-      loader._updateStorageManagerFromResponse.andReturn 'data'
+      loader._updateStorageManagerFromResponse.and.returnValue 'data'
 
       loader._onServerLoadSuccess()
       expect(loader._onLoadSuccess).toHaveBeenCalledWith 'data'
@@ -710,7 +718,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
     context 'additional includes are needed', ->
       it 'calls #_loadAdditionalIncludes', ->
-        loader._calculateAdditionalIncludes.andCallFake -> @additionalIncludes = ['foo']
+        loader._calculateAdditionalIncludes.and.callFake -> @additionalIncludes = ['foo']
 
         loader._onLoadSuccess()
         expect(loader._loadAdditionalIncludes).toHaveBeenCalled()

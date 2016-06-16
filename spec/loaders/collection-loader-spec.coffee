@@ -1,16 +1,25 @@
+Backbone = require 'backbone'
+Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
+StorageManager = require '../../src/storage-manager'
+CollectionLoader = require '../../src/loaders/collection-loader'
+
+Task = require '../helpers/models/task'
+Tasks = require '../helpers/models/tasks'
+
+
 describe 'Loaders CollectionLoader', ->
   loader = opts = null
   fakeNestedInclude = ['parent', { project: ['participants'] }, { assignees: ['something_else'] }]
-  loaderClass = Brainstem.CollectionLoader
+  loaderClass = CollectionLoader
   
   defaultLoadOptions = ->
     name: 'tasks'
 
   createLoader = (opts = {}) ->
-    storageManager = new Brainstem.StorageManager()
-    storageManager.addCollection('tasks', App.Collections.Tasks)
+    storageManager = StorageManager.get()
+    storageManager.addCollection('tasks', Tasks)
 
-    defaults = 
+    defaults =
       storageManager: storageManager
 
     loader = new loaderClass(_.extend {}, defaults, opts)
@@ -37,7 +46,7 @@ describe 'Loaders CollectionLoader', ->
     describe '#_getModel', ->
       it 'returns the model from the internal collection', ->
         loader.setup(opts)
-        expect(loader._getModel()).toEqual App.Models.Task
+        expect(loader._getModel()).toEqual Task
 
     describe '#_getModelsForAssociation', ->
       it 'returns the models for a given association from all of the models in the internal collection', ->
@@ -45,8 +54,8 @@ describe 'Loaders CollectionLoader', ->
         user = buildAndCacheUser()
         user2 = buildAndCacheUser()
 
-        loader.internalObject.add(new App.Models.Task(assignee_ids: [user.id]))
-        loader.internalObject.add(new App.Models.Task(assignee_ids: [user2.id]))
+        loader.internalObject.add(new Task(assignee_ids: [user.id]))
+        loader.internalObject.add(new Task(assignee_ids: [user2.id]))
 
         expect(loader._getModelsForAssociation('assignees')).toEqual [[user], [user2]] # Association with a model in it
         expect(loader._getModelsForAssociation('parent')).toEqual [[], []] # Association without any models
@@ -56,24 +65,24 @@ describe 'Loaders CollectionLoader', ->
       collection = null
 
       beforeEach ->
-        collection = new App.Collections.Tasks()
-        spyOn(loader.storageManager, 'createNewCollection').andReturn collection
+        collection = new Tasks()
+        spyOn(loader.storageManager, 'createNewCollection').and.returnValue collection
 
       it 'creates a new collection from the name in loadOptions', ->
         loader.setup(opts)
-        expect(loader.storageManager.createNewCollection.callCount).toEqual 2
+        expect(loader.storageManager.createNewCollection.calls.count()).toEqual 2
         expect(loader.internalObject).toEqual collection
 
       context 'collection is passed in to loadOptions', ->
         it 'uses the collection that is passed in', ->
-          opts.collection ?= new App.Collections.Tasks()
+          opts.collection ?= new Tasks()
           loader.setup(opts)
           expect(loader.externalObject).toEqual opts.collection
 
       context 'collection is not passed in to loadOptions', ->
         it 'creates a new collection from the name in loadOptions', ->
           loader.setup(opts)
-          expect(loader.storageManager.createNewCollection.callCount).toEqual 2
+          expect(loader.storageManager.createNewCollection.calls.count()).toEqual 2
           expect(loader.externalObject).toEqual collection
 
       it 'sets the collection to not loaded', ->
@@ -115,7 +124,7 @@ describe 'Loaders CollectionLoader', ->
 
     describe '#_updateObject', ->
       it 'triggers loaded on the object after the attributes have been set', ->
-        loadedSpy = jasmine.createSpy().andCallFake -> 
+        loadedSpy = jasmine.createSpy().and.callFake -> 
           expect(this.length).toEqual 1 # make sure that the spy is called after the models have been added (tests the trigger: false)
 
         loader.setup(opts)

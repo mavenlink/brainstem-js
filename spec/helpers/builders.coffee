@@ -1,3 +1,16 @@
+$ = require 'jquery'
+_ = require 'underscore'
+inflection = require 'inflection'
+
+StorageManager = require '../../src/storage-manager'
+
+Post = require './models/post'
+Project = require './models/project'
+Task = require './models/task'
+TimeEntry = require './models/time-entry'
+User = require './models/user'
+
+
 window.spec ?= {}
 
 spec.defineBuilders = ->
@@ -20,13 +33,14 @@ spec.defineBuilders = ->
       BackboneFactory.create(name, $.extend({}, class_defaults, idsToStrings(opts)))
 
     creator = (opts) ->
+      storageManager = StorageManager.get()
       obj = builder(idsToStrings(opts))
-      storageName = name.underscore().pluralize()
-      window.base.data.storage(storageName).add obj if window.base.data.collectionExists(storageName)
+      storageName = inflection.transform(name, ['underscore', 'pluralize'])
+      storageManager.storage(storageName).add obj if storageManager.collectionExists(storageName)
       obj
 
-    window["build_#{name.underscore()}".camelize(true)] = builder
-    window["build_and_cache_#{name.underscore()}".camelize(true)] = creator
+    window[inflection.camelize("build_#{inflection.underscore(name)}", true)] = builder
+    window[inflection.camelize("build_and_cache_#{inflection.underscore(name)}", true)] = creator
 
   isIdAttr = (attrName) ->
     attrName == 'id' || attrName.match(/_id$/) || (attrName.match(/_ids$/))
@@ -46,11 +60,11 @@ spec.defineBuilders = ->
 
     builderOpts
 
-  window.defineBuilder "user", App.Models.User, {
+  window.defineBuilder "user", User, {
     id: (n) -> return n
   }
 
-  window.defineBuilder "project", App.Models.Project, {
+  window.defineBuilder "project", Project, {
     id: (n) -> return n
     title: "new project"
   }
@@ -62,7 +76,7 @@ spec.defineBuilders = ->
       id: (n)-> return n
       project_id: project.get("id")
     }
-  window.defineBuilder "timeEntry", App.Models.TimeEntry, getTimeEntryDefaults()
+  window.defineBuilder "timeEntry", TimeEntry, getTimeEntryDefaults()
 
   getTaskDefaults = ->
     project = buildProject()
@@ -75,6 +89,6 @@ spec.defineBuilders = ->
       archived: false
       parent_id: null
     }
-  window.defineBuilder "task", App.Models.Task, getTaskDefaults()
+  window.defineBuilder "task", Task, getTaskDefaults()
 
-  window.defineBuilder "post", App.Models.Post, {}
+  window.defineBuilder "post", Post, {}

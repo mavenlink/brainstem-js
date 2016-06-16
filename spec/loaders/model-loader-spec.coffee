@@ -1,15 +1,24 @@
+Backbone = require 'backbone'
+Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
+StorageManager = require '../../src/storage-manager'
+ModelLoader = require '../../src/loaders/model-loader'
+
+Task = require '../helpers/models/task'
+Tasks = require '../helpers/models/tasks'
+
+
 describe 'Loaders ModelLoader', ->
   loader = opts = null
   fakeNestedInclude = ['parent', { project: ['participants'] }, { assignees: ['something_else'] }]
-  loaderClass = Brainstem.ModelLoader
+  loaderClass = ModelLoader
   
   defaultLoadOptions = ->
     name: 'task'
     only: 1
 
   createLoader = (opts = {}) ->
-    storageManager = base.data
-    storageManager.addCollection('tasks', App.Collections.Tasks)
+    storageManager = StorageManager.get()
+    storageManager.addCollection('tasks', Tasks)
 
     defaults = 
       storageManager: storageManager
@@ -38,7 +47,7 @@ describe 'Loaders ModelLoader', ->
     describe '#_getModel', ->
       it 'returns the constructor of the internalObject', ->
         loader.setup(opts)
-        expect(loader._getModel()).toEqual App.Models.Task
+        expect(loader._getModel()).toEqual Task
 
     describe '#_getModelsForAssociation', ->
       it 'returns the models from the internalObject for a given association', ->
@@ -61,8 +70,8 @@ describe 'Loaders ModelLoader', ->
 
       context 'there is not a matching model in the storageManager', ->
         it 'creates a new model and uses that as the internalObject', ->
-          model = new App.Models.Task()
-          spyOn(loader.storageManager, 'createNewModel').andReturn model
+          model = new Task()
+          spyOn(loader.storageManager, 'createNewModel').and.returnValue model
           loader.setup(opts)
           expect(loader.internalObject).toEqual model
 
