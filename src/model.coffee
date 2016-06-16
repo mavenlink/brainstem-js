@@ -31,20 +31,20 @@ class Model extends Backbone.Model
           {
             type: 'BelongsTo'
             collectionName: associator
-            key: '#{association}_ref'
+            key: "#{association}_ref"
             polymorphic: true
           }
         else if isArray
           {
             type: 'HasMany'
             collectionName: associator[0]
-            key: '#{inflection.singularize(association)}_ids'
+            key: "#{inflection.singularize(association)}_ids"
           }
         else
           {
             type: 'BelongsTo'
             collectionName: associator
-            key: '#{association}_id'
+            key: "#{association}_id"
           }
 
   # Parse ISO8601 attribute strings into date objects
