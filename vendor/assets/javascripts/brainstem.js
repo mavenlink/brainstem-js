@@ -2421,7 +2421,7 @@ Model = (function(superClass) {
   };
 
   function Model(attributes, options) {
-    var blacklist, existing, valid;
+    var blacklist, cache, existing, valid;
     if (attributes == null) {
       attributes = {};
     }
@@ -2430,8 +2430,11 @@ Model = (function(superClass) {
     }
     this._onAssociatedCollectionChange = bind(this._onAssociatedCollectionChange, this);
     this.storageManager = StorageManager.get();
-    if (options.cached !== false && attributes.id && this.brainstemKey) {
-      existing = this.storageManager.storage(this.brainstemKey).get(attributes.id);
+    try {
+      cache = this.storageManager.storage(this.brainstemKey);
+    } catch (undefined) {}
+    if (options.cached !== false && attributes.id && this.brainstemKey && cache) {
+      existing = cache.get(attributes.id);
       blacklist = options.blacklist || this._associationKeyBlacklist();
       valid = existing != null ? existing.set(_.omit(attributes, blacklist)) : void 0;
       if (valid) {
