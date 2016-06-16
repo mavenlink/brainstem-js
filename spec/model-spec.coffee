@@ -36,10 +36,15 @@ describe 'Model', ->
       model = storageManager.storage('tasks').add(buildTask(project_id: 1))
 
     context 'id is provided', ->
-      context 'storage manager has not been created', ->
+      context 'storage manager cache does not exist', ->
+        cache = null
+
+        beforeEach ->
+          cache = storageManager.collections
+          storageManager.collections = {}
 
         afterEach ->
-          storageManager.reset()
+          storageManager.collections = cache
 
         it 'does not throw an error trying to access storage manager', ->
           expect(-> new Task(id: model.id)).not.toThrow()

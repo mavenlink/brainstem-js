@@ -62,8 +62,10 @@ class Model extends Backbone.Model
   constructor: (attributes = {}, options = {}) ->
     @storageManager = StorageManager.get()
 
-    if options.cached != false && attributes.id && @brainstemKey
-      existing = @storageManager.storage(@brainstemKey).get(attributes.id)
+    try cache = @storageManager.storage(@brainstemKey)
+
+    if options.cached != false && attributes.id && @brainstemKey && cache
+      existing = cache.get(attributes.id)
       blacklist = options.blacklist || @_associationKeyBlacklist()
       valid = existing?.set(_.omit(attributes, blacklist))
 
