@@ -1239,7 +1239,9 @@ module.exports = Collection = (function(superClass) {
       if (this.model.parse != null) {
         model = this.model.parse(model);
       }
-      backboneModel = this._prepareModel(model);
+      backboneModel = this._prepareModel(model, {
+        blacklist: []
+      });
       if (backboneModel) {
         if (modelInCollection = this.get(backboneModel.id)) {
           results.push(modelInCollection.set(backboneModel.attributes));
@@ -2312,16 +2314,23 @@ ModelLoader = (function(superClass) {
   };
 
   ModelLoader.prototype._createObjects = function() {
-    var id;
+    var id, model, storage;
     id = this.loadOptions.only[0];
-    this.internalObject = this.storageManager.storage(this._getCollectionName()).get(id) || this.storageManager.createNewModel(this.loadOptions.name, {
+    storage = this.storageManager.storage(this._getCollectionName());
+    model = this.loadOptions.model;
+    if (model && model.id) {
+      storage.add(model, {
+        remove: false
+      });
+    }
+    return this.internalObject = this.externalObject = storage.get(id) || this.storageManager.createNewModel(this.loadOptions.name, {
       id: id
     });
-    return this.externalObject = this.internalObject;
   };
 
   ModelLoader.prototype._updateStorageManagerFromResponse = function(resp) {
-    return this.internalObject.parse(resp);
+    var attributes;
+    return attributes = this.internalObject.parse(resp);
   };
 
   ModelLoader.prototype._updateObjects = function(object, data) {
@@ -2411,14 +2420,37 @@ Model = (function(superClass) {
     return modelObject;
   };
 
-  function Model(options) {
+  function Model(attributes, options) {
+    var blacklist, existing, valid;
+    if (attributes == null) {
+      attributes = {};
+    }
     if (options == null) {
       options = {};
     }
     this._onAssociatedCollectionChange = bind(this._onAssociatedCollectionChange, this);
-    Model.__super__.constructor.apply(this, arguments);
     this.storageManager = StorageManager.get();
+    if (options.cached !== false && attributes.id && this.brainstemKey) {
+      existing = this.storageManager.storage(this.brainstemKey).get(attributes.id);
+      blacklist = options.blacklist || this._associationKeyBlacklist();
+      valid = existing != null ? existing.set(_.omit(attributes, blacklist)) : void 0;
+      if (valid) {
+        return existing;
+      }
+    }
+    Model.__super__.constructor.apply(this, arguments);
   }
+
+  Model.prototype._associationKeyBlacklist = function() {
+    if (!this.constructor.associations) {
+      return [];
+    }
+    return _.chain(this.constructor.associations).keys().map((function(_this) {
+      return function(association) {
+        return _this.constructor.associationDetails(association).key;
+      };
+    })(this)).value();
+  };
 
   Model.prototype.get = function(field, options) {
     var collectionName, collectionOptions, comparator, details, i, id, ids, len, model, models, notFoundIds, pointer;
@@ -2495,6 +2527,7 @@ Model = (function(superClass) {
     if (options.returnValues == null) {
       options.returnValues = {};
     }
+    options.model = this;
     if (!options.name) {
       Utils.throwError('Either model must have a brainstemKey defined or name option must be provided');
     }
@@ -2663,6 +2696,12 @@ Model = (function(superClass) {
 
   Model.prototype.updateJSONBlacklist = function() {
     return [];
+  };
+
+  Model.prototype.clone = function() {
+    return new this.constructor(this.attributes, {
+      cached: false
+    });
   };
 
   Model.prototype._parseResultsResponse = function(resp) {
