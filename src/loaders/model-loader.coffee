@@ -37,13 +37,16 @@ class ModelLoader extends AbstractLoader
 
   _createObjects: ->
     id = @loadOptions.only[0]
+    storage = @storageManager.storage(@_getCollectionName())
+    model = @loadOptions.model
 
-    @internalObject = @storageManager.storage(@_getCollectionName()).get(id) ||
-                      @storageManager.createNewModel(@loadOptions.name, id: id)
-    @externalObject = @internalObject
+    storage.add(model, remove: false) if model && model.id
+
+    @internalObject =
+    @externalObject = storage.get(id) || @storageManager.createNewModel(@loadOptions.name, id: id)
 
   _updateStorageManagerFromResponse: (resp) ->
-    @internalObject.parse(resp)
+    attributes = @internalObject.parse(resp)
 
   _updateObjects: (object, data) ->
     if _.isArray(data) && data.length == 1

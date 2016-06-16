@@ -59,9 +59,26 @@ class Model extends Backbone.Model
   #
   # Init
 
-  constructor: (options = {}) ->
-    super
+  constructor: (attributes = {}, options = {}) ->
     @storageManager = StorageManager.get()
+
+    if options.cached != false && attributes.id && @brainstemKey
+      existing = @storageManager.storage(@brainstemKey).get(attributes.id)
+      blacklist = options.blacklist || @_associationKeyBlacklist()
+      valid = existing?.set(_.omit(attributes, blacklist))
+
+      return existing if valid
+
+    super
+
+  _associationKeyBlacklist: ->
+    return [] unless @constructor.associations
+
+    _.chain(@constructor.associations)
+      .keys()
+      .map((association) => @constructor.associationDetails(association).key)
+      .value()
+
 
   #
   # Accessors
@@ -125,6 +142,7 @@ class Model extends Backbone.Model
     options.name = options.name ? @brainstemKey
     options.cache = false
     options.returnValues ?= {}
+    options.model = this
 
     unless options.name
       Utils.throwError('Either model must have a brainstemKey defined or name option must be provided')
@@ -238,6 +256,9 @@ class Model extends Backbone.Model
 
   #
   # Private
+
+  clone: ->
+    new this.constructor(this.attributes, { cached: false })
 
   _parseResultsResponse: (resp) ->
     return resp unless resp['results']

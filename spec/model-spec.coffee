@@ -9,6 +9,7 @@ StorageManager = require '../src/storage-manager'
 Post = require './helpers/models/post'
 Project = require './helpers/models/project'
 Task = require './helpers/models/task'
+User = require './helpers/models/user'
 TimeEntry = require './helpers/models/time-entry'
 
 
@@ -18,6 +19,104 @@ describe 'Model', ->
   beforeEach ->
     storageManager = StorageManager.get()
     storageManager.reset()
+
+  describe 'instantiation', ->
+    newModel = null
+
+    itReturnsCachedInstance = ->
+      it 'returns cached instance', ->
+        expect(newModel).toEqual model
+
+    itReturnsNewInstance = ->
+      it 'returns new instance', ->
+        expect(newModel).not.toEqual model
+        expect(newModel).toEqual jasmine.any(Task)
+
+    beforeEach ->
+      model = storageManager.storage('tasks').add(buildTask(project_id: 1))
+
+    context 'id is provided', ->
+      context 'storage manager has not been created', ->
+
+        afterEach ->
+          storageManager.reset()
+
+        it 'does not throw an error trying to access storage manager', ->
+          expect(-> new Task(id: model.id)).not.toThrow()
+
+      context 'model is cached in storage manager', ->
+        context '"cached" option is set to `false`', ->
+          beforeEach ->
+            newModel = new Task({ id: model.id }, { cached: false })
+
+          itReturnsNewInstance()
+
+        context 'new model attributes are valid', ->
+          beforeEach ->
+            spyOn(model, '_validate').and.returnValue(true)
+            newModel = new Task(id: model.id)
+
+          itReturnsCachedInstance()
+
+          context 'model class does not define associations', ->
+            beforeEach ->
+              model = storageManager.storage('users').add(buildUser())
+              newModel = new User(id: model.id)
+
+            itReturnsCachedInstance()
+
+          context 'association attributes are provided', ->
+            beforeEach ->
+              newModel = new Task(id: model.id, project_id: 2)
+
+            itReturnsCachedInstance()
+
+            it 'does not overwrite existing association attributes', ->
+              expect(+newModel.get('project_id')).toEqual 1
+
+            context 'with blacklist option', ->
+              beforeEach ->
+                newModel = new Task({ id: model.id, project_id: 2 }, { blacklist: [] })
+
+              it 'does overwrite the existing association attributes', ->
+                expect(+newModel.get('project_id')).toEqual 2
+
+        context 'new model attributes are invalid', ->
+          beforeEach ->
+            spyOn(model, '_validate').and.returnValue(false)
+            newModel = new Task(id: model.id)
+
+          itReturnsNewInstance()
+
+      context 'model is not cached in storage manager', ->
+        beforeEach ->
+          newModel = new Task(id: model.id + 1)
+
+        itReturnsNewInstance()
+
+    context 'id is not provided', ->
+      beforeEach ->
+        newModel = new Task()
+
+      itReturnsNewInstance()
+
+  describe '#clone', ->
+    cachedModel = clonedModel = clonedCachedModel = null
+
+    beforeEach ->
+      model = buildTask()
+      cachedModel = buildAndCacheTask()
+
+      clonedModel = model.clone()
+      clonedCachedModel = cachedModel.clone()
+
+    it 'clones model', ->
+      expect(model.attributes).toEqual(clonedModel.attributes)
+      expect(model.cid).not.toEqual(clonedModel.cid)
+
+    it 'clones cached model', ->
+      expect(cachedModel.attributes).toEqual(clonedCachedModel.attributes)
+      expect(cachedModel.cid).not.toEqual(clonedCachedModel.cid)
 
   describe '#fetch', ->
     deferred = null
@@ -61,7 +160,7 @@ describe 'Model', ->
 
       model.fetch(options)
 
-      expect(Utils.wrapError).toHaveBeenCalledWith(model, options)
+      expect(Utils.wrapError).toHaveBeenCalledWith(model, jasmine.objectContaining(options))
 
     it 'calls loadObject', ->
       model.fetch()
@@ -75,6 +174,7 @@ describe 'Model', ->
           error: jasmine.any(Function),
           cache: false
           returnValues: jasmine.any(Object)
+          model: model
         },
         isCollection: false
       )
@@ -97,12 +197,11 @@ describe 'Model', ->
           error: jasmine.any(Function),
           cache: false,
           returnValues: jasmine.any(Object)
+          model: model
         }
       )
 
     it 'returns a promise', ->
-      spyOn(model, 'trigger')
-
       expect(model.fetch()).toEqual(jasmine.objectContaining({
         done: jasmine.any(Function),
         fail: jasmine.any(Function),
@@ -111,14 +210,60 @@ describe 'Model', ->
 
   describe 'fetch integration', ->
     it 'updates model with fetched attributes', ->
-      task = buildTask()
-      respondWith(server, "/api/tasks/#{task.id}", resultsFrom: 'tasks', data: task)
+      model = buildAndCacheTask()
+      updatedModel = buildTask(description: 'updated description')
 
-      model.id = task.id
+      respondWith(server, "/api/tasks/#{model.id}", resultsFrom: 'tasks', data: updatedModel)
+
       model.fetch()
       server.respond()
 
-      expect(model.attributes).toEqual(task.attributes)
+      expect(model.attributes).toEqual(updatedModel.attributes)
+
+    it 'caches new model reference on fetch', ->
+      newTask = buildTask()
+
+      respondWith(server, "/api/tasks/#{newTask.id}", resultsFrom: 'tasks', data: newTask)
+
+      newModel = new Task(id: newTask.id)
+      newModel.fetch()
+
+      server.respond()
+
+      expect(storageManager.storage('tasks').get(newModel.id)).toEqual(newModel)
+
+    it 'updates new model reference', ->
+      task = buildAndCacheTask()
+
+      respondWith(server, "/api/tasks/#{task.id}", resultsFrom: 'tasks', data: task)
+
+      newModel = new Task(id: task.id)
+      newModel.fetch()
+
+      server.respond()
+
+      expect(task.attributes).toEqual(newModel.attributes)
+
+    context 'model reference already exists in cache', ->
+      it 'does not duplicate model reference ', ->
+        respondWith(server, '/api/tasks/1', resultsFrom: 'tasks', data: model)
+
+        model.fetch()
+        server.respond()
+
+        expect(storageManager.storage('tasks').where(id: model.id).length).toEqual(1)
+
+    it 'returns a promise with jqXhr methods', ->
+      task = buildTask()
+      respondWith(server, '/api/tasks/1', resultsFrom: 'tasks', data: task)
+
+      jqXhr = $.ajax()
+      promise = model.fetch()
+
+      for key, value of jqXhr
+        object = {}
+        object[key] = jasmine.any(value.constructor)
+        expect(promise).toEqual jasmine.objectContaining(object)
 
   describe '#parse', ->
     response = null
@@ -194,14 +339,22 @@ describe 'Model', ->
       expect( -> model.parse(tasks: {}, results: [], count: 0)).not.toThrow()
 
     describe 'updateStorageManager', ->
-      it 'should update the associations before the new model', ->
-        response.tasks[1].assignee_ids = [5]
-        response.users = { 5: {id: 5, name: 'Jon'} }
+      it 'updates the associations before the new model', ->
+        spyOn(storageManager, 'storage').and.callThrough()
 
-        spy = spyOn(storageManager, 'storage').and.callThrough()
+        response.tasks[1].assignee_ids = [5]
+        response.users = { 5: { id: 5, name: 'Jon' } }
+
         model.updateStorageManager(response)
-        expect(spy.calls.argsFor(0)[0]).toEqual('users')
-        expect(spy.calls.argsFor(1)[0]).toEqual('tasks')
+
+        usersIndex = tasksIndex = null
+
+        _.each storageManager.storage.calls.all(), (call, index) ->
+          switch call.args[0]
+            when 'users' then usersIndex = index
+            when 'tasks' then tasksIndex = index
+
+        expect(usersIndex).toBeLessThan(tasksIndex)
 
       it 'should work with an empty response', ->
         expect( -> model.updateStorageManager(count: 0, results: [])).not.toThrow()

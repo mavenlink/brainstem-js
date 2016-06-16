@@ -490,6 +490,7 @@ describe 'Brainstem Storage Manager', ->
                                                                     ]
           collection.bind "loaded", checkStructure
           collection.bind "reset", checkStructure
+
           expect(success).not.toHaveBeenCalled()
 
           server.respond() until server.queue.length == 0
