@@ -34,7 +34,7 @@ class _StorageManager
   # Accessors
 
   # Access the cache for a particular collection.
-  # manager.storage("time_entries").get(12).get("title")
+  # manager.storage('time_entries').get(12).get('title')
   storage: (name) ->
     @getCollectionDetails(name).storage
 
@@ -59,7 +59,7 @@ class _StorageManager
   # Control
 
   # Add a collection to the StorageManager.  All collections that will be loaded or used in associations must be added.
-  #    manager.addCollection "time_entries", TimeEntries
+  #    manager.addCollection 'time_entries', TimeEntries
   addCollection: (name, collectionClass) ->
     collection = new collectionClass()
 
@@ -90,10 +90,10 @@ class _StorageManager
   # Request a model to be loaded, optionally ensuring that associations be included as well.
   # A loader (which is a jQuery promise) is returned immediately and is resolved with the model
   # from the StorageManager when the load, and any dependent loads, are complete.
-  #     loader = manager.loadModel "time_entry", 2
-  #     loader = manager.loadModel "time_entry", 2, fields: ["title", "notes"]
-  #     loader = manager.loadModel "time_entry", 2, include: ["project", "task"]
-  #     manager.loadModel("time_entry", 2, include: ["project", "task"]).done (model) -> console.log model
+  #     loader = manager.loadModel 'time_entry', 2
+  #     loader = manager.loadModel 'time_entry', 2, fields: ['title', 'notes']
+  #     loader = manager.loadModel 'time_entry', 2, include: ['project', 'task']
+  #     manager.loadModel('time_entry', 2, include: ['project', 'task']).done (model) -> console.log model
   loadModel: (name, id, options = {}) ->
     return if not id
 
@@ -103,13 +103,15 @@ class _StorageManager
   # Request a set of data to be loaded, optionally ensuring that associations be
   # included as well.  A collection is returned immediately and is reset
   # when the load, and any dependent loads, are complete.
-  #     collection = manager.loadCollection "time_entries"
-  #     collection = manager.loadCollection "time_entries", only: [2, 6]
-  #     collection = manager.loadCollection "time_entries", fields: ["title", "notes"]
-  #     collection = manager.loadCollection "time_entries", include: ["project", "task"]
-  #     collection = manager.loadCollection "time_entries", include: ["project:title,description", "task:due_date"]
-  #     collection = manager.loadCollection "tasks", include: ["assets", { "assignees": "account" }, { "sub_tasks": ["assignees", "assets"] }]
-  #     collection = manager.loadCollection "time_entries", filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
+  #     collection = manager.loadCollection 'time_entries'
+  #     collection = manager.loadCollection 'time_entries', only: [2, 6]
+  #     collection = manager.loadCollection 'time_entries', fields: ['title', 'notes']
+  #     collection = manager.loadCollection 'time_entries', include: ['project', 'task']
+  #     collection = manager.loadCollection 'time_entries', include: ['project:title,description', 'task:due_date']
+  #     collection = manager.loadCollection 'tasks',
+  #       include: ['assets', { 'assignees': 'account' }, { 'sub_tasks': ['assignees', 'assets'] }]
+  #     collection = manager.loadCollection 'time_entries',
+  #       filters: ['project_id:6', 'editable:true'], order: 'updated_at:desc', page: 1, perPage: 20
   loadCollection: (name, options = {}) ->
     loader = @loadObject(name, options)
     loader.externalObject
@@ -159,9 +161,10 @@ class _StorageManager
     loader._updateStorageManagerFromResponse response
 
   collectionError: (name) ->
-    Utils.throwError("""
-      Unknown collection #{name} in StorageManager. Known collections: #{_(@collections).keys().join(", ")}
-    """)
+    Utils.throwError("
+      Unknown collection #{name} in StorageManager.
+      Known collections: #{_(@collections).keys().join(', ')}
+    ")
 
 
   #
@@ -173,7 +176,10 @@ class _StorageManager
       @expectations.push expectation
       expectation
     else
-      throw new Error("You must call #enableExpectations on your instance of Brainstem.StorageManager before you can set expectations.")
+      throw new Error('
+        You must call #enableExpectations on your instance of
+        Brainstem.StorageManager before you can set expectations.
+      ')
 
   stubModel: (modelName, modelId, options = {}) ->
     @stub(inflection.pluralize(modelName), $.extend({}, options, only: modelId))

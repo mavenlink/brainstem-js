@@ -19,8 +19,8 @@ class Model extends Backbone.Model
   # Class Methods
 
   # Retreive details about a named association.  This is a class method.
-  #     Model.associationDetails("project") # => {}
-  #     timeEntry.constructor.associationDetails("project") # => {}
+  #     Model.associationDetails('project') # => {}
+  #     timeEntry.constructor.associationDetails('project') # => {}
   @associationDetails: (association) ->
     @associationDetailsCache ||= {}
     if @associations && @associations[association]
@@ -29,22 +29,22 @@ class Model extends Backbone.Model
         isArray = _.isArray associator
         if isArray && associator.length > 1
           {
-            type: "BelongsTo"
+            type: 'BelongsTo'
             collectionName: associator
-            key: "#{association}_ref"
+            key: '#{association}_ref'
             polymorphic: true
           }
         else if isArray
           {
-            type: "HasMany"
+            type: 'HasMany'
             collectionName: associator[0]
-            key: "#{inflection.singularize(association)}_ids"
+            key: '#{inflection.singularize(association)}_ids'
           }
         else
           {
-            type: "BelongsTo"
+            type: 'BelongsTo'
             collectionName: associator
-            key: "#{association}_id"
+            key: '#{association}_id'
           }
 
   # Parse ISO8601 attribute strings into date objects
@@ -69,7 +69,7 @@ class Model extends Backbone.Model
   # Override Model#get to access associations as well as fields.
   get: (field, options = {}) ->
     if details = @constructor.associationDetails(field)
-      if details.type == "BelongsTo"
+      if details.type == 'BelongsTo'
         pointer = super(details.key) # project_id
         if pointer
           if details.polymorphic
@@ -82,7 +82,10 @@ class Model extends Backbone.Model
           model = @storageManager.storage(collectionName).get(pointer)
 
           if not model && not options.silent
-            Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{@storageManager.storage(details.collectionName).pluck("id").join(", ")}")
+            Utils.throwError("
+              Unable to find #{field} with id #{id} in our cached {details.collectionName} collection.
+              We know about #{@storageManager.storage(details.collectionName).pluck('id').join(', ')}
+            ")
 
           model
       else
@@ -95,9 +98,14 @@ class Model extends Backbone.Model
             models.push(model)
             notFoundIds.push(id) unless model
           if notFoundIds.length && not options.silent
-            Utils.throwError("Unable to find #{field} with ids #{notFoundIds.join(", ")} in our cached #{details.collectionName} collection.  We know about #{@storageManager.storage(details.collectionName).pluck("id").join(", ")}")
+            Utils.throwError("
+              Unable to find #{field} with ids #{notFoundIds.join(', ')}
+              in our cached #{details.collectionName} collection.  We know about
+              #{@storageManager.storage(details.collectionName).pluck('id').join(', ')}
+            ")
         if options.order
-          comparator = @storageManager.getCollectionDetails(details.collectionName).klass.getComparatorWithIdFailover(options.order)
+          details = @storageManager.getCollectionDetails(details.collectionName)
+          comparator = details.klass(options.order)
           collectionOptions = { comparator: comparator }
         else
           collectionOptions = {}
@@ -176,7 +184,7 @@ class Model extends Backbone.Model
 
   # This method determines if all of the provided associations have been loaded for this model.  If no associations are
   # provided, all associations are assumed.
-  #   model.associationsAreLoaded(["project", "task"]) # => true|false
+  #   model.associationsAreLoaded(['project', 'task']) # => true|false
   #   model.associationsAreLoaded() # => true|false
   associationsAreLoaded: (associations) ->
     associations ||= _.keys(@constructor.associations)
@@ -190,7 +198,7 @@ class Model extends Backbone.Model
 
       pointer = @attributes[key]
 
-      if details.type == "BelongsTo"
+      if details.type == 'BelongsTo'
         if pointer == null
           true
         else if details.polymorphic
@@ -216,9 +224,9 @@ class Model extends Backbone.Model
     blacklist = @defaultJSONBlacklist()
 
     switch method
-      when "create"
+      when 'create'
         blacklist = blacklist.concat @createJSONBlacklist()
-      when "update"
+      when 'update'
         blacklist = blacklist.concat @updateJSONBlacklist()
 
     for blacklistKey in blacklist

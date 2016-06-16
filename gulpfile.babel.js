@@ -69,7 +69,7 @@ gulp.task('coffeelint', ['fetch-styleguide'], () => {
   return gulp.src(source)
     .pipe(coffeelint())
     .pipe(coffeelint.reporter('coffeelint-stylish'))
-    .pipe(coffeelint.reporter('fail'));
+    .pipe(coffeelint.reporter('failOnWarning'));
 });
 
 gulp.task('clean-module', () => {

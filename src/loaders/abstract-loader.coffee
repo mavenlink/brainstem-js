@@ -110,7 +110,7 @@ class AbstractLoader
   _getIdsForAssociation: (association) ->
     models = @_getModelsForAssociation(association)
     if _.isArray(models)
-      _(models).chain().flatten().pluck("id").compact().uniq().sort().value()
+      _(models).chain().flatten().pluck('id').compact().uniq().sort().value()
     else
       [models.id]
 
@@ -149,13 +149,13 @@ class AbstractLoader
   _parseLoadOptions: (loadOptions = {}) ->
     @originalOptions = _.clone(loadOptions)
     @loadOptions = _.clone(loadOptions)
-    @loadOptions.include = Utils.wrapObjects(Utils.extractArray "include", @loadOptions)
-    @loadOptions.optionalFields = Utils.extractArray("optionalFields", @loadOptions)
+    @loadOptions.include = Utils.wrapObjects(Utils.extractArray 'include', @loadOptions)
+    @loadOptions.optionalFields = Utils.extractArray('optionalFields', @loadOptions)
     @loadOptions.filters ?= {}
     @loadOptions.thisLayerInclude = _.map @loadOptions.include, (i) -> _.keys(i)[0] # pull off the top layer of includes
 
     if @loadOptions.only
-      @loadOptions.only = _.map((Utils.extractArray "only", @loadOptions), (id) -> String(id))
+      @loadOptions.only = _.map((Utils.extractArray 'only', @loadOptions), (id) -> String(id))
     else
       @loadOptions.only = null
 
@@ -173,11 +173,15 @@ class AbstractLoader
    * @return {string} cache key
   ###
   _buildCacheKey: ->
-    filterKeys = if _.isObject(@loadOptions.filters) && _.size(@loadOptions.filters) > 0 then JSON.stringify(@loadOptions.filters) else ''
+    filterKeys = if _.isObject(@loadOptions.filters) && _.size(@loadOptions.filters) > 0
+      JSON.stringify(@loadOptions.filters)
+    else
+      ''
+
     onlyIds = (@loadOptions.only || []).sort().join(',')
 
     @loadOptions.cacheKey = [
-      @loadOptions.order || "updated_at:desc"
+      @loadOptions.order || 'updated_at:desc'
       filterKeys
       onlyIds
       @loadOptions.page
@@ -288,11 +292,11 @@ class AbstractLoader
       error: @_onServerLoadError
       success: @_onServerLoadSuccess
 
-    syncOptions.data.include = options.thisLayerInclude.join(",") if options.thisLayerInclude.length
-    syncOptions.data.only = options.only.join(",") if options.only && @_shouldUseOnly()
+    syncOptions.data.include = options.thisLayerInclude.join(',') if options.thisLayerInclude.length
+    syncOptions.data.only = options.only.join(',') if options.only && @_shouldUseOnly()
     syncOptions.data.order = options.order if options.order?
     syncOptions.data.search = options.search if options.search
-    syncOptions.data.optional_fields = @loadOptions.optionalFields.join(",") if @loadOptions.optionalFields?.length
+    syncOptions.data.optional_fields = @loadOptions.optionalFields.join(',') if @loadOptions.optionalFields?.length
 
     blacklist = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search', 'optional_fields']
     _(syncOptions.data).chain()
