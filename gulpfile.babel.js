@@ -125,3 +125,5 @@ gulp.task('test-watch', (done) => {
 
   new Karma(config, karmaErrorHandler.bind(done)).start();
 });
+
+gulp.task('ci', ['coffeelint', 'test-ci']);
