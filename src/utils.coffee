@@ -7,30 +7,28 @@ Error = require './error'
 
 class Utils
   @warn: (args...) ->
-    console?.log "Error:", args...
+    console?.log 'Error: ', args...
 
   @throwError: (message) ->
-    message = "#{message}"
     fragment = try Backbone.history?.getFragment()
-
     message += ", fragment: #{fragment}" if fragment
 
     throw new Error(message)
 
-  @matches: (obj1, obj2) ->
-    if @empty(obj1) && @empty(obj2)
+  @matches: (object1, object2) ->
+    if @empty(object1) && @empty(object2)
       true
-    else if obj1 instanceof Array && obj2 instanceof Array
-      obj1.length == obj2.length && _.every obj1, (value, index) => @matches(value, obj2[index])
-    else if obj1 instanceof Object && obj2 instanceof Object
-      obj1Keys = _(obj1).keys()
-      obj2Keys = _(obj2).keys()
-      obj1Keys.length == obj2Keys.length && _.every obj1Keys, (key) => @matches(obj1[key], obj2[key])
+    else if object1 instanceof Array && object2 instanceof Array
+      obj1.length == obj2.length && _.every object1, (value, index) => @matches(value, object2[index])
+    else if object1 instanceof Object && object2 instanceof Object
+      obj1Keys = _(object1).keys()
+      obj2Keys = _(object2).keys()
+      obj1Keys.length == obj2Keys.length && _.every obj1Keys, (key) => @matches(object1[key], object2[key])
     else
-      String(obj1) == String(obj2)
+      String(object1) == String(object2)
 
   @empty: (thing) ->
-    if thing == null || thing == undefined || thing == ""
+    if thing == null || thing == undefined || thing == ''
       true
     if thing instanceof Array
       thing.length == 0 || thing.length == 1 && @empty(thing[0])

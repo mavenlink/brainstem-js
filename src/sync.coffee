@@ -43,8 +43,8 @@ module.exports = (method, model, options) ->
     else
       data = json
 
-    data.include = Utils.extractArray("include", options).join(",")
-    data.filters = Utils.extractArray("filters", options).join(",")
+    data.include = Utils.extractArray('include', options).join(',')
+    data.filters = Utils.extractArray('filters', options).join(',')
 
     _.extend(data, options.params || {})
 
@@ -53,7 +53,7 @@ module.exports = (method, model, options) ->
   # For older servers, emulate JSON by encoding the request into an HTML-form.
   if options.emulateJSON
     params.contentType = 'application/x-www-form-urlencoded'
-    params.data = if params.data then {model: params.data} else {}
+    params.data = if params.data then { model: params.data } else {}
 
   # For older servers, emulate HTTP by mimicking the HTTP method with `_method`
   # And an `X-HTTP-Method-Override` header.
@@ -67,7 +67,8 @@ module.exports = (method, model, options) ->
       if beforeSend
         beforeSend.apply this, arguments
 
-  # Clear out default data for DELETE requests, fixes a firefox issue where this exception is thrown: JavaScript component does not have a method named: “available”
+  # Clear out default data for DELETE requests, fixes a firefox issue where this
+  # exception is thrown: JavaScript component does not have a method named: “available”
   if params.type == 'DELETE'
     params.data = null
 
@@ -79,7 +80,7 @@ module.exports = (method, model, options) ->
   # that still has ActiveX enabled by default, override jQuery to use that
   # for XHR instead. Remove this line when jQuery supports `PATCH` on IE8.
   if params.type == 'PATCH' && window.ActiveXObject && !(window.external && window.external.msActiveXFilteringEnabled)
-    params.xhr = -> new ActiveXObject("Microsoft.XMLHTTP")
+    params.xhr = -> new ActiveXObject('Microsoft.XMLHTTP')
 
   # Make the request, allowing the user to override any Ajax options.
   xhr = options.xhr = Backbone.ajax(_.extend(params, options))
