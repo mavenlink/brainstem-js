@@ -29,20 +29,20 @@ class Model extends Backbone.Model
         isArray = _.isArray associator
         if isArray && associator.length > 1
           {
-            type: "BelongsTo"
+            type: 'BelongsTo'
             collectionName: associator
             key: "#{association}_ref"
             polymorphic: true
           }
         else if isArray
           {
-            type: "HasMany"
+            type: 'HasMany'
             collectionName: associator[0]
             key: "#{inflection.singularize(association)}_ids"
           }
         else
           {
-            type: "BelongsTo"
+            type: 'BelongsTo'
             collectionName: associator
             key: "#{association}_id"
           }
@@ -88,7 +88,7 @@ class Model extends Backbone.Model
   # Override Model#get to access associations as well as fields.
   get: (field, options = {}) ->
     if details = @constructor.associationDetails(field)
-      if details.type == "BelongsTo"
+      if details.type == 'BelongsTo'
         pointer = super(details.key) # project_id
         if pointer
           if details.polymorphic
@@ -101,7 +101,10 @@ class Model extends Backbone.Model
           model = @storageManager.storage(collectionName).get(pointer)
 
           if not model && not options.silent
-            Utils.throwError("Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.  We know about #{@storageManager.storage(details.collectionName).pluck("id").join(", ")}")
+            Utils.throwError("
+              Unable to find #{field} with id #{id} in our cached {details.collectionName} collection.
+              We know about #{@storageManager.storage(details.collectionName).pluck('id').join(', ')}
+            ")
 
           model
       else
@@ -114,9 +117,14 @@ class Model extends Backbone.Model
             models.push(model)
             notFoundIds.push(id) unless model
           if notFoundIds.length && not options.silent
-            Utils.throwError("Unable to find #{field} with ids #{notFoundIds.join(", ")} in our cached #{details.collectionName} collection.  We know about #{@storageManager.storage(details.collectionName).pluck("id").join(", ")}")
+            Utils.throwError("
+              Unable to find #{field} with ids #{notFoundIds.join(', ')} in our
+              cached #{details.collectionName} collection.  We know about
+              #{@storageManager.storage(details.collectionName).pluck('id').join(', ')}
+            ")
         if options.order
-          comparator = @storageManager.getCollectionDetails(details.collectionName).klass.getComparatorWithIdFailover(options.order)
+          klass = @storageManager.getCollectionDetails(details.collectionName).klass
+          comparator = klass.getComparatorWithIdFailover(options.order)
           collectionOptions = { comparator: comparator }
         else
           collectionOptions = {}
@@ -210,7 +218,7 @@ class Model extends Backbone.Model
 
       pointer = @attributes[key]
 
-      if details.type == "BelongsTo"
+      if details.type == 'BelongsTo'
         if pointer == null
           true
         else if details.polymorphic
@@ -236,9 +244,9 @@ class Model extends Backbone.Model
     blacklist = @defaultJSONBlacklist()
 
     switch method
-      when "create"
+      when 'create'
         blacklist = blacklist.concat @createJSONBlacklist()
-      when "update"
+      when 'update'
         blacklist = blacklist.concat @updateJSONBlacklist()
 
     for blacklistKey in blacklist

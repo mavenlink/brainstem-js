@@ -7,7 +7,7 @@ Error = require './error'
 
 class Utils
   @warn: (args...) ->
-    console?.log "Error:", args...
+    console?.log 'Error:', args...
 
   @throwError: (message) ->
     message = "#{message}"
@@ -30,7 +30,7 @@ class Utils
       String(obj1) == String(obj2)
 
   @empty: (thing) ->
-    if thing == null || thing == undefined || thing == ""
+    if thing == null || thing == undefined || thing == ''
       true
     if thing instanceof Array
       thing.length == 0 || thing.length == 1 && @empty(thing[0])

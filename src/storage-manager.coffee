@@ -108,8 +108,10 @@ class _StorageManager
   #     collection = manager.loadCollection "time_entries", fields: ["title", "notes"]
   #     collection = manager.loadCollection "time_entries", include: ["project", "task"]
   #     collection = manager.loadCollection "time_entries", include: ["project:title,description", "task:due_date"]
-  #     collection = manager.loadCollection "tasks", include: ["assets", { "assignees": "account" }, { "sub_tasks": ["assignees", "assets"] }]
-  #     collection = manager.loadCollection "time_entries", filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
+  #     collection = manager.loadCollection "tasks",
+  #       include: ["assets", { "assignees": "account" }, { "sub_tasks": ["assignees", "assets"] }]
+  #     collection = manager.loadCollection "time_entries",
+  #       filters: ["project_id:6", "editable:true"], order: "updated_at:desc", page: 1, perPage: 20
   loadCollection: (name, options = {}) ->
     loader = @loadObject(name, options)
     loader.externalObject
@@ -173,7 +175,10 @@ class _StorageManager
       @expectations.push expectation
       expectation
     else
-      throw new Error("You must call #enableExpectations on your instance of Brainstem.StorageManager before you can set expectations.")
+      throw new Error('
+        You must call #enableExpectations on your instance of
+        Brainstem.StorageManager before you can set expectations.
+      ')
 
   stubModel: (modelName, modelId, options = {}) ->
     @stub(inflection.pluralize(modelName), $.extend({}, options, only: modelId))

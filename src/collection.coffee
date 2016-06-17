@@ -24,10 +24,10 @@ module.exports = class Collection extends Backbone.Collection
   ]
 
   @getComparatorWithIdFailover: (order) ->
-    [field, direction] = order.split(":")
+    [field, direction] = order.split(':')
     comp = @getComparator(field)
     (a, b) ->
-      [b, a] = [a, b] if direction.toLowerCase() == "desc"
+      [b, a] = [a, b] if direction.toLowerCase() == 'desc'
       result = comp(a, b)
       if result == 0
         a.get('id') - b.get('id')
@@ -136,7 +136,7 @@ module.exports = class Collection extends Backbone.Collection
         else
           @add backboneModel
       else
-        Utils.warn "Unable to update collection with invalid model", model
+        Utils.warn 'Unable to update collection with invalid model', model
 
   reload: (options) ->
     @storageManager.reset()
