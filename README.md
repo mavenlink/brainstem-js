@@ -4,7 +4,7 @@ Brainstem.js is a companion library for Backbone.js that makes integration with 
 
 [Brainstem](https://github.com/mavenlink/brainstem) is designed to power rich APIs in Rails. The Brainstem gem provides a presenter library that handles converting ActiveRecord objects into structured JSON and a set of API abstractions that allow users to request sorts, filters, and association loads, allowing for simpler implementations, fewer requests, and smaller responses.
 
-[![build status](https://img.shields.io/travis/mavenlink/brainstem-js/common-js.svg?style=flat-square)](https://travis-ci.org/mavenlink/brainstem-js)
+[![build status](https://img.shields.io/travis/mavenlink/brainstem-js/master.svg?style=flat-square)](https://travis-ci.org/mavenlink/brainstem-js)
 [![npm version](https://img.shields.io/npm/v/brainstem-js.svg?style=flat-square)](https://www.npmjs.com/package/brainstem-js)
 [![npm downloads](https://img.shields.io/npm/dm/brainstem-js.svg?style=flat-square)](https://www.npmjs.com/package/braintem-js)
 [![Gitter](https://img.shields.io/gitter/room/mavenlnk/brainstem-js.svg?style=flat-square)](https://gitter.im/mavenlink/brainstem-js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
