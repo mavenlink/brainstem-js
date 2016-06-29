@@ -1,3 +1,4 @@
+$ = require 'jquery'
 Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 
