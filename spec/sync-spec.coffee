@@ -1,3 +1,6 @@
+Backbone = require 'backbone'
+Backbone.$ = require 'jquery'
+
 Model = require '../src/model'
 
 
@@ -5,7 +8,7 @@ describe "Sync", ->
   ajaxSpy = null
 
   beforeEach ->
-    ajaxSpy = spyOn($, 'ajax')
+    ajaxSpy = spyOn(Backbone.$, 'ajax')
 
   describe "updating models", ->
     it "should use toServerJSON instead of toJSON", ->
