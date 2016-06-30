@@ -1,20 +1,20 @@
-import gulp from 'gulp';
-import util from 'gulp-util';
-import minimist from 'minimist';
-import rename from 'gulp-rename';
-import replace from 'gulp-replace';
-import download from 'gulp-download';
-import path from 'path';
-import del from 'del';
-import coffee from 'gulp-coffee';
-import stream from 'vinyl-source-stream';
-import browserify from 'browserify';
-import coffeeify from 'coffeeify';
-import shim from 'browserify-shim';
-import coffeelint from 'gulp-coffeelint';
-import { Server as Karma } from 'karma';
+const gulp = require('gulp');
+const util = require('gulp-util');
+const minimist = require('minimist');
+const rename = require('gulp-rename');
+const replace = require('gulp-replace');
+const download = require('gulp-download');
+const path = require('path');
+const del = require('del');
+const coffee = require('gulp-coffee');
+const stream = require('vinyl-source-stream');
+const browserify = require('browserify');
+const coffeeify = require('coffeeify');
+const shim = require('browserify-shim');
+const coffeelint = require('gulp-coffeelint');
+const { Server: Karma } = require('karma');
 
-import { version, standalone, filename } from './package';
+const { version, standalone, filename } = require('./package');
 
 
 const source = './src/**/*.coffee';
