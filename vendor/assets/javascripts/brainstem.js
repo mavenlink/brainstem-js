@@ -1114,11 +1114,11 @@ module.exports = Collection = (function(superClass) {
 
   Collection.getComparatorWithIdFailover = function(order) {
     var comp, direction, field, ref;
-    ref = order.split(":"), field = ref[0], direction = ref[1];
+    ref = order.split(':'), field = ref[0], direction = ref[1];
     comp = this.getComparator(field);
     return function(a, b) {
       var ref1, result;
-      if (direction.toLowerCase() === "desc") {
+      if (direction.toLowerCase() === 'desc') {
         ref1 = [a, b], b = ref1[0], a = ref1[1];
       }
       result = comp(a, b);
@@ -1249,7 +1249,7 @@ module.exports = Collection = (function(superClass) {
           results.push(this.add(backboneModel));
         }
       } else {
-        results.push(Utils.warn("Unable to update collection with invalid model", model));
+        results.push(Utils.warn('Unable to update collection with invalid model', model));
       }
     }
     return results;
@@ -1793,7 +1793,7 @@ AbstractLoader = (function() {
     var models;
     models = this._getModelsForAssociation(association);
     if (_.isArray(models)) {
-      return _(models).chain().flatten().pluck("id").compact().uniq().sort().value();
+      return _(models).chain().flatten().pluck('id').compact().uniq().sort().value();
     } else {
       return [models.id];
     }
@@ -1846,8 +1846,8 @@ AbstractLoader = (function() {
     }
     this.originalOptions = _.clone(loadOptions);
     this.loadOptions = _.clone(loadOptions);
-    this.loadOptions.include = Utils.wrapObjects(Utils.extractArray("include", this.loadOptions));
-    this.loadOptions.optionalFields = Utils.extractArray("optionalFields", this.loadOptions);
+    this.loadOptions.include = Utils.wrapObjects(Utils.extractArray('include', this.loadOptions));
+    this.loadOptions.optionalFields = Utils.extractArray('optionalFields', this.loadOptions);
     if ((base = this.loadOptions).filters == null) {
       base.filters = {};
     }
@@ -1855,7 +1855,7 @@ AbstractLoader = (function() {
       return _.keys(i)[0];
     });
     if (this.loadOptions.only) {
-      this.loadOptions.only = _.map(Utils.extractArray("only", this.loadOptions), function(id) {
+      this.loadOptions.only = _.map(Utils.extractArray('only', this.loadOptions), function(id) {
         return String(id);
       });
     } else {
@@ -1882,7 +1882,7 @@ AbstractLoader = (function() {
     var filterKeys, onlyIds;
     filterKeys = _.isObject(this.loadOptions.filters) && _.size(this.loadOptions.filters) > 0 ? JSON.stringify(this.loadOptions.filters) : '';
     onlyIds = (this.loadOptions.only || []).sort().join(',');
-    return this.loadOptions.cacheKey = [this.loadOptions.order || "updated_at:desc", filterKeys, onlyIds, this.loadOptions.page, this.loadOptions.perPage, this.loadOptions.limit, this.loadOptions.offset, this.loadOptions.search].join('|');
+    return this.loadOptions.cacheKey = [this.loadOptions.order || 'updated_at:desc', filterKeys, onlyIds, this.loadOptions.page, this.loadOptions.perPage, this.loadOptions.limit, this.loadOptions.offset, this.loadOptions.search].join('|');
   };
 
 
@@ -2029,10 +2029,10 @@ AbstractLoader = (function() {
       success: this._onServerLoadSuccess
     };
     if (options.thisLayerInclude.length) {
-      syncOptions.data.include = options.thisLayerInclude.join(",");
+      syncOptions.data.include = options.thisLayerInclude.join(',');
     }
     if (options.only && this._shouldUseOnly()) {
-      syncOptions.data.only = options.only.join(",");
+      syncOptions.data.only = options.only.join(',');
     }
     if (options.order != null) {
       syncOptions.data.order = options.order;
@@ -2041,7 +2041,7 @@ AbstractLoader = (function() {
       syncOptions.data.search = options.search;
     }
     if ((ref = this.loadOptions.optionalFields) != null ? ref.length : void 0) {
-      syncOptions.data.optional_fields = this.loadOptions.optionalFields.join(",");
+      syncOptions.data.optional_fields = this.loadOptions.optionalFields.join(',');
     }
     blacklist = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search', 'optional_fields'];
     _(syncOptions.data).chain().extend(_(options.filters).omit(blacklist)).extend(_(options.params).omit(blacklist)).value();
@@ -2353,12 +2353,14 @@ module.exports = ModelLoader;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./abstract-loader":6,"inflection":1}],9:[function(require,module,exports){
 (function (global){
-var Backbone, Model, StorageManager, Utils, _, inflection,
+var $, Backbone, Model, StorageManager, Utils, _, inflection,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
 _ = (typeof window !== "undefined" ? window['_'] : typeof global !== "undefined" ? global['_'] : null);
+
+$ = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined" ? global['$'] : null);
 
 Backbone = (typeof window !== "undefined" ? window['Backbone'] : typeof global !== "undefined" ? global['Backbone'] : null);
 
@@ -2386,20 +2388,20 @@ Model = (function(superClass) {
           isArray = _.isArray(associator);
           if (isArray && associator.length > 1) {
             return {
-              type: "BelongsTo",
+              type: 'BelongsTo',
               collectionName: associator,
               key: association + "_ref",
               polymorphic: true
             };
           } else if (isArray) {
             return {
-              type: "HasMany",
+              type: 'HasMany',
               collectionName: associator[0],
               key: (inflection.singularize(association)) + "_ids"
             };
           } else {
             return {
-              type: "BelongsTo",
+              type: 'BelongsTo',
               collectionName: associator,
               key: association + "_id"
             };
@@ -2456,12 +2458,12 @@ Model = (function(superClass) {
   };
 
   Model.prototype.get = function(field, options) {
-    var collectionName, collectionOptions, comparator, details, i, id, ids, len, model, models, notFoundIds, pointer;
+    var collectionName, collectionOptions, comparator, details, i, id, ids, klass, len, model, models, notFoundIds, pointer;
     if (options == null) {
       options = {};
     }
     if (details = this.constructor.associationDetails(field)) {
-      if (details.type === "BelongsTo") {
+      if (details.type === 'BelongsTo') {
         pointer = Model.__super__.get.call(this, details.key);
         if (pointer) {
           if (details.polymorphic) {
@@ -2473,7 +2475,7 @@ Model = (function(superClass) {
           }
           model = this.storageManager.storage(collectionName).get(pointer);
           if (!model && !options.silent) {
-            Utils.throwError("Unable to find " + field + " with id " + id + " in our cached " + details.collectionName + " collection.  We know about " + (this.storageManager.storage(details.collectionName).pluck("id").join(", ")));
+            Utils.throwError("Unable to find " + field + " with id " + id + " in our cached {details.collectionName} collection. We know about " + (this.storageManager.storage(details.collectionName).pluck('id').join(', ')));
           }
           return model;
         }
@@ -2491,11 +2493,12 @@ Model = (function(superClass) {
             }
           }
           if (notFoundIds.length && !options.silent) {
-            Utils.throwError("Unable to find " + field + " with ids " + (notFoundIds.join(", ")) + " in our cached " + details.collectionName + " collection.  We know about " + (this.storageManager.storage(details.collectionName).pluck("id").join(", ")));
+            Utils.throwError("Unable to find " + field + " with ids " + (notFoundIds.join(', ')) + " in our cached " + details.collectionName + " collection.  We know about " + (this.storageManager.storage(details.collectionName).pluck('id').join(', ')));
           }
         }
         if (options.order) {
-          comparator = this.storageManager.getCollectionDetails(details.collectionName).klass.getComparatorWithIdFailover(options.order);
+          klass = this.storageManager.getCollectionDetails(details.collectionName).klass;
+          comparator = klass.getComparatorWithIdFailover(options.order);
           collectionOptions = {
             comparator: comparator
           };
@@ -2623,7 +2626,7 @@ Model = (function(superClass) {
           return false;
         }
         pointer = _this.attributes[key];
-        if (details.type === "BelongsTo") {
+        if (details.type === 'BelongsTo') {
           if (pointer === null) {
             return true;
           } else if (details.polymorphic) {
@@ -2676,10 +2679,10 @@ Model = (function(superClass) {
     json = this.toJSON(options);
     blacklist = this.defaultJSONBlacklist();
     switch (method) {
-      case "create":
+      case 'create':
         blacklist = blacklist.concat(this.createJSONBlacklist());
         break;
-      case "update":
+      case 'update':
         blacklist = blacklist.concat(this.updateJSONBlacklist());
     }
     for (i = 0, len = blacklist.length; i < len; i++) {
@@ -2755,7 +2758,9 @@ module.exports = Model;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./storage-manager":10,"./utils":12,"inflection":1}],10:[function(require,module,exports){
 (function (global){
-var $, Backbone, CollectionLoader, Expectation, ModelLoader, StorageManager, Utils, _StorageManager, inflection, sync;
+var $, Backbone, CollectionLoader, Expectation, ModelLoader, StorageManager, Utils, _, _StorageManager, inflection, sync;
+
+_ = (typeof window !== "undefined" ? window['_'] : typeof global !== "undefined" ? global['_'] : null);
 
 $ = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined" ? global['$'] : null);
 
@@ -2959,7 +2964,7 @@ _StorageManager = (function() {
       this.expectations.push(expectation);
       return expectation;
     } else {
-      throw new Error("You must call #enableExpectations on your instance of Brainstem.StorageManager before you can set expectations.");
+      throw new Error('You must call #enableExpectations on your instance of Brainstem.StorageManager before you can set expectations.');
     }
   };
 
@@ -3097,8 +3102,8 @@ module.exports = function(method, model, options) {
     } else {
       data = json;
     }
-    data.include = Utils.extractArray("include", options).join(",");
-    data.filters = Utils.extractArray("filters", options).join(",");
+    data.include = Utils.extractArray('include', options).join(',');
+    data.filters = Utils.extractArray('filters', options).join(',');
     _.extend(data, options.params || {});
     params.data = JSON.stringify(data);
   }
@@ -3129,7 +3134,7 @@ module.exports = function(method, model, options) {
   }
   if (params.type === 'PATCH' && window.ActiveXObject && !(window.external && window.external.msActiveXFilteringEnabled)) {
     params.xhr = function() {
-      return new ActiveXObject("Microsoft.XMLHTTP");
+      return new ActiveXObject('Microsoft.XMLHTTP');
     };
   }
   xhr = options.xhr = Backbone.ajax(_.extend(params, options));
@@ -3158,7 +3163,7 @@ Utils = (function() {
   Utils.warn = function() {
     var args;
     args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-    return typeof console !== "undefined" && console !== null ? console.log.apply(console, ["Error:"].concat(slice.call(args))) : void 0;
+    return typeof console !== "undefined" && console !== null ? console.log.apply(console, ['Error:'].concat(slice.call(args))) : void 0;
   };
 
   Utils.throwError = function(message) {
@@ -3200,7 +3205,7 @@ Utils = (function() {
   };
 
   Utils.empty = function(thing) {
-    if (thing === null || thing === void 0 || thing === "") {
+    if (thing === null || thing === void 0 || thing === '') {
       true;
     }
     if (thing instanceof Array) {
