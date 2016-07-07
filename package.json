@@ -1,9 +1,12 @@
 {
   "name": "brainstem-js",
   "repository": "https://github.com/mavenlink/brainstem-js",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
   "filename": "brainstem",
   "standalone": "Brainstem",
-  "version": "0.4.9",
+  "version": "0.4.10",
   "author": {
     "name": "Mavenlink",
     "email": "dev@mavenlink.com"
