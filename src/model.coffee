@@ -102,10 +102,10 @@ class Model extends Backbone.Model
           model = @storageManager.storage(collectionName).get(pointer)
 
           if not model && not options.silent
-            Utils.throwError("
+            Utils.throwError("""
               Unable to find #{field} with id #{id} in our cached {details.collectionName} collection.
               We know about #{@storageManager.storage(details.collectionName).pluck('id').join(', ')}
-            ")
+            """)
 
           model
       else
@@ -118,11 +118,11 @@ class Model extends Backbone.Model
             models.push(model)
             notFoundIds.push(id) unless model
           if notFoundIds.length && not options.silent
-            Utils.throwError("
+            Utils.throwError("""
               Unable to find #{field} with ids #{notFoundIds.join(', ')} in our
               cached #{details.collectionName} collection.  We know about
               #{@storageManager.storage(details.collectionName).pluck('id').join(', ')}
-            ")
+            """)
         if options.order
           klass = @storageManager.getCollectionDetails(details.collectionName).klass
           comparator = klass.getComparatorWithIdFailover(options.order)
