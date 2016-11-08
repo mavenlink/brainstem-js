@@ -6,7 +6,7 @@ Brainstem.js is a companion library for Backbone.js that makes integration with 
 
 [![build status](https://img.shields.io/travis/mavenlink/brainstem-js/master.svg?style=flat-square)](https://travis-ci.org/mavenlink/brainstem-js)
 [![npm version](https://img.shields.io/npm/v/brainstem-js.svg?style=flat-square)](https://www.npmjs.com/package/brainstem-js)
-[![npm downloads](https://img.shields.io/npm/dm/brainstem-js.svg?style=flat-square)](https://www.npmjs.com/package/braintem-js)
+[![npm downloads](https://img.shields.io/npm/dm/brainstem-js.svg?style=flat-square)](https://www.npmjs.com/package/brainstem-js)
 [![Gitter](https://img.shields.io/gitter/room/mavenlnk/brainstem-js.svg?style=flat-square)](https://gitter.im/mavenlink/brainstem-js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ### Why Brainstem.js?
