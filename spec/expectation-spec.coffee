@@ -20,6 +20,13 @@ describe 'Expectations', ->
   afterEach ->
     storageManager.disableExpectations()
 
+  describe "fetch returned value", ->
+    describe "xhr api", ->
+      it "has abort", ->
+        storageManager.stub "projects", response: (stub) ->
+        collection = storageManager.storage("projects")
+        expect(collection.fetch().abort).toBeDefined()
+
   describe "stubbing responses", ->
     it "should update returned collections", ->
       expectation = storageManager.stub "projects", response: (stub) ->
