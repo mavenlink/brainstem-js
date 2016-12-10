@@ -149,6 +149,9 @@ class _StorageManager
 
     if @expectations?
       @handleExpectations(loader)
+      loader.loadOptions.returnValues ?= {}
+      loader.loadOptions.returnValues.jqXhr =
+        abort: ->
     else
       loader.load()
 
