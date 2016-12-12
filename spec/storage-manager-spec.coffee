@@ -49,6 +49,10 @@ describe 'Brainstem Storage Manager', ->
       timeEntry.collection.remove(timeEntry)
       expect(timeEntry.invalidateCache).toHaveBeenCalled()
 
+    it 'initializes firstFetchOptions is an empty object', ->
+      manager.addCollection 'time_entries', TimeEntries
+      expect(manager.storage('time_entries').firstFetchOptions).toEqual({})
+
   describe "reset", ->
     it "should clear all storage and sort lengths", ->
       buildAndCacheTask()
