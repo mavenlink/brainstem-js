@@ -8,8 +8,8 @@
   "standalone": "Brainstem",
   "version": "0.4.13",
   "author": {
-    "name": "Mavenlink",
-    "email": "dev@mavenlink.com"
+    "name": "Juan Carlos Medina",
+    "email": "juanca.med@gmail.com"
   },
   "license": "MIT",
   "main": "lib/brainstem.js",
