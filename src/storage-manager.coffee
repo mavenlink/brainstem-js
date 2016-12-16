@@ -62,7 +62,7 @@ class _StorageManager
   # Add a collection to the StorageManager.  All collections that will be loaded or used in associations must be added.
   #    manager.addCollection "time_entries", TimeEntries
   addCollection: (name, collectionClass) ->
-    collection = new collectionClass()
+    collection = new collectionClass([], {})
 
     collection.on 'remove', (model) ->
       model.invalidateCache()
