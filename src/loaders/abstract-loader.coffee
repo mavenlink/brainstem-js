@@ -254,6 +254,7 @@ class AbstractLoader
           name: associationName
           ids: associationIds
           include: associationInclude
+          # pass along associationsOptionalFields
 
   ###*
    * Loads the next layer of includes from the server.
@@ -272,6 +273,7 @@ class AbstractLoader
         include: association.include
         params:
           apply_default_filters: false
+        # pass along associationsOptionalFields
 
       promises.push(@storageManager.loadObject(collectionName, loadOptions))
 
@@ -296,12 +298,14 @@ class AbstractLoader
     syncOptions.data.only = options.only.join(',') if options.only && @_shouldUseOnly()
     syncOptions.data.order = options.order if options.order?
     syncOptions.data.search = options.search if options.search
-    syncOptions.data.optional_fields = @loadOptions.optionalFields.join(',') if @loadOptions.optionalFields?.length
+    syncOptions.data.optional_fields = options.optionalFields.join(',') if @loadOptions.optionalFields?.length
 
-    blacklist = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search', 'optional_fields']
+    syncOptions.data.associations_optional_fields = options.associationsOptionalFields if options.associationsOptionalFields?.length
+
+    reservedKeys = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search', 'optional_fields', 'associations_optional_fields']
     _(syncOptions.data).chain()
-      .extend(_(options.filters).omit(blacklist))
-      .extend(_(options.params).omit(blacklist))
+      .extend(_(options.filters).omit(reservedKeys))
+      .extend(_(options.params).omit(reservedKeys))
       .value()
 
     unless options.only?

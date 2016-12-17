@@ -21,6 +21,7 @@ module.exports = class Collection extends Backbone.Collection
     'cache'
     'cacheKey'
     'optionalFields'
+    'associationsOptionalFields'
   ]
 
   @getComparatorWithIdFailover: (order) ->
