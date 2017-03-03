@@ -8,6 +8,9 @@ Utils = require './utils'
 StorageManager = require './storage-manager'
 
 
+isDateAttr = (key) ->
+  key.indexOf('date') > -1 || /_at$/.test(key)
+
 class Model extends Backbone.Model
 
   #
@@ -52,7 +55,7 @@ class Model extends Backbone.Model
   @parse: (modelObject) ->
     for k,v of modelObject
       # Date.parse will parse ISO 8601 in ECMAScript 5, but we include a shim for now
-      if /^\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}$/.test(v)
+      if isDateAttr(k) && /^\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}$/.test(v)
         modelObject[k] = Date.parse(v)
     return modelObject
 
