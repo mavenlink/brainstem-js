@@ -296,6 +296,37 @@ describe 'Model', ->
       expect(storageManager.storage('users').get(5).attributes).toEqual(response.users[5])
       expect(storageManager.storage('users').get(6).attributes).toEqual(response.users[6])
 
+    context 'when attributes are timestamp like', ->
+      parsedAttrs = null
+
+      context 'with a key ending in _at', ->
+        beforeEach ->
+          parsedAttrs = model.parse updated_at: '2017-02-03T16:41:12+00:00'
+
+        it "parse the date into a timestamp number", ->
+          expect(parsedAttrs.updated_at).toEqual(1486140072000)
+
+      context 'with a key containing _at', ->
+        beforeEach ->
+          parsedAttrs = model.parse thing_at_noon: '2017-02-03T16:41:12+00:00'
+
+        it "keeps the value as is", ->
+          expect(parsedAttrs.thing_at_noon).toEqual('2017-02-03T16:41:12+00:00')
+
+      context 'with a key containing date', ->
+        beforeEach ->
+          parsedAttrs = model.parse my_date_thing: '2017-02-03T16:41:12+00:00'
+
+        it "parse the date into a timestamp number", ->
+          expect(parsedAttrs.my_date_thing).toEqual(1486140072000)
+
+      context 'with a generic key', ->
+        beforeEach ->
+          parsedAttrs = model.parse value: '2017-02-03T16:41:12+00:00'
+
+        it "keeps the value as is", ->
+          expect(parsedAttrs.value).toEqual('2017-02-03T16:41:12+00:00')
+
     describe 'adding new models to the storage manager', ->
       context 'there is an ID on the model already', ->
         # usually happens when fetching an existing model and not using StorageManager#loadModel
