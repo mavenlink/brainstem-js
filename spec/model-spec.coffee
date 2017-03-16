@@ -982,20 +982,21 @@ describe 'Model', ->
       project = buildAndCacheProject(id: 10, task_ids: [task.id])
 
     it 'should delegate to Backbone.Model#destroy', ->
+      options = { an: 'option' }
       destroySpy = spyOn(Backbone.Model.prototype, 'destroy')
 
-      task.destroy()
+      task.destroy(options)
 
-      expect(destroySpy).toHaveBeenCalled()
+      expect(destroySpy).toHaveBeenCalledWith(options)
 
     context 'when deleted object is referenced in a belongs-to relationship', ->
-      it 'should set associated reference to undefined', ->
+      it 'should set the associated reference to undefined', ->
         project.destroy()
 
         expect(task.get('project_id')).toBeUndefined()
 
     context 'when the deleted object is referenced in a has-many relationship', ->
-      it 'should set remove the reference to the deleted object', ->
+      it 'should remove the reference to the deleted object', ->
         childTaskToDelete = buildAndCacheTask(id:103 , position: 3, updated_at: 845785, parent_task_id: 7)
         survivingChildTaskIds = _.pluck([ buildAndCacheTask(id:77 , position: 2, updated_at: 995785, parent_task_id: 7), buildAndCacheTask(id:99 , position: 1, updated_at: 635785, parent_task_id: 7)], 'id')
 
