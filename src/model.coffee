@@ -169,18 +169,23 @@ class Model extends Backbone.Model
       )
       .promise(options.returnValues.jqXhr)
 
-  destroy: (options) ->
-    for collectionName, collection of @storageManager.collections
-      for reference, modelName of collection.modelKlass.associations
-        associationKey = collection.modelKlass.associationDetails(reference).key
-        if _.isArray(modelName) && _.find(modelName, (m) => inflection.singularize(m) == @className())
-          collection.storage.each (model) =>
-            model.set(associationKey, _.without(model.get(associationKey), @id))
-        else if !_.isArray(modelName) && inflection.singularize(modelName) == @className()
-          collection.storage.each (model) =>
-            model.unset(associationKey)
+  destroy: (options = {}) ->
+    cleanUpAssociatedReferences = =>
+      for collectionName, collection of @storageManager.collections
+        for reference, modelName of collection.modelKlass.associations
+          associationKey = collection.modelKlass.associationDetails(reference).key
+          if _.isArray(modelName) && _.find(modelName, (m) => inflection.singularize(m) == @className())
+            collection.storage.each (model) =>
+              model.set(associationKey, _.without(model.get(associationKey), @id))
+          else if !_.isArray(modelName) && inflection.singularize(modelName) == @className()
+            collection.storage.each (model) =>
+              model.unset(associationKey)
 
-    super(options)
+    if(options.wait)
+      super(options).then(cleanUpAssociatedReferences)
+    else
+      cleanUpAssociatedReferences()
+      super(options)
 
   # Handle create and update responses with JSON root keys
   parse: (resp, xhr) ->

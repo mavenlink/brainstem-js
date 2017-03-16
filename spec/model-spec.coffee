@@ -1006,3 +1006,15 @@ describe 'Model', ->
 
         expect(task.get('sub_task_ids')).toEqual(survivingChildTaskIds)
         expect(task.get('sub_tasks').pluck('id')).toEqual(survivingChildTaskIds)
+
+    context 'using wait option', ->
+      it 'should remove the associations on success of the delete and returns a promise', ->
+        deferred = $.Deferred()
+        spyOn(Backbone.Model.prototype, 'destroy').and.returnValue(deferred)
+        result = project.destroy(wait: true)
+
+        expect(task.get('project').id).toEqual(project.id)
+
+        deferred.resolve()
+        expect(task.get('project_id')).toBeUndefined()
+        expect(result.done).toBeDefined()
