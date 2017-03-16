@@ -973,3 +973,35 @@ describe 'Model', ->
 
       it 'should not create a new collection', ->
         expect(storageManager.createNewCollection).not.toHaveBeenCalled()
+
+  describe '#destroy', ->
+    task = project = null
+
+    beforeEach ->
+      task = buildAndCacheTask(id: 5, project_id: 10)
+      project = buildAndCacheProject(id: 10, task_ids: [task.id])
+
+    it 'should delegate to Backbone.Model#destroy', ->
+      destroySpy = spyOn(Backbone.Model.prototype, 'destroy')
+
+      task.destroy()
+
+      expect(destroySpy).toHaveBeenCalled()
+
+    context 'when deleted object is referenced in a belongs-to relationship', ->
+      it 'should set associated reference to undefined', ->
+        project.destroy()
+
+        expect(task.get('project_id')).toBeUndefined()
+
+    context 'when the deleted object is referenced in a has-many relationship', ->
+      it 'should set remove the reference to the deleted object', ->
+        childTaskToDelete = buildAndCacheTask(id:103 , position: 3, updated_at: 845785, parent_task_id: 7)
+        survivingChildTaskIds = _.pluck([ buildAndCacheTask(id:77 , position: 2, updated_at: 995785, parent_task_id: 7), buildAndCacheTask(id:99 , position: 1, updated_at: 635785, parent_task_id: 7)], 'id')
+
+        task = buildAndCacheTask(id: 7, sub_task_ids: [103, 77, 99])
+
+        childTaskToDelete.destroy()
+
+        expect(task.get('sub_task_ids')).toEqual(survivingChildTaskIds)
+        expect(task.get('sub_tasks').pluck('id')).toEqual(survivingChildTaskIds)
