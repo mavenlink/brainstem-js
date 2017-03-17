@@ -998,7 +998,11 @@ describe 'Model', ->
     context 'when the deleted object is referenced in a has-many relationship', ->
       it 'should remove the reference to the deleted object', ->
         childTaskToDelete = buildAndCacheTask(id:103 , position: 3, updated_at: 845785, parent_task_id: 7)
-        survivingChildTaskIds = _.pluck([ buildAndCacheTask(id:77 , position: 2, updated_at: 995785, parent_task_id: 7), buildAndCacheTask(id:99 , position: 1, updated_at: 635785, parent_task_id: 7)], 'id')
+        survivingChildTaskIds = _.pluck(
+          [
+            buildAndCacheTask(id:77 , position: 2, updated_at: 995785, parent_task_id: 7)
+            buildAndCacheTask(id:99 , position: 1, updated_at: 635785, parent_task_id: 7)
+          ], 'id')
 
         task = buildAndCacheTask(id: 7, sub_task_ids: [103, 77, 99])
 
@@ -1009,12 +1013,11 @@ describe 'Model', ->
 
     context 'using wait option', ->
       it 'should remove the associations on success of the delete and returns a promise', ->
-        deferred = $.Deferred()
-        spyOn(Backbone.Model.prototype, 'destroy').and.returnValue(deferred)
         result = project.destroy(wait: true)
 
         expect(task.get('project').id).toEqual(project.id)
 
-        deferred.resolve()
+        project.trigger('destroy')
+
         expect(task.get('project_id')).toBeUndefined()
         expect(result.done).toBeDefined()

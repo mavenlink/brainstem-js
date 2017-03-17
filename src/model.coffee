@@ -171,21 +171,20 @@ class Model extends Backbone.Model
 
   destroy: (options = {}) ->
     cleanUpAssociatedReferences = =>
-      for collectionName, collection of @storageManager.collections
-        for reference, modelName of collection.modelKlass.associations
+      _.each @storageManager.collections, (collection) ->
+        _.each collection.modelKlass.associations, (associator, reference) ->
           associationKey = collection.modelKlass.associationDetails(reference).key
-          if _.isArray(modelName) && _.find(modelName, (m) => inflection.singularize(m) == @className())
-            collection.storage.each (model) =>
+          if @_collectionHasMany(associator)
+            collection.storage.each (model) ->
               model.set(associationKey, _.without(model.get(associationKey), @id))
-          else if !_.isArray(modelName) && inflection.singularize(modelName) == @className()
-            collection.storage.each (model) =>
-              model.unset(associationKey)
+            , this
+          else if @_collectionBelongsTo(associator)
+            collection.storage.invoke('unset', associationKey)
+        , this
+      , this
 
-    if(options.wait)
-      super(options).then(cleanUpAssociatedReferences)
-    else
-      cleanUpAssociatedReferences()
-      super(options)
+    @listenTo this, 'destroy', cleanUpAssociatedReferences
+    super(options)
 
   # Handle create and update responses with JSON root keys
   parse: (resp, xhr) ->
@@ -315,5 +314,11 @@ class Model extends Backbone.Model
   _onAssociatedCollectionChange: (field, collectionChangeDetails) =>
     @attributes[@constructor.associationDetails(field).key] = collectionChangeDetails[1].pluck('id')
 
+  _collectionHasMany: (associator) ->
+    _.isArray(associator) &&
+    _.find(associator, (collectionName) => inflection.singularize(collectionName) == @className())
+
+  _collectionBelongsTo: (associator) ->
+    !_.isArray(associator) && inflection.singularize(associator) == @className()
 
 module.exports = Model
