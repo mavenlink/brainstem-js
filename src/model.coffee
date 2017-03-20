@@ -169,6 +169,25 @@ class Model extends Backbone.Model
       )
       .promise(options.returnValues.jqXhr)
 
+  destroy: (options = {}) ->
+    cleanUpAssociatedReferences = =>
+      _.each @storageManager.collections, (collection) ->
+        _.each collection.modelKlass.associations, (associator, reference) ->
+          associationKey = collection.modelKlass.associationDetails(reference).key
+          if @_collectionHasMany(associator)
+            collection.storage.each (model) ->
+              model.set(associationKey, _.without(model.get(associationKey), @id))
+            , this
+          else if @_collectionBelongsTo(associator)
+            collection.storage.each (model) ->
+              model.unset(associationKey) if model.get(associationKey) == @id
+            , this
+        , this
+      , this
+
+    @listenTo this, 'destroy', cleanUpAssociatedReferences
+    super(options)
+
   # Handle create and update responses with JSON root keys
   parse: (resp, xhr) ->
     @updateStorageManager(resp)
@@ -297,5 +316,11 @@ class Model extends Backbone.Model
   _onAssociatedCollectionChange: (field, collectionChangeDetails) =>
     @attributes[@constructor.associationDetails(field).key] = collectionChangeDetails[1].pluck('id')
 
+  _collectionHasMany: (associator) ->
+    _.isArray(associator) &&
+    _.find(associator, (collectionName) => inflection.singularize(collectionName) == @className())
+
+  _collectionBelongsTo: (associator) ->
+    !_.isArray(associator) && inflection.singularize(associator) == @className()
 
 module.exports = Model
