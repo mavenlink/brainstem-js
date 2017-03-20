@@ -179,7 +179,9 @@ class Model extends Backbone.Model
               model.set(associationKey, _.without(model.get(associationKey), @id))
             , this
           else if @_collectionBelongsTo(associator)
-            collection.storage.invoke('unset', associationKey)
+            collection.storage.each (model) ->
+              model.unset(associationKey) if model.get(associationKey) == @id
+            , this
         , this
       , this
 

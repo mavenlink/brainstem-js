@@ -995,6 +995,12 @@ describe 'Model', ->
 
         expect(task.get('project_id')).toBeUndefined()
 
+      it 'should not remove associations to other objects', ->
+        task = buildAndCacheTask(id: 27, project_id: buildAndCacheProject(id: 34).id)
+
+        project.destroy()
+        expect(task.get('project_id')).toEqual('34')
+
     context 'when the deleted object is referenced in a has-many relationship', ->
       it 'should remove the reference to the deleted object', ->
         childTaskToDelete = buildAndCacheTask(id:103 , position: 3, updated_at: 845785, parent_task_id: 7)
