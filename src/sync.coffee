@@ -45,6 +45,7 @@ module.exports = (method, model, options) ->
 
     data.include = Utils.extractArray('include', options).join(',')
     data.filters = Utils.extractArray('filters', options).join(',')
+    data.optional_fields = Utils.extractArray('optionalFields', options).join(',')
 
     _.extend(data, options.params || {})
 
