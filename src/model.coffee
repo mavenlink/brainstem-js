@@ -8,6 +8,9 @@ Utils = require './utils'
 StorageManager = require './storage-manager'
 
 
+isDateAttr = (key) ->
+  key.indexOf('date') > -1 || /_at$/.test(key)
+
 class Model extends Backbone.Model
 
   #
@@ -52,7 +55,7 @@ class Model extends Backbone.Model
   @parse: (modelObject) ->
     for k,v of modelObject
       # Date.parse will parse ISO 8601 in ECMAScript 5, but we include a shim for now
-      if /^\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}$/.test(v)
+      if isDateAttr(k) && /^\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}$/.test(v)
         modelObject[k] = Date.parse(v)
     return modelObject
 
@@ -102,10 +105,10 @@ class Model extends Backbone.Model
           model = @storageManager.storage(collectionName).get(pointer)
 
           if not model && not options.silent
-            Utils.throwError("
+            Utils.throwError("""
               Unable to find #{field} with id #{id} in our cached {details.collectionName} collection.
               We know about #{@storageManager.storage(details.collectionName).pluck('id').join(', ')}
-            ")
+            """)
 
           model
       else
@@ -118,11 +121,11 @@ class Model extends Backbone.Model
             models.push(model)
             notFoundIds.push(id) unless model
           if notFoundIds.length && not options.silent
-            Utils.throwError("
+            Utils.throwError("""
               Unable to find #{field} with ids #{notFoundIds.join(', ')} in our
               cached #{details.collectionName} collection.  We know about
               #{@storageManager.storage(details.collectionName).pluck('id').join(', ')}
-            ")
+            """)
         if options.order
           klass = @storageManager.getCollectionDetails(details.collectionName).klass
           comparator = klass.getComparatorWithIdFailover(options.order)
@@ -165,6 +168,25 @@ class Model extends Backbone.Model
         @trigger('sync', response, options)
       )
       .promise(options.returnValues.jqXhr)
+
+  destroy: (options = {}) ->
+    cleanUpAssociatedReferences = =>
+      _.each @storageManager.collections, (collection) ->
+        _.each collection.modelKlass.associations, (associator, reference) ->
+          associationKey = collection.modelKlass.associationDetails(reference).key
+          if @_collectionHasMany(associator)
+            collection.storage.each (model) ->
+              model.set(associationKey, _.without(model.get(associationKey), @id))
+            , this
+          else if @_collectionBelongsTo(associator)
+            collection.storage.each (model) ->
+              model.unset(associationKey) if model.get(associationKey) == @id
+            , this
+        , this
+      , this
+
+    @listenTo this, 'destroy', cleanUpAssociatedReferences
+    super(options)
 
   # Handle create and update responses with JSON root keys
   parse: (resp, xhr) ->
@@ -294,5 +316,11 @@ class Model extends Backbone.Model
   _onAssociatedCollectionChange: (field, collectionChangeDetails) =>
     @attributes[@constructor.associationDetails(field).key] = collectionChangeDetails[1].pluck('id')
 
+  _collectionHasMany: (associator) ->
+    _.isArray(associator) &&
+    _.find(associator, (collectionName) => inflection.singularize(collectionName) == @className())
+
+  _collectionBelongsTo: (associator) ->
+    !_.isArray(associator) && inflection.singularize(associator) == @className()
 
 module.exports = Model

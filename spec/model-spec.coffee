@@ -296,6 +296,37 @@ describe 'Model', ->
       expect(storageManager.storage('users').get(5).attributes).toEqual(response.users[5])
       expect(storageManager.storage('users').get(6).attributes).toEqual(response.users[6])
 
+    context 'when attributes are timestamp like', ->
+      parsedAttrs = null
+
+      context 'with a key ending in _at', ->
+        beforeEach ->
+          parsedAttrs = model.parse updated_at: '2017-02-03T16:41:12+00:00'
+
+        it "parse the date into a timestamp number", ->
+          expect(parsedAttrs.updated_at).toEqual(1486140072000)
+
+      context 'with a key containing _at', ->
+        beforeEach ->
+          parsedAttrs = model.parse thing_at_noon: '2017-02-03T16:41:12+00:00'
+
+        it "keeps the value as is", ->
+          expect(parsedAttrs.thing_at_noon).toEqual('2017-02-03T16:41:12+00:00')
+
+      context 'with a key containing date', ->
+        beforeEach ->
+          parsedAttrs = model.parse my_date_thing: '2017-02-03T16:41:12+00:00'
+
+        it "parse the date into a timestamp number", ->
+          expect(parsedAttrs.my_date_thing).toEqual(1486140072000)
+
+      context 'with a generic key', ->
+        beforeEach ->
+          parsedAttrs = model.parse value: '2017-02-03T16:41:12+00:00'
+
+        it "keeps the value as is", ->
+          expect(parsedAttrs.value).toEqual('2017-02-03T16:41:12+00:00')
+
     describe 'adding new models to the storage manager', ->
       context 'there is an ID on the model already', ->
         # usually happens when fetching an existing model and not using StorageManager#loadModel
@@ -942,3 +973,57 @@ describe 'Model', ->
 
       it 'should not create a new collection', ->
         expect(storageManager.createNewCollection).not.toHaveBeenCalled()
+
+  describe '#destroy', ->
+    task = project = null
+
+    beforeEach ->
+      task = buildAndCacheTask(id: 5, project_id: 10)
+      project = buildAndCacheProject(id: 10, task_ids: [task.id])
+
+    it 'should delegate to Backbone.Model#destroy', ->
+      options = { an: 'option' }
+      destroySpy = spyOn(Backbone.Model.prototype, 'destroy')
+
+      task.destroy(options)
+
+      expect(destroySpy).toHaveBeenCalledWith(options)
+
+    context 'when deleted object is referenced in a belongs-to relationship', ->
+      it 'should set the associated reference to undefined', ->
+        project.destroy()
+
+        expect(task.get('project_id')).toBeUndefined()
+
+      it 'should not remove associations to other objects', ->
+        task = buildAndCacheTask(id: 27, project_id: buildAndCacheProject(id: 34).id)
+
+        project.destroy()
+        expect(task.get('project_id')).toEqual('34')
+
+    context 'when the deleted object is referenced in a has-many relationship', ->
+      it 'should remove the reference to the deleted object', ->
+        childTaskToDelete = buildAndCacheTask(id:103 , position: 3, updated_at: 845785, parent_task_id: 7)
+        survivingChildTaskIds = _.pluck(
+          [
+            buildAndCacheTask(id:77 , position: 2, updated_at: 995785, parent_task_id: 7)
+            buildAndCacheTask(id:99 , position: 1, updated_at: 635785, parent_task_id: 7)
+          ], 'id')
+
+        task = buildAndCacheTask(id: 7, sub_task_ids: [103, 77, 99])
+
+        childTaskToDelete.destroy()
+
+        expect(task.get('sub_task_ids')).toEqual(survivingChildTaskIds)
+        expect(task.get('sub_tasks').pluck('id')).toEqual(survivingChildTaskIds)
+
+    context 'using wait option', ->
+      it 'should remove the associations on success of the delete and returns a promise', ->
+        result = project.destroy(wait: true)
+
+        expect(task.get('project').id).toEqual(project.id)
+
+        project.trigger('destroy')
+
+        expect(task.get('project_id')).toBeUndefined()
+        expect(result.done).toBeDefined()

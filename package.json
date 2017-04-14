@@ -6,7 +6,7 @@
   },
   "filename": "brainstem",
   "standalone": "Brainstem",
-  "version": "0.4.11",
+  "version": "0.4.17",
   "author": {
     "name": "Mavenlink",
     "email": "dev@mavenlink.com"
@@ -15,7 +15,8 @@
   "main": "lib/brainstem.js",
   "scripts": {
     "prepublish": "gulp build-module",
-    "test": "gulp test"
+    "test": "gulp test",
+    "test:watch": "gulp test-watch"
   },
   "dependencies": {
     "backbone": "1.1.2",

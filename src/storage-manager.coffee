@@ -62,7 +62,7 @@ class _StorageManager
   # Add a collection to the StorageManager.  All collections that will be loaded or used in associations must be added.
   #    manager.addCollection "time_entries", TimeEntries
   addCollection: (name, collectionClass) ->
-    collection = new collectionClass()
+    collection = new collectionClass([], {})
 
     collection.on 'remove', (model) ->
       model.invalidateCache()
@@ -149,6 +149,9 @@ class _StorageManager
 
     if @expectations?
       @handleExpectations(loader)
+      loader.loadOptions.returnValues ?= {}
+      loader.loadOptions.returnValues.jqXhr =
+        abort: ->
     else
       loader.load()
 
@@ -226,7 +229,7 @@ class StorageManager
   instance = null
 
   @get: ->
-    instance ?= new _StorageManager(arguments)
+    instance ?= window.base?.data ? new _StorageManager(arguments)
 
 
 module.exports = StorageManager

@@ -43,6 +43,5 @@ module.exports = function (config) {
       watch: true,
       debug: true
     }
-
   });
 };
