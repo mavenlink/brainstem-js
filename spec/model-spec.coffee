@@ -922,6 +922,45 @@ describe 'Model', ->
       for key in updateBlacklist
         expect(json[key]).toBeUndefined()
 
+    context 'useWhitelist', ->
+      attributeKeys = expectedBlacklist = whitelist = null
+
+      beforeEach ->
+        model.useWhitelist = true
+        attributeKeys = ['possums', 'racoons', 'potatoes', 'label', 'name']
+        expectedBlacklist = ['possums', 'racoons', 'potatoes']
+        whitelist = ['label', 'name']
+
+      context "create", ->
+        it "sets the blacklist to the model's attributes except for those in the whitelist", ->
+          model.set('create_whitelist', whitelist)
+
+          for key in attributeKeys
+            model.set(key, true)
+
+          json = model.toServerJSON("create")
+
+          for key in expectedBlacklist
+            expect(json[key]).toBeUndefined()
+
+          for key in whitelist
+            expect(json[key]).toBeTruthy()
+
+      context "update", ->
+        it "sets the blacklist to the model's attributes except for those in the whitelist", ->
+          model.set('update_whitelist', whitelist)
+
+          for key in attributeKeys
+            model.set(key, true)
+
+          json = model.toServerJSON("update")
+
+          for key in expectedBlacklist
+            expect(json[key]).toBeUndefined()
+
+          for key in whitelist
+            expect(json[key]).toBeTruthy()
+
   describe '#_linkCollection', ->
     story = null
 

@@ -268,9 +268,15 @@ class Model extends Backbone.Model
 
     switch method
       when 'create'
-        blacklist = blacklist.concat @createJSONBlacklist()
+        if this.useWhitelist && this.get('create_whitelist')
+          blacklist = _.difference(Object.keys(this.attributes), this.get('create_whitelist'))
+        else
+          blacklist = blacklist.concat @createJSONBlacklist()
       when 'update'
-        blacklist = blacklist.concat @updateJSONBlacklist()
+        if this.useWhitelist && this.get('update_whitelist')
+          blacklist = _.difference(Object.keys(this.attributes), this.get('update_whitelist'))
+        else
+          blacklist = blacklist.concat @updateJSONBlacklist()
 
     for blacklistKey in blacklist
       delete json[blacklistKey]
