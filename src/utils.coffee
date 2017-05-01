@@ -44,13 +44,18 @@ class Utils
     result = [result] unless result instanceof Array
     _.compact(result)
 
-  @wrapObjects: (array) ->
+  @wrapObjects: (array, options = {}) ->
     output = []
     _(array).each (elem) =>
       if elem.constructor == Object
         for key, value of elem
           o = {}
-          o[key] = @wrapObjects(if value instanceof Array then value else [value])
+
+          if options.ignoreCollections && elem[key] instanceof Backbone.Collection
+            o[key] = elem[key]
+          else
+            o[key] = @wrapObjects(if value instanceof Array then value else [value])
+
           output.push o
       else
         o = {}

@@ -8,6 +8,7 @@ ModelLoader = require '../src/loaders/model-loader'
 
 Tasks = require './helpers/models/tasks'
 TimeEntries = require './helpers/models/time-entries'
+Projects = require './helpers/models/projects'
 
 
 describe 'Brainstem Storage Manager', ->
@@ -455,7 +456,9 @@ describe 'Brainstem Storage Manager', ->
         expect(collection.get(1).get('replies').pluck("id")).toEqual ["2"]
 
       describe "fetching multiple levels of associations", ->
-        it "seperately requests each layer of associations", ->
+        callCount = success = checkStructure = null
+
+        beforeEach ->
           projectOneTimeEntryTask = buildTask()
           projectOneTimeEntry = buildTimeEntry(title: "without task"); projectOneTimeEntryWithTask = buildTimeEntry(id: projectOneTimeEntry.id, task_id: projectOneTimeEntryTask.id, title: "with task")
           projectOne = buildProject(); projectOneWithTimeEntries = buildProject(id: projectOne.id, time_entry_ids: [projectOneTimeEntry.id])
@@ -487,20 +490,50 @@ describe 'Brainstem Storage Manager', ->
             callCount += 1
 
           success = jasmine.createSpy().and.callFake checkStructure
-          collection = manager.loadCollection "tasks", filters: { parents_only: "true" }, success: success, include: [
-                                                                      "assignees",
-                                                                      "project": ["time_entries": "task"],
-                                                                      "sub_tasks": ["assignees"]
-                                                                    ]
-          collection.bind "loaded", checkStructure
-          collection.bind "reset", checkStructure
 
-          expect(success).not.toHaveBeenCalled()
+        context 'deeply nested json structure', ->
+          it "separately requests each layer of associations", ->
+            collection = manager.loadCollection "tasks",
+              filters: { parents_only: "true" },
+              success: success,
+              include: [
+                'assignees',
+                { project: ["time_entries": "task"] },
+                { sub_tasks: ["assignees"] }
+              ]
 
-          server.respond() until server.queue.length == 0
+            collection.bind "loaded", checkStructure
+            collection.bind "reset", checkStructure
 
-          expect(success).toHaveBeenCalledWith(collection)
-          expect(callCount).toEqual 3
+            expect(success).not.toHaveBeenCalled()
+
+            server.respond() until server.queue.length == 0
+
+            expect(success).toHaveBeenCalledWith(collection)
+            expect(callCount).toEqual 3
+
+        context 'using a backbone collection', ->
+          it "separately requests each layer of associations", ->
+            projectCollection = new Projects null,
+              include: ["time_entries": "task"]
+
+            collection = manager.loadCollection "tasks",
+              filters: { parents_only: "true" },
+              success: success,
+              include: [
+                'assignees',
+                { project: projectCollection },
+                { sub_tasks: ["assignees"] }
+              ]
+
+            collection.bind "loaded", checkStructure
+            collection.bind "reset", checkStructure
+
+            expect(success).not.toHaveBeenCalled()
+
+            server.respond() until server.queue.length == 0
+            expect(success).toHaveBeenCalled()
+            expect(callCount).toEqual 3
 
       describe "caching", ->
         describe "without ordering", ->
