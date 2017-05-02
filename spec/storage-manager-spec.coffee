@@ -458,64 +458,123 @@ describe 'Brainstem Storage Manager', ->
       describe "fetching multiple levels of associations", ->
         callCount = success = checkStructure = null
 
-        beforeEach ->
-          projectOneTimeEntryTask = buildTask()
-          projectOneTimeEntry = buildTimeEntry(title: "without task"); projectOneTimeEntryWithTask = buildTimeEntry(id: projectOneTimeEntry.id, task_id: projectOneTimeEntryTask.id, title: "with task")
-          projectOne = buildProject(); projectOneWithTimeEntries = buildProject(id: projectOne.id, time_entry_ids: [projectOneTimeEntry.id])
-          projectTwo = buildProject(); projectTwoWithTimeEntries = buildProject(id: projectTwo.id, time_entry_ids: [])
-          taskOneAssignee = buildUser()
-          taskTwoAssignee = buildUser()
-          taskOneSubAssignee = buildUser()
-          taskOneSub = buildTask(project_id: projectOne.id, parent_id: 10); taskOneSubWithAssignees = buildTask(id: taskOneSub.id, assignee_ids: [taskOneSubAssignee.id], parent_id: 10)
-          taskTwoSub = buildTask(project_id: projectTwo.id, parent_id: 11); taskTwoSubWithAssignees = buildTask(id: taskTwoSub.id, assignee_ids: [taskTwoAssignee.id], parent_id: 11)
-          taskOne = buildTask(id: 10, project_id: projectOne.id, assignee_ids: [taskOneAssignee.id], sub_task_ids: [taskOneSub.id])
-          taskTwo = buildTask(id: 11, project_id: projectTwo.id, assignee_ids: [taskTwoAssignee.id], sub_task_ids: [taskTwoSub.id])
-          respondWith server, "/api/tasks?include=assignees%2Cproject%2Csub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne, taskTwo]), tasks: resultsObject([taskOne, taskTwo, taskOneSub, taskTwoSub]), users: resultsObject([taskOneAssignee, taskTwoAssignee]), projects: resultsObject([projectOne, projectTwo]) }
-          respondWith server, "/api/tasks?include=assignees&only=#{taskOneSub.id}%2C#{taskTwoSub.id}&apply_default_filters=false", data: { results: resultsArray("tasks", [taskOneSub, taskTwoSub]), tasks: resultsObject([taskOneSubWithAssignees, taskTwoSubWithAssignees]), users: resultsObject([taskOneSubAssignee, taskTwoAssignee]) }
-          respondWith server, "/api/projects?include=time_entries&only=#{projectOne.id}%2C#{projectTwo.id}&apply_default_filters=false", data: { results: resultsArray("projects", [projectOne, projectTwo]), projects: resultsObject([projectOneWithTimeEntries, projectTwoWithTimeEntries]), time_entries: resultsObject([projectOneTimeEntry]) }
-          respondWith server, "/api/time_entries?include=task&only=#{projectOneTimeEntry.id}&apply_default_filters=false", data: { results: resultsArray("time_entries", [projectOneTimeEntry]), time_entries: resultsObject([projectOneTimeEntryWithTask]), tasks: resultsObject([projectOneTimeEntryTask]) }
+        context 'deeply nested associations', ->
+          beforeEach ->
+            projectOneTimeEntryTask = buildTask()
+            projectOneTimeEntry = buildTimeEntry(title: "without task"); projectOneTimeEntryWithTask = buildTimeEntry(id: projectOneTimeEntry.id, task_id: projectOneTimeEntryTask.id, title: "with task")
+            projectOne = buildProject(); projectOneWithTimeEntries = buildProject(id: projectOne.id, time_entry_ids: [projectOneTimeEntry.id])
+            projectTwo = buildProject(); projectTwoWithTimeEntries = buildProject(id: projectTwo.id, time_entry_ids: [])
+            taskOneAssignee = buildUser()
+            taskTwoAssignee = buildUser()
+            taskOneSubAssignee = buildUser()
+            taskOneSub = buildTask(project_id: projectOne.id, parent_id: 10); taskOneSubWithAssignees = buildTask(id: taskOneSub.id, assignee_ids: [taskOneSubAssignee.id], parent_id: 10)
+            taskTwoSub = buildTask(project_id: projectTwo.id, parent_id: 11); taskTwoSubWithAssignees = buildTask(id: taskTwoSub.id, assignee_ids: [taskTwoAssignee.id], parent_id: 11)
+            taskOne = buildTask(id: 10, project_id: projectOne.id, assignee_ids: [taskOneAssignee.id], sub_task_ids: [taskOneSub.id])
+            taskTwo = buildTask(id: 11, project_id: projectTwo.id, assignee_ids: [taskTwoAssignee.id], sub_task_ids: [taskTwoSub.id])
+            respondWith server, "/api/tasks?include=assignees%2Cproject%2Csub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne, taskTwo]), tasks: resultsObject([taskOne, taskTwo, taskOneSub, taskTwoSub]), users: resultsObject([taskOneAssignee, taskTwoAssignee]), projects: resultsObject([projectOne, projectTwo]) }
+            respondWith server, "/api/tasks?include=assignees&only=#{taskOneSub.id}%2C#{taskTwoSub.id}&apply_default_filters=false", data: { results: resultsArray("tasks", [taskOneSub, taskTwoSub]), tasks: resultsObject([taskOneSubWithAssignees, taskTwoSubWithAssignees]), users: resultsObject([taskOneSubAssignee, taskTwoAssignee]) }
+            respondWith server, "/api/projects?include=time_entries&only=#{projectOne.id}%2C#{projectTwo.id}&apply_default_filters=false", data: { results: resultsArray("projects", [projectOne, projectTwo]), projects: resultsObject([projectOneWithTimeEntries, projectTwoWithTimeEntries]), time_entries: resultsObject([projectOneTimeEntry]) }
+            respondWith server, "/api/time_entries?include=task&only=#{projectOneTimeEntry.id}&apply_default_filters=false", data: { results: resultsArray("time_entries", [projectOneTimeEntry]), time_entries: resultsObject([projectOneTimeEntryWithTask]), tasks: resultsObject([projectOneTimeEntryTask]) }
 
-          callCount = 0
-          checkStructure = (collection) ->
-            expect(collection.pluck("id").sort()).toEqual [taskOne.id, taskTwo.id]
-            expect(collection.get(taskOne.id).get("project").id).toEqual projectOne.id
-            expect(collection.get(taskOne.id).get("assignees").pluck("id")).toEqual [taskOneAssignee.id]
-            expect(collection.get(taskTwo.id).get("assignees").pluck("id")).toEqual [taskTwoAssignee.id]
-            expect(collection.get(taskOne.id).get("sub_tasks").pluck("id")).toEqual [taskOneSub.id]
-            expect(collection.get(taskTwo.id).get("sub_tasks").pluck("id")).toEqual [taskTwoSub.id]
-            expect(collection.get(taskOne.id).get("sub_tasks").get(taskOneSub.id).get("assignees").pluck("id")).toEqual [taskOneSubAssignee.id]
-            expect(collection.get(taskTwo.id).get("sub_tasks").get(taskTwoSub.id).get("assignees").pluck("id")).toEqual [taskTwoAssignee.id]
-            expect(collection.get(taskOne.id).get("project").get("time_entries").pluck("id")).toEqual [projectOneTimeEntry.id]
-            expect(collection.get(taskOne.id).get("project").get("time_entries").models[0].get("task").id).toEqual projectOneTimeEntryTask.id
-            callCount += 1
+            callCount = 0
+            checkStructure = (collection) ->
+              expect(collection.pluck("id").sort()).toEqual [taskOne.id, taskTwo.id]
+              expect(collection.get(taskOne.id).get("project").id).toEqual projectOne.id
+              expect(collection.get(taskOne.id).get("assignees").pluck("id")).toEqual [taskOneAssignee.id]
+              expect(collection.get(taskTwo.id).get("assignees").pluck("id")).toEqual [taskTwoAssignee.id]
+              expect(collection.get(taskOne.id).get("sub_tasks").pluck("id")).toEqual [taskOneSub.id]
+              expect(collection.get(taskTwo.id).get("sub_tasks").pluck("id")).toEqual [taskTwoSub.id]
+              expect(collection.get(taskOne.id).get("sub_tasks").get(taskOneSub.id).get("assignees").pluck("id")).toEqual [taskOneSubAssignee.id]
+              expect(collection.get(taskTwo.id).get("sub_tasks").get(taskTwoSub.id).get("assignees").pluck("id")).toEqual [taskTwoAssignee.id]
+              expect(collection.get(taskOne.id).get("project").get("time_entries").pluck("id")).toEqual [projectOneTimeEntry.id]
+              expect(collection.get(taskOne.id).get("project").get("time_entries").models[0].get("task").id).toEqual projectOneTimeEntryTask.id
+              callCount += 1
 
-          success = jasmine.createSpy().and.callFake checkStructure
+            success = jasmine.createSpy().and.callFake checkStructure
 
-        context 'deeply nested json structure', ->
-          it "separately requests each layer of associations", ->
-            collection = manager.loadCollection "tasks",
-              filters: { parents_only: "true" },
-              success: success,
-              include: [
-                'assignees',
-                { project: ["time_entries": "task"] },
-                { sub_tasks: ["assignees"] }
-              ]
+          context 'with json structure', ->
+            it "separately requests each layer of associations", ->
+              collection = manager.loadCollection "tasks",
+                filters: { parents_only: "true" },
+                success: success,
+                include: [
+                  'assignees',
+                  { project: ["time_entries": "task"] },
+                  { sub_tasks: ["assignees"] }
+                ]
 
-            collection.bind "loaded", checkStructure
-            collection.bind "reset", checkStructure
+              collection.bind "loaded", checkStructure
+              collection.bind "reset", checkStructure
 
-            expect(success).not.toHaveBeenCalled()
+              expect(success).not.toHaveBeenCalled()
 
-            server.respond() until server.queue.length == 0
+              server.respond() until server.queue.length == 0
 
-            expect(success).toHaveBeenCalledWith(collection)
-            expect(callCount).toEqual 3
+              expect(success).toHaveBeenCalledWith(collection)
+              expect(callCount).toEqual 3
 
-        context 'using a backbone collection', ->
-          it "separately requests each layer of associations", ->
+          context 'using a backbone collection', ->
+            it "separately requests each layer of associations", ->
+              projectCollection = new Projects null,
+                include: ["time_entries": "task"]
+                test: 10
+
+              collection = manager.loadCollection "tasks",
+                filters: { parents_only: "true" },
+                success: success,
+                include: [
+                  'assignees',
+                  { project: projectCollection },
+                  { sub_tasks: ["assignees"] }
+                ]
+
+              collection.bind "loaded", checkStructure
+              collection.bind "reset", checkStructure
+
+              expect(success).not.toHaveBeenCalled()
+
+              server.respond() until server.queue.length == 0
+              expect(success).toHaveBeenCalled()
+              expect(callCount).toEqual 3
+
+        context 'a shallowly nested json structure', ->
+          beforeEach ->
+            projectOneTimeEntryTask = buildTask()
+            projectOneTimeEntry = buildTimeEntry(title: "without task"); projectOneTimeEntryWithTask = buildTimeEntry(id: projectOneTimeEntry.id, task_id: projectOneTimeEntryTask.id, title: "with task")
+            projectOne = buildProject(); projectOneWithTimeEntries = buildProject(id: projectOne.id, time_entry_ids: [projectOneTimeEntry.id])
+            projectTwo = buildProject(); projectTwoWithTimeEntries = buildProject(id: projectTwo.id, time_entry_ids: [])
+            taskOneAssignee = buildUser()
+            taskTwoAssignee = buildUser()
+            taskOneSubAssignee = buildUser()
+            taskOneSub = buildTask(project_id: projectOne.id, parent_id: 10); taskOneSubWithAssignees = buildTask(id: taskOneSub.id, assignee_ids: [taskOneSubAssignee.id], parent_id: 10)
+            taskTwoSub = buildTask(project_id: projectTwo.id, parent_id: 11); taskTwoSubWithAssignees = buildTask(id: taskTwoSub.id, assignee_ids: [taskTwoAssignee.id], parent_id: 11)
+            taskOne = buildTask(id: 10, project_id: projectOne.id, assignee_ids: [taskOneAssignee.id], sub_task_ids: [taskOneSub.id])
+            taskTwo = buildTask(id: 11, project_id: projectTwo.id, assignee_ids: [taskTwoAssignee.id], sub_task_ids: [taskTwoSub.id])
+            respondWith server, "/api/tasks?include=assignees%2Cproject%2Csub_tasks&parents_only=true&per_page=20&page=1", data: { results: resultsArray("tasks", [taskOne, taskTwo]), tasks: resultsObject([taskOne, taskTwo, taskOneSub, taskTwoSub]), users: resultsObject([taskOneAssignee, taskTwoAssignee]), projects: resultsObject([projectOne, projectTwo]) }
+            respondWith server, "/api/tasks?include=assignees&only=#{taskOneSub.id}%2C#{taskTwoSub.id}&apply_default_filters=false", data: { results: resultsArray("tasks", [taskOneSub, taskTwoSub]), tasks: resultsObject([taskOneSubWithAssignees, taskTwoSubWithAssignees]), users: resultsObject([taskOneSubAssignee, taskTwoAssignee]) }
+            respondWith server, "/api/projects?only=#{projectOne.id}%2C#{projectTwo.id}&apply_default_filters=false&test=10", data: { results: resultsArray("projects", [projectOne, projectTwo]), projects: resultsObject([projectOneWithTimeEntries, projectTwoWithTimeEntries]) }
+
+            callCount = 0
+            checkStructure = (collection) ->
+              expect(collection.pluck("id").sort()).toEqual [taskOne.id, taskTwo.id]
+              expect(collection.get(taskOne.id).get("project").id).toEqual projectOne.id
+              expect(collection.get(taskOne.id).get("assignees").pluck("id")).toEqual [taskOneAssignee.id]
+              expect(collection.get(taskTwo.id).get("assignees").pluck("id")).toEqual [taskTwoAssignee.id]
+              expect(collection.get(taskOne.id).get("sub_tasks").pluck("id")).toEqual [taskOneSub.id]
+              expect(collection.get(taskTwo.id).get("sub_tasks").pluck("id")).toEqual [taskTwoSub.id]
+              expect(collection.get(taskOne.id).get("sub_tasks").get(taskOneSub.id).get("assignees").pluck("id")).toEqual [taskOneSubAssignee.id]
+              expect(collection.get(taskTwo.id).get("sub_tasks").get(taskTwoSub.id).get("assignees").pluck("id")).toEqual [taskTwoAssignee.id]
+
+              callCount += 1
+
+            success = jasmine.createSpy().and.callFake checkStructure
+
+          it "separately requests each layer of associations with filters", ->
             projectCollection = new Projects null,
-              include: ["time_entries": "task"]
+              filters:
+                test: 10
+
+            spyOn(projectCollection.storageManager, 'loadObject').and.callThrough()
 
             collection = manager.loadCollection "tasks",
               filters: { parents_only: "true" },
@@ -534,6 +593,11 @@ describe 'Brainstem Storage Manager', ->
             server.respond() until server.queue.length == 0
             expect(success).toHaveBeenCalled()
             expect(callCount).toEqual 3
+
+            expectedFilters = projectCollection.storageManager.loadObject.calls.all()[1].args[1].filters
+
+            expect(projectCollection.storageManager.loadObject).toHaveBeenCalled()
+            expect(expectedFilters).toEqual({ test: 10 })
 
       describe "caching", ->
         describe "without ordering", ->
