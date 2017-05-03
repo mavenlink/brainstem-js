@@ -27,6 +27,16 @@ describe "Sync", ->
       model.save({}, include: ['creator', 'story'])
       expect(ajaxSpy.calls.mostRecent().args[0].data).toMatch(/"include":"creator,story"/)
 
+    it "should pass options.optionalFields through the JSON", ->
+      model = buildTimeEntry()
+      model.save({}, optionalFields: 'is_invoiced')
+      expect(ajaxSpy.calls.mostRecent().args[0].data).toMatch(/"optional_fields":"is_invoiced"/)
+
+    it "should accept an array for options.optionalFields", ->
+      model = buildTimeEntry()
+      model.save({}, optionalFields: ['invoice_id', 'story_id'])
+      expect(ajaxSpy.calls.mostRecent().args[0].data).toMatch(/"optional_fields":"invoice_id,story_id"/)
+
     it "should include additional 'params' from options", ->
       model = buildTimeEntry()
       model.save({}, params: { test: true })

@@ -7,3 +7,5 @@ before_install:
 before_script:
   - npm install -g gulp
 script: gulp ci
+addons:
+  firefox: "45.0"
