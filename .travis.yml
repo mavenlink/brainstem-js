@@ -9,3 +9,7 @@ before_script:
 script: gulp ci
 addons:
   firefox: "45.0"
+cache:
+  yarn: true
+  directories:
+    - node_modules
