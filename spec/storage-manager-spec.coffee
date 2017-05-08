@@ -538,6 +538,8 @@ describe 'Brainstem Storage Manager', ->
               expect(callCount).toEqual 3
 
         context 'a shallowly nested json structure', ->
+          projectOne = projectTwo = null
+
           beforeEach ->
             projectOneTimeEntryTask = buildTask()
             projectOneTimeEntry = buildTimeEntry(title: "without task"); projectOneTimeEntryWithTask = buildTimeEntry(id: projectOneTimeEntry.id, task_id: projectOneTimeEntryTask.id, title: "with task")
@@ -598,6 +600,9 @@ describe 'Brainstem Storage Manager', ->
 
             expect(projectCollection.storageManager.loadObject).toHaveBeenCalled()
             expect(expectedFilters).toEqual({ test: 10 })
+
+            expect(projectCollection.first().id).toEqual(projectOne.id)
+            expect(projectCollection.last().id).toEqual(projectTwo.id)
 
       describe "caching", ->
         describe "without ordering", ->
