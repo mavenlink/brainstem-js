@@ -51,10 +51,10 @@ class Utils
         for key, value of elem
           o = {}
 
-          if options.ignoreCollections && elem[key] instanceof Backbone.Collection
-            o[key] = elem[key]
-          else
+          if @isPojo(value) || value instanceof Array || typeof value == "string"
             o[key] = @wrapObjects(if value instanceof Array then value else [value])
+          else
+            o[key] = value
 
           output.push o
       else
@@ -68,6 +68,15 @@ class Utils
     options.error = (response) ->
       error(collection, response, options) if error
       collection.trigger('error', collection, response, options)
+
+  @isPojo: (obj) ->
+    proto = Object.prototype
+    gpo = Object.getPrototypeOf
+
+    if obj == null or typeof obj != 'object'
+      return false
+
+    gpo(obj) == proto
 
 
 module.exports = Utils

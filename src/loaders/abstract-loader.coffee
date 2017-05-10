@@ -149,7 +149,7 @@ class AbstractLoader
   _parseLoadOptions: (loadOptions = {}) ->
     @originalOptions = _.clone(loadOptions)
     @loadOptions = _.clone(loadOptions)
-    @loadOptions.include = Utils.wrapObjects(Utils.extractArray('include', @loadOptions), ignoreCollections: true)
+    @loadOptions.include = Utils.wrapObjects(Utils.extractArray('include', @loadOptions))
     @loadOptions.optionalFields = Utils.extractArray('optionalFields', @loadOptions)
     @loadOptions.filters ?= {}
     @loadOptions.thisLayerInclude = _.map @loadOptions.include, (i) -> _.keys(i)[0] # pull off the top layer of includes
