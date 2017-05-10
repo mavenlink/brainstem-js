@@ -149,7 +149,7 @@ class AbstractLoader
   _parseLoadOptions: (loadOptions = {}) ->
     @originalOptions = _.clone(loadOptions)
     @loadOptions = _.clone(loadOptions)
-    @loadOptions.include = Utils.wrapObjects(Utils.extractArray 'include', @loadOptions)
+    @loadOptions.include = Utils.wrapObjects(Utils.extractArray('include', @loadOptions))
     @loadOptions.optionalFields = Utils.extractArray('optionalFields', @loadOptions)
     @loadOptions.filters ?= {}
     @loadOptions.thisLayerInclude = _.map @loadOptions.include, (i) -> _.keys(i)[0] # pull off the top layer of includes
@@ -247,13 +247,22 @@ class AbstractLoader
     for hash in @loadOptions.include
       associationName = _.keys(hash)[0]
       associationIds = @_getIdsForAssociation(associationName)
-      associationInclude = hash[associationName]
+      includedAssociation = hash[associationName]
 
-      if associationIds.length && associationInclude.length
-        @additionalIncludes.push
-          name: associationName
+      if associationIds.length
+        association = {
           ids: associationIds
-          include: associationInclude
+        }
+
+        if includedAssociation instanceof Backbone.Collection
+          association.collection = includedAssociation
+
+          @additionalIncludes.push association
+        else if includedAssociation.length
+          association.include = includedAssociation
+          association.name = associationName
+
+          @additionalIncludes.push association
 
   ###*
    * Loads the next layer of includes from the server.
@@ -264,16 +273,18 @@ class AbstractLoader
     promises = []
 
     for association in @additionalIncludes
-      collectionName = @_getModel().associationDetails(association.name).collectionName
-
       loadOptions =
         cache: @loadOptions.cache
         only: association.ids
-        include: association.include
         params:
           apply_default_filters: false
 
-      promises.push(@storageManager.loadObject(collectionName, loadOptions))
+      if association.collection
+        promises.push association.collection.fetch(loadOptions)
+      else
+        collectionName = @_getModel().associationDetails(association.name).collectionName
+        loadOptions.include = association.include
+        promises.push(@storageManager.loadObject(collectionName, loadOptions))
 
     $.when.apply($, promises)
       .done(@_onLoadingCompleted)
