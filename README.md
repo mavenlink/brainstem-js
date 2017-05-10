@@ -218,21 +218,28 @@ new Posts().fetch({
 
 ```javascript
 Post = require('./models/post');
+User = require('./models/user');
 
 var user;
 var comments;
+var reviews;
+var userCollection = new User([], { include: 'reviews' });
 
-new Post({ id: 1 }).fetch({ include: ['user', 'comments'] })
+new Post({ id: 1 }).fetch({ include: ['comments', { user: userCollection }] })
   .done(function (post) {
   	user = post.get('user');
+  	reviews = user.get('reviews');
   	comments = post.get('comments');
   });
   
-console.log('user');
+console.log(user);
 // User [BackboneModel]
 
-console.log('comments');
+console.log(comments);
 // Comments [BackboneCollection]
+
+console.log(reviews);
+// Reviews [BackboneCollection]
 ```
 
 ### Manipulating Collections

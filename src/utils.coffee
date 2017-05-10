@@ -44,13 +44,18 @@ class Utils
     result = [result] unless result instanceof Array
     _.compact(result)
 
-  @wrapObjects: (array) ->
+  @wrapObjects: (array, options = {}) ->
     output = []
     _(array).each (elem) =>
       if elem.constructor == Object
         for key, value of elem
           o = {}
-          o[key] = @wrapObjects(if value instanceof Array then value else [value])
+
+          if @isPojo(value) || value instanceof Array || typeof value == 'string'
+            o[key] = @wrapObjects(if value instanceof Array then value else [value])
+          else
+            o[key] = value
+
           output.push o
       else
         o = {}
@@ -63,6 +68,15 @@ class Utils
     options.error = (response) ->
       error(collection, response, options) if error
       collection.trigger('error', collection, response, options)
+
+  @isPojo: (obj) ->
+    proto = Object.prototype
+    gpo = Object.getPrototypeOf
+
+    if obj == null or typeof obj != 'object'
+      return false
+
+    gpo(obj) == proto
 
 
 module.exports = Utils
