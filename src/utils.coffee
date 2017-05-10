@@ -51,7 +51,7 @@ class Utils
         for key, value of elem
           o = {}
 
-          if @isPojo(value) || value instanceof Array || typeof value == "string"
+          if @isPojo(value) || value instanceof Array || typeof value == 'string'
             o[key] = @wrapObjects(if value instanceof Array then value else [value])
           else
             o[key] = value
