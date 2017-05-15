@@ -2475,7 +2475,7 @@ Model = (function(superClass) {
           }
           model = this.storageManager.storage(collectionName).get(pointer);
           if (!model && !options.silent) {
-            Utils.throwError("Unable to find " + field + " with id " + id + " in our cached {details.collectionName} collection. We know about " + (this.storageManager.storage(details.collectionName).pluck('id').join(', ')));
+            Utils.throwError("Unable to find " + field + " with id " + id + " in our cached " + details.collectionName + " collection. We know about " + (this.storageManager.storage(details.collectionName).pluck('id').join(', ')));
           }
           return model;
         }
