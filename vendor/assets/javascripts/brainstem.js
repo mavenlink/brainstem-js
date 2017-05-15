@@ -200,6 +200,7 @@
     // 'metal',
     'methane',
     'milk',
+    'minus',
     'money',
     // 'moose',
     'mud',
@@ -356,6 +357,7 @@
       hives     : new RegExp( '(hi|ti)ves$'                    , 'gi' ),
       curves    : new RegExp( '(curve)s$'                      , 'gi' ),
       lrves     : new RegExp( '([lr])ves$'                     , 'gi' ),
+      aves      : new RegExp( '([a])ves$'                      , 'gi' ),
       foves     : new RegExp( '([^fo])ves$'                    , 'gi' ),
       movies    : new RegExp( '(m)ovies$'                      , 'gi' ),
       aeiouyies : new RegExp( '([^aeiouy]|qu)ies$'             , 'gi' ),
@@ -525,6 +527,7 @@
     [ regex.plural.hives    , '$1ve' ],
     [ regex.plural.curves   , '$1' ],
     [ regex.plural.lrves    , '$1f' ],
+    [ regex.plural.aves     , '$1ve' ],
     [ regex.plural.foves    , '$1fe' ],
     [ regex.plural.movies   , '$1ovie' ],
     [ regex.plural.aeiouyies, '$1y' ],
@@ -1066,8 +1069,8 @@
       for( ;i < j; i++ ){
         var method = arr[ i ];
 
-        if( this.hasOwnProperty( method )){
-          str = this[ method ]( str );
+        if( inflector.hasOwnProperty( method )){
+          str = inflector[ method ]( str );
         }
       }
 
@@ -1078,7 +1081,7 @@
 /**
  * @public
  */
-  inflector.version = '1.10.0';
+  inflector.version = '1.12.0';
 
   return inflector;
 }));
@@ -1323,7 +1326,7 @@ module.exports = Collection = (function(superClass) {
     if (options == null) {
       options = {};
     }
-    return this.getPage(Infinity, options);
+    return this.getPage(2e308, options);
   };
 
   Collection.prototype.getPage = function(index, options) {
@@ -1409,7 +1412,7 @@ module.exports = Collection = (function(superClass) {
     count = (function() {
       try {
         return this.getServerCount();
-      } catch (undefined) {}
+      } catch (error) {}
     }).call(this);
     throwOrReturn = function(message) {
       if (throwError) {
@@ -1964,7 +1967,7 @@ AbstractLoader = (function() {
    */
 
   AbstractLoader.prototype._calculateAdditionalIncludes = function() {
-    var associationIds, associationInclude, associationName, hash, j, len, ref, results;
+    var association, associationIds, associationName, hash, includedAssociation, j, len, ref, results;
     this.additionalIncludes = [];
     ref = this.loadOptions.include;
     results = [];
@@ -1972,13 +1975,21 @@ AbstractLoader = (function() {
       hash = ref[j];
       associationName = _.keys(hash)[0];
       associationIds = this._getIdsForAssociation(associationName);
-      associationInclude = hash[associationName];
-      if (associationIds.length && associationInclude.length) {
-        results.push(this.additionalIncludes.push({
-          name: associationName,
-          ids: associationIds,
-          include: associationInclude
-        }));
+      includedAssociation = hash[associationName];
+      if (associationIds.length) {
+        association = {
+          ids: associationIds
+        };
+        if (includedAssociation instanceof Backbone.Collection) {
+          association.collection = includedAssociation;
+          results.push(this.additionalIncludes.push(association));
+        } else if (includedAssociation.length) {
+          association.include = includedAssociation;
+          association.name = associationName;
+          results.push(this.additionalIncludes.push(association));
+        } else {
+          results.push(void 0);
+        }
       } else {
         results.push(void 0);
       }
@@ -1999,16 +2010,20 @@ AbstractLoader = (function() {
     ref = this.additionalIncludes;
     for (j = 0, len = ref.length; j < len; j++) {
       association = ref[j];
-      collectionName = this._getModel().associationDetails(association.name).collectionName;
       loadOptions = {
         cache: this.loadOptions.cache,
         only: association.ids,
-        include: association.include,
         params: {
           apply_default_filters: false
         }
       };
-      promises.push(this.storageManager.loadObject(collectionName, loadOptions));
+      if (association.collection) {
+        promises.push(association.collection.fetch(loadOptions));
+      } else {
+        collectionName = this._getModel().associationDetails(association.name).collectionName;
+        loadOptions.include = association.include;
+        promises.push(this.storageManager.loadObject(collectionName, loadOptions));
+      }
     }
     return $.when.apply($, promises).done(this._onLoadingCompleted).fail(this._onServerLoadError);
   };
@@ -2353,7 +2368,7 @@ module.exports = ModelLoader;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./abstract-loader":6,"inflection":1}],9:[function(require,module,exports){
 (function (global){
-var $, Backbone, Model, StorageManager, Utils, _, inflection,
+var $, Backbone, Model, StorageManager, Utils, _, inflection, isDateAttr,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -2371,6 +2386,10 @@ inflection = require('inflection');
 Utils = require('./utils');
 
 StorageManager = require('./storage-manager');
+
+isDateAttr = function(key) {
+  return key.indexOf('date') > -1 || /_at$/.test(key);
+};
 
 Model = (function(superClass) {
   extend(Model, superClass);
@@ -2415,7 +2434,7 @@ Model = (function(superClass) {
     var k, v;
     for (k in modelObject) {
       v = modelObject[k];
-      if (/^\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}$/.test(v)) {
+      if (isDateAttr(k) && /^\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}$/.test(v)) {
         modelObject[k] = Date.parse(v);
       }
     }
@@ -2434,7 +2453,7 @@ Model = (function(superClass) {
     this.storageManager = StorageManager.get();
     try {
       cache = this.storageManager.storage(this.brainstemKey);
-    } catch (undefined) {}
+    } catch (error) {}
     if (options.cached !== false && attributes.id && this.brainstemKey && cache) {
       existing = cache.get(attributes.id);
       blacklist = options.blacklist || this._associationKeyBlacklist();
@@ -2475,7 +2494,7 @@ Model = (function(superClass) {
           }
           model = this.storageManager.storage(collectionName).get(pointer);
           if (!model && !options.silent) {
-            Utils.throwError("Unable to find " + field + " with id " + id + " in our cached {details.collectionName} collection. We know about " + (this.storageManager.storage(details.collectionName).pluck('id').join(', ')));
+            Utils.throwError("Unable to find " + field + " with id " + id + " in our cached " + details.collectionName + " collection.\nWe know about " + (this.storageManager.storage(details.collectionName).pluck('id').join(', ')));
           }
           return model;
         }
@@ -2493,7 +2512,7 @@ Model = (function(superClass) {
             }
           }
           if (notFoundIds.length && !options.silent) {
-            Utils.throwError("Unable to find " + field + " with ids " + (notFoundIds.join(', ')) + " in our cached " + details.collectionName + " collection.  We know about " + (this.storageManager.storage(details.collectionName).pluck('id').join(', ')));
+            Utils.throwError("Unable to find " + field + " with ids " + (notFoundIds.join(', ')) + " in our\ncached " + details.collectionName + " collection.  We know about\n" + (this.storageManager.storage(details.collectionName).pluck('id').join(', ')));
           }
         }
         if (options.order) {
@@ -2545,6 +2564,36 @@ Model = (function(superClass) {
         return _this.trigger('sync', response, options);
       };
     })(this)).promise(options.returnValues.jqXhr);
+  };
+
+  Model.prototype.destroy = function(options) {
+    var cleanUpAssociatedReferences;
+    if (options == null) {
+      options = {};
+    }
+    cleanUpAssociatedReferences = (function(_this) {
+      return function() {
+        return _.each(_this.storageManager.collections, function(collection) {
+          return _.each(collection.modelKlass.associations, function(associator, reference) {
+            var associationKey;
+            associationKey = collection.modelKlass.associationDetails(reference).key;
+            if (this._collectionHasMany(associator)) {
+              return collection.storage.each(function(model) {
+                return model.set(associationKey, _.without(model.get(associationKey), this.id));
+              }, this);
+            } else if (this._collectionBelongsTo(associator)) {
+              return collection.storage.each(function(model) {
+                if (model.get(associationKey) === this.id) {
+                  return model.unset(associationKey);
+                }
+              }, this);
+            }
+          }, this);
+        }, _this);
+      };
+    })(this);
+    this.listenTo(this, 'destroy', cleanUpAssociatedReferences);
+    return Model.__super__.destroy.call(this, options);
   };
 
   Model.prototype.parse = function(resp, xhr) {
@@ -2680,10 +2729,18 @@ Model = (function(superClass) {
     blacklist = this.defaultJSONBlacklist();
     switch (method) {
       case 'create':
-        blacklist = blacklist.concat(this.createJSONBlacklist());
+        if (this.createJSONWhitelist) {
+          blacklist = _.difference(Object.keys(this.attributes), this.createJSONWhitelist());
+        } else {
+          blacklist = blacklist.concat(this.createJSONBlacklist());
+        }
         break;
       case 'update':
-        blacklist = blacklist.concat(this.updateJSONBlacklist());
+        if (this.updateJSONWhitelist) {
+          blacklist = _.difference(Object.keys(this.attributes), this.updateJSONWhitelist());
+        } else {
+          blacklist = blacklist.concat(this.updateJSONBlacklist());
+        }
     }
     for (i = 0, len = blacklist.length; i < len; i++) {
       blacklistKey = blacklist[i];
@@ -2746,6 +2803,18 @@ Model = (function(superClass) {
 
   Model.prototype._onAssociatedCollectionChange = function(field, collectionChangeDetails) {
     return this.attributes[this.constructor.associationDetails(field).key] = collectionChangeDetails[1].pluck('id');
+  };
+
+  Model.prototype._collectionHasMany = function(associator) {
+    return _.isArray(associator) && _.find(associator, (function(_this) {
+      return function(collectionName) {
+        return inflection.singularize(collectionName) === _this.className();
+      };
+    })(this));
+  };
+
+  Model.prototype._collectionBelongsTo = function(associator) {
+    return !_.isArray(associator) && inflection.singularize(associator) === this.className();
   };
 
   return Model;
@@ -2819,7 +2888,7 @@ _StorageManager = (function() {
 
   _StorageManager.prototype.addCollection = function(name, collectionClass) {
     var collection;
-    collection = new collectionClass();
+    collection = new collectionClass([], {});
     collection.on('remove', function(model) {
       return model.invalidateCache();
     });
@@ -2892,7 +2961,7 @@ _StorageManager = (function() {
   };
 
   _StorageManager.prototype.loadObject = function(name, loadOptions, options) {
-    var completeCallback, errorCallback, loader, loaderClass, successCallback;
+    var base, completeCallback, errorCallback, loader, loaderClass, successCallback;
     if (loadOptions == null) {
       loadOptions = {};
     }
@@ -2930,6 +2999,12 @@ _StorageManager = (function() {
     }
     if (this.expectations != null) {
       this.handleExpectations(loader);
+      if ((base = loader.loadOptions).returnValues == null) {
+        base.returnValues = {};
+      }
+      loader.loadOptions.returnValues.jqXhr = {
+        abort: function() {}
+      };
     } else {
       loader.load();
     }
@@ -3045,7 +3120,8 @@ StorageManager = (function() {
   instance = null;
 
   StorageManager.get = function() {
-    return instance != null ? instance : instance = new _StorageManager(arguments);
+    var ref, ref1;
+    return instance != null ? instance : instance = (ref = (ref1 = window.base) != null ? ref1.data : void 0) != null ? ref : new _StorageManager(arguments);
   };
 
   return StorageManager;
@@ -3104,6 +3180,7 @@ module.exports = function(method, model, options) {
     }
     data.include = Utils.extractArray('include', options).join(',');
     data.filters = Utils.extractArray('filters', options).join(',');
+    data.optional_fields = Utils.extractArray('optionalFields', options).join(',');
     _.extend(data, options.params || {});
     params.data = JSON.stringify(data);
   }
@@ -3173,7 +3250,7 @@ Utils = (function() {
       var ref;
       try {
         return (ref = Backbone.history) != null ? ref.getFragment() : void 0;
-      } catch (undefined) {}
+      } catch (error1) {}
     })();
     if (fragment) {
       message += ", fragment: " + fragment;
@@ -3226,8 +3303,11 @@ Utils = (function() {
     return _.compact(result);
   };
 
-  Utils.wrapObjects = function(array) {
+  Utils.wrapObjects = function(array, options) {
     var output;
+    if (options == null) {
+      options = {};
+    }
     output = [];
     _(array).each((function(_this) {
       return function(elem) {
@@ -3237,7 +3317,11 @@ Utils = (function() {
           for (key in elem) {
             value = elem[key];
             o = {};
-            o[key] = _this.wrapObjects(value instanceof Array ? value : [value]);
+            if (_this.isPojo(value) || value instanceof Array || typeof value === 'string') {
+              o[key] = _this.wrapObjects(value instanceof Array ? value : [value]);
+            } else {
+              o[key] = value;
+            }
             results.push(output.push(o));
           }
           return results;
@@ -3260,6 +3344,16 @@ Utils = (function() {
       }
       return collection.trigger('error', collection, response, options);
     };
+  };
+
+  Utils.isPojo = function(obj) {
+    var gpo, proto;
+    proto = Object.prototype;
+    gpo = Object.getPrototypeOf;
+    if (obj === null || typeof obj !== 'object') {
+      return false;
+    }
+    return gpo(obj) === proto;
   };
 
   return Utils;
