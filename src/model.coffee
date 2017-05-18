@@ -106,7 +106,7 @@ class Model extends Backbone.Model
 
           if not model && not options.silent
             Utils.throwError("""
-              Unable to find #{field} with id #{id} in our cached {details.collectionName} collection.
+              Unable to find #{field} with id #{id} in our cached #{details.collectionName} collection.
               We know about #{@storageManager.storage(details.collectionName).pluck('id').join(', ')}
             """)
 
