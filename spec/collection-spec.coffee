@@ -88,10 +88,10 @@ describe 'Collection', ->
         collection = storageManager.createNewCollection 'tasks'
         expect(collection.getServerCount()).toBeUndefined()
 
-  describe '#getWithAssocation', ->
+  describe '#getWithAssociation', ->
     it 'defaults to the regular get', ->
       spyOn(collection, 'get')
-      collection.getWithAssocation(10)
+      collection.getWithAssociation(10)
       expect(collection.get).toHaveBeenCalledWith(10)
 
   describe '#fetch', ->
