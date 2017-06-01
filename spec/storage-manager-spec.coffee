@@ -55,11 +55,10 @@ describe 'Brainstem Storage Manager', ->
       expect(manager.storage('time_entries').firstFetchOptions).toEqual({})
 
   describe "reset", ->
-    beforeEach ->
+    it "should clear all storage and sort lengths", ->
       buildAndCacheTask()
       buildAndCacheProject()
 
-    it "should clear all storage and sort lengths", ->
       expect(manager.storage("projects").length).toEqual 1
       expect(manager.storage("tasks").length).toEqual 1
 
