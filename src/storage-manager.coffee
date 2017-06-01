@@ -73,9 +73,9 @@ class _StorageManager
       storage: collection
       cache: {}
 
-  reset: (options) ->
+  reset: ->
     for name, attributes of @collections
-      attributes.storage.reset [], options
+      attributes.storage.reset []
       attributes.cache = {}
 
   createNewCollection: (collectionName, models = [], options = {}) ->

@@ -70,15 +70,6 @@ describe 'Brainstem Storage Manager', ->
       expect(manager.storage("projects").length).toEqual 0
       expect(manager.storage("tasks").length).toEqual 0
 
-    context "with silent option", ->
-      beforeEach ->
-        @allSpy = jasmine.createSpy()
-        manager.storage("tasks").on("all", @allSpy)
-        manager.reset(silent: true)
-
-      it "passes that onto the collections", ->
-        expect(@allSpy).not.toHaveBeenCalled()
-
   describe "complete callback", ->
     describe "loadModel", ->
       it "fires when there is an error", ->
