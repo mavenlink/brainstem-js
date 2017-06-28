@@ -354,6 +354,15 @@ We're always open to pull requests!
     npm install -g gulp
     npm install
 
+#### `yarn link` usages
+
+To use this module as a symbolic link, run:
+
+    yarn install
+    
+ which runs `yarn prepublish`.
+
+
 ### Running Specs
 
 To run the specs on the command line, run:
@@ -363,7 +372,8 @@ To run the specs on the command line, run:
 To run the specs in a server with live code reloading and compilation:
 
     gulp test-watch
-    
+
+
 ## License
 
 Brainstem and Brainstem.js were created by Mavenlink, Inc. and are available under the MIT License.
