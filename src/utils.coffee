@@ -44,7 +44,7 @@ class Utils
     result = [result] unless result instanceof Array
     _.compact(result)
 
-  @wrapObjects: (array, options = {}) ->
+  @wrapObjects: (array) ->
     output = []
     _(array).each (elem) =>
       if elem.constructor == Object

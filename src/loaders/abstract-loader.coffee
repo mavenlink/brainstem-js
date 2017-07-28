@@ -4,6 +4,7 @@ Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 
 Utils = require '../utils'
+BrainstemParams = require '../brainstem-params'
 
 
 class AbstractLoader
@@ -258,6 +259,10 @@ class AbstractLoader
           association.collection = includedAssociation
 
           @additionalIncludes.push association
+        else if includedAssociation instanceof BrainstemParams
+          association.brainstemParams = includedAssociation
+
+          @additionalIncludes.push association
         else if includedAssociation.length
           association.include = includedAssociation
           association.name = associationName
@@ -281,6 +286,11 @@ class AbstractLoader
 
       if association.collection
         promises.push association.collection.fetch(loadOptions)
+      else if association.brainstemParams
+        collectionName = association.brainstemParams.collectionName
+
+        options = _.extend(loadOptions, association.brainstemParams)
+        promises.push(@storageManager.loadObject(collectionName, options))
       else
         collectionName = @_getModel().associationDetails(association.name).collectionName
         loadOptions.include = association.include

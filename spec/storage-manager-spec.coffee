@@ -5,6 +5,7 @@ Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 StorageManager = require '../src/storage-manager'
 AbstractLoader = require '../src/loaders/abstract-loader'
 ModelLoader = require '../src/loaders/model-loader'
+BrainstemParams = require '../src/brainstem-params'
 
 Tasks = require './helpers/models/tasks'
 TimeEntries = require './helpers/models/time-entries'
@@ -530,6 +531,31 @@ describe 'Brainstem Storage Manager', ->
 
               collection.bind "loaded", checkStructure
               collection.bind "reset", checkStructure
+
+              expect(success).not.toHaveBeenCalled()
+
+              server.respond() until server.queue.length == 0
+              expect(success).toHaveBeenCalled()
+              expect(callCount).toEqual 3
+
+          context 'using BrainstemParams', ->
+            it 'separately requests each layer of associations', ->
+              brainstemParams = new BrainstemParams
+                collectionName: 'projects'
+                include: ['time_entries': 'task']
+                test: 10
+
+              collection = manager.loadCollection 'tasks',
+                filters: { parents_only: 'true' },
+                success: success,
+                include: [
+                  'assignees',
+                  { project: brainstemParams },
+                  { sub_tasks: ['assignees'] }
+                ]
+
+              collection.bind 'loaded', checkStructure
+              collection.bind 'reset', checkStructure
 
               expect(success).not.toHaveBeenCalled()
 
