@@ -74,7 +74,19 @@ module.exports = class Expectation
 
     @manager._checkPageSettings(loader.originalOptions)
 
-    _.all ['include', 'only', 'order', 'filters', 'perPage', 'page', 'limit', 'offset', 'search', 'cacheKey', 'optionalFields'], (optionType) =>
+    optionKeys = ['include'
+                  'only'
+                  'order'
+                  'filters'
+                  'perPage'
+                  'page'
+                  'limit'
+                  'offset'
+                  'search'
+                  'cacheKey'
+                  'optionalFields']
+
+    _.all optionKeys, (optionType) =>
       return true if @options[optionType] == '*'
 
       option = _.compact(_.flatten([loader.originalOptions[optionType]]))
