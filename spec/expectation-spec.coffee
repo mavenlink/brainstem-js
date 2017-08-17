@@ -330,8 +330,8 @@ describe 'Expectations', ->
       expect(expectation.loaderOptionsMatch(loader)).toBe false
 
     context 'when collection loader is given valid options', ->
-      expected_include = expected_filters = expected_page = expected_perPage = expected_limit_offset = null
-      expected_order = expected_search = expected_cacheKey = expected_optionalFields = null
+      expected_include = expected_filters = expected_page = expected_perPage = null
+      expected_limit_offset = expected_order = expected_search = expected_optionalFields = null
 
       beforeEach ->
         expected_include = new Expectation("projects", {include:{}}, storageManager)
@@ -341,7 +341,6 @@ describe 'Expectations', ->
         expected_limit_offset = new Expectation("projects", {limit:'1', offset:'20'}, storageManager)
         expected_order = new Expectation("projects", {order:{}}, storageManager)
         expected_search = new Expectation("projects", {search:{}}, storageManager)
-        expected_cacheKey = new Expectation("projects", {cacheKey:{}}, storageManager)
         expected_optionalFields = new Expectation("projects", {optionalFields:{}}, storageManager)
 
       context 'when loaded values match expected values', ->
@@ -375,10 +374,6 @@ describe 'Expectations', ->
           loader = new CollectionLoader(storageManager: storageManager)
           loader.setup(name: "projects", search:{})
           expect(expected_search.loaderOptionsMatch(loader)).toBe true
-
-          loader = new CollectionLoader(storageManager: storageManager)
-          loader.setup(name: "projects", cacheKey:{})
-          expect(expected_cacheKey.loaderOptionsMatch(loader)).toBe true
 
           loader = new CollectionLoader(storageManager: storageManager)
           loader.setup(name: "projects", optionalFields:{})
@@ -423,10 +418,6 @@ describe 'Expectations', ->
           loader = new CollectionLoader(storageManager: storageManager)
           loader.setup(name: "projects", search:{foo:'bar'})
           expect(expected_search.loaderOptionsMatch(loader)).toBe false
-
-          loader = new CollectionLoader(storageManager: storageManager)
-          loader.setup(name: "projects", cacheKey:{foo:'bar'})
-          expect(expected_cacheKey.loaderOptionsMatch(loader)).toBe false
 
           loader = new CollectionLoader(storageManager: storageManager)
           loader.setup(name: "projects", optionalFields:{foo:'bar'})

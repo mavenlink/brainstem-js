@@ -83,7 +83,6 @@ module.exports = class Expectation
                   'limit'
                   'offset'
                   'search'
-                  'cacheKey'
                   'optionalFields']
 
     _.all optionKeys, (optionType) =>
