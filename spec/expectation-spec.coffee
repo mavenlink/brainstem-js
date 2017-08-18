@@ -329,6 +329,100 @@ describe 'Expectations', ->
       loader.setup(name: "projects", filters: { foo: "bar" })
       expect(expectation.loaderOptionsMatch(loader)).toBe false
 
+    context 'when collection loader is given valid options', ->
+      expected_include = expected_filters = expected_page = expected_perPage = null
+      expected_limit_offset = expected_order = expected_search = expected_optionalFields = null
+
+      beforeEach ->
+        expected_include = new Expectation("projects", {include:{}}, storageManager)
+        expected_filters = new Expectation("projects", {filters:{}}, storageManager)
+        expected_page = new Expectation("projects", {page:{}}, storageManager)
+        expected_perPage = new Expectation("projects", {perPage:{}}, storageManager)
+        expected_limit_offset = new Expectation("projects", {limit:'1', offset:'20'}, storageManager)
+        expected_order = new Expectation("projects", {order:{}}, storageManager)
+        expected_search = new Expectation("projects", {search:{}}, storageManager)
+        expected_optionalFields = new Expectation("projects", {optionalFields:{}}, storageManager)
+
+      context 'when loaded values match expected values', ->
+        it 'expects loader to be valid', ->
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", include:{})
+          expect(expected_include.loaderOptionsMatch(loader)).toBe true
+
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", filters:{})
+          expect(expected_filters.loaderOptionsMatch(loader)).toBe true
+
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", page:{})
+          expect(expected_page.loaderOptionsMatch(loader)).toBe true
+
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", perPage:{})
+          expect(expected_perPage.loaderOptionsMatch(loader)).toBe true
+
+          # limit and offset must be present, or this will always return false
+          # this is due to storage-manager._checkPageSettings
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects",limit:'1', offset:'20')
+          expect(expected_limit_offset.loaderOptionsMatch(loader)).toBe true
+
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", order:{})
+          expect(expected_order.loaderOptionsMatch(loader)).toBe true
+
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", search:{})
+          expect(expected_search.loaderOptionsMatch(loader)).toBe true
+
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", optionalFields:{})
+          expect(expected_optionalFields.loaderOptionsMatch(loader)).toBe true
+
+      context 'when loaded values do not match expected values', ->
+        it 'expects the loader to not be valid', ->
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", include:{foo:'bar'})
+          expect(expected_include.loaderOptionsMatch(loader)).toBe false
+
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", filters:{foo:'bar'})
+          expect(expected_filters.loaderOptionsMatch(loader)).toBe false
+
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", page:{foo:'bar'})
+          expect(expected_page.loaderOptionsMatch(loader)).toBe false
+
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", perPage:{foo:'bar'})
+          expect(expected_perPage.loaderOptionsMatch(loader)).toBe false
+
+          # limit and offset must be present, or this will always return false
+          # this is due to storage-manager._checkPageSettings
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects",limit: '1',offset:'25')
+          expect(expected_limit_offset.loaderOptionsMatch(loader)).toBe false
+          loader.setup(name: "projects",limit: '3',offset:'20')
+          expect(expected_limit_offset.loaderOptionsMatch(loader)).toBe false
+          loader.setup(name: "projects",limit: '3',offset:'25')
+          expect(expected_limit_offset.loaderOptionsMatch(loader)).toBe false
+          loader.setup(name: "projects",limit: '1')
+          expect(expected_limit_offset.loaderOptionsMatch(loader)).toBe false
+          loader.setup(name: "projects",offset:'20')
+          expect(expected_limit_offset.loaderOptionsMatch(loader)).toBe false
+
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", order:{foo:'bar'})
+          expect(expected_order.loaderOptionsMatch(loader)).toBe false
+
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", search:{foo:'bar'})
+          expect(expected_search.loaderOptionsMatch(loader)).toBe false
+
+          loader = new CollectionLoader(storageManager: storageManager)
+          loader.setup(name: "projects", optionalFields:{foo:'bar'})
+          expect(expected_optionalFields.loaderOptionsMatch(loader)).toBe false
+
   describe 'stubbing models', ->
     context 'a model that matches the load is already in the storage storageManager', ->
       it 'updates that model', ->
