@@ -61,6 +61,9 @@ class _StorageManager
     collection.on 'remove', (model) ->
       model.invalidateCache()
 
+    collection.on 'change', (model) =>
+      @_invalidateCache(model.brainstemKey) unless model.isNew()
+
     @collections[name] =
       klass: collectionClass
       modelKlass: collectionClass.prototype.model
@@ -200,6 +203,9 @@ class _StorageManager
 
   #
   # Private
+
+  _invalidateCache: (name) ->
+    @collections[name].cache = {}
 
   _checkPageSettings: (options) ->
     if options.limit? && options.limit != '' && options.offset? && options.offset != ''
