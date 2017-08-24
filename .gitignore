@@ -10,3 +10,4 @@ node_modules/
 tags
 *.log
 coffeelint.json
+*.swp
