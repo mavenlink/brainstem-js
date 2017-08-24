@@ -20,7 +20,7 @@ module.exports = function (config) {
       'karma-sourcemap-loader'
     ],
 
-    browsers: process.env.CI === true ? ['PhantomJS'] : [],
+    browsers: ['PhantomJS'],
 
     frameworks: ['jasmine', 'sinon', 'browserify'],
 
