@@ -62,6 +62,7 @@ class _StorageManager
       model.invalidateCache()
 
     collection.on 'destroy change', (model) =>
+      return unless model
       @_invalidateCache(model.brainstemKey) unless model.isNew()
 
     @collections[name] =
