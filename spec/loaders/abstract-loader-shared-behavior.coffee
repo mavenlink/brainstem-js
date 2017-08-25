@@ -355,7 +355,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
           context 'all of the cached models have their associations loaded', ->
             beforeEach ->
-              taskOne.set('project_id', buildAndCacheProject().id)
+              taskOne.set('project_id', buildAndCacheProject().id, { silent: true })
 
             it 'calls #_onLoadSuccess with the models from the cache', ->
               opts.include = ['project']
@@ -371,7 +371,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
           context 'all of the cached models have their optional fields loaded', ->
             beforeEach ->
-              taskOne.set('test_field', 'test value')
+              taskOne.set('test_field', 'test value', { silent: true })
               opts.optionalFields = ['test_field']
               loader.setup(opts)
               loader._checkCacheForData()
