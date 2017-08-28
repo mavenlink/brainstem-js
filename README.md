@@ -194,7 +194,13 @@ Brainstem also supports requesting deeply nested associations. Under the hood, B
 ```javascript
 Post = require('./models/post');
 
-new Post({ id: 1 }).fetch({ include: ['user', { comments: ['replies', 'ratings'] }] })
+new Post({ id: 1 })
+  .fetch({ 
+    include: [
+      'user', 
+      { comments: ['replies', 'ratings'] }
+    ]
+  })
   .done(/* handle result */)
   .fail(/* handle error */);
 ```
@@ -210,7 +216,8 @@ var comments = new Comments(null, {
   filters: { only_by_user_id: 1 }
 });
 
-new Post({ id: 1 }).fetch({ include: ['user', comments] })
+new Post({ id: 1 })
+  .fetch({ include: ['user', comments] })
   .done(/* handle result */)
   .fail(/* handle error */);
 ```
