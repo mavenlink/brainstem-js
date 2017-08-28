@@ -10,4 +10,4 @@
 
 <!-- Demonstrate the code is solid. Example: The exact commands you ran and their output, screenshots / videos if the pull request changes UI. -->
 
-<!-- Requirement for Mavenlink engineers: Provide links to builds using this changeset (e.g. brainstem-redux, mavenlink-js, mavenlink/mavenlink. -->
+<!-- Requirement for Mavenlink engineers: Provide links to any related product requirements and builds using this changeset (e.g. brainstem-redux, mavenlink-js, mavenlink/mavenlink. -->
