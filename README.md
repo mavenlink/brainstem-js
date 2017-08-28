@@ -182,7 +182,8 @@ In addition to basic REST requests, the Brainstem.js model `fetch` method suppor
 ```javascript
 Post = require('./models/post');
 
-new Post({ id: 1 }).fetch({ include: ['user', 'comments'] })
+new Post({ id: 1 })
+  .fetch({ include: ['user', 'comments'] })
   .done(/* handle result */)
   .fail(/* handle error */);
 ```
