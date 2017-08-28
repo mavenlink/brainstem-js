@@ -221,12 +221,6 @@ In this example we are able to specify a filter for the comments association. Wi
 
 ```javascript
 Post = require('./models/post');
-Comments = require('./collections/comments')
-
-var comments = new Comments(null, {
-  include: ['replies', 'ratings'],
-  filters: { only_by_user_id: 1 }
-});
 
 var commentsParams = new BrainstemParams({
   collectionName: 'comment',
