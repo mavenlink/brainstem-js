@@ -257,9 +257,8 @@ class AbstractLoader
 
         if includedAssociation instanceof Backbone.Collection
           association.collection = includedAssociation
-
           @additionalIncludes.push association
-        else if includedAssociation instanceof BrainstemParams
+        else if includedAssociation.collectionName
           association.brainstemParams = includedAssociation
 
           @additionalIncludes.push association
