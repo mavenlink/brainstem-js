@@ -224,18 +224,18 @@ new Post({ id: 1 })
 ```
 
 In this example we are able to specify a filter for the comments association. With the filter, we can request comments for the post filtered by user_id 1.
-Here, `comments` needs to be the name of the association that post has for comments.
+Here, `comments` needs to be the name of the association 
 
-##### BrainstemParams Example
+##### brainstemParams Example
 
 ```javascript
 Post = require('./models/post');
 
-var commentsParams = new BrainstemParams({
-  collectionName: 'comment',
+var commentsParams = {
+  brainstemParams: true,
   include: ['replies', 'ratings'],
   filters: { only_by_user_id: 1 }
-});
+};
 
 new Post({ id: 1 })
   .fetch({ include: ['user', { comments: commentsParams }] })
