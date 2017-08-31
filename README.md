@@ -182,10 +182,68 @@ In addition to basic REST requests, the Brainstem.js model `fetch` method suppor
 ```javascript
 Post = require('./models/post');
 
-new Post({ id: 1 }).fetch({ include: ['user', 'comments'] })
+new Post({ id: 1 })
+  .fetch({ include: ['user', 'comments'] })
   .done(/* handle result */)
   .fail(/* handle error */);
 ```
+
+Brainstem also supports requesting deeply nested associations. Under the hood, Brainstem makes recursive requests for each layer of associations. There are three ways to make this kind of request, using JSON-like Objects, Backbone Collections or BrainstemParams. Using Backbone Collections or BrainstemParams enables expressing additional options for the nested includes / associations.
+
+##### JSON-like Object Example
+
+```javascript
+Post = require('./models/post');
+
+new Post({ id: 1 })
+  .fetch({ 
+    include: [
+      'user', 
+      { comments: ['replies', 'ratings'] }
+    ]
+  })
+  .done(/* handle result */)
+  .fail(/* handle error */);
+```
+
+##### Backbone Collection Example
+
+```javascript
+Post = require('./models/post');
+Comments = require('./collections/comments')
+
+var comments = new Comments(null, {
+  include: ['replies', 'ratings'],
+  filters: { only_by_user_id: 1 }
+});
+
+new Post({ id: 1 })
+  .fetch({ include: ['user', { comments: comments }] })
+  .done(/* handle result */)
+  .fail(/* handle error */);
+```
+
+In this example we are able to specify a filter for the comments association. With the filter, we can request comments for the post filtered by user_id 1.
+Here, `comments` needs to be the name of the association 
+
+##### brainstemParams Example
+
+```javascript
+Post = require('./models/post');
+
+var commentsParams = {
+  brainstemParams: true,
+  include: ['replies', 'ratings'],
+  filters: { only_by_user_id: 1 }
+};
+
+new Post({ id: 1 })
+  .fetch({ include: ['user', { comments: commentsParams }] })
+  .done(/* handle result */)
+  .fail(/* handle error */);
+```
+
+Similar to the Backbone Collection example, again with brainstemParams, we can include additional options for any association.
 
 #### Collections
 
@@ -205,10 +263,11 @@ new Posts().fetch({
   perPage: 10,
   order: 'date:desc',
   filters: {
-    title: 'collections',
-    description: 'fetching'
- })
-}).done(/* handle result */)
+      title: 'collections',
+      description: 'fetching'
+    }
+  })
+  .done(/* handle result */)
   .fail(/* handle error */);
 ```
 

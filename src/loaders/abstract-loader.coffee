@@ -5,7 +5,6 @@ Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 
 Utils = require '../utils'
 
-
 class AbstractLoader
 
   #
@@ -149,7 +148,8 @@ class AbstractLoader
   _parseLoadOptions: (loadOptions = {}) ->
     @originalOptions = _.clone(loadOptions)
     @loadOptions = _.clone(loadOptions)
-    @loadOptions.include = Utils.wrapObjects(Utils.extractArray('include', @loadOptions))
+    ignoreWrappingBrainstemParams = (options) -> options.brainstemParams != true
+    @loadOptions.include = Utils.wrapObjects(Utils.extractArray('include', @loadOptions), ignoreWrappingBrainstemParams)
     @loadOptions.optionalFields = Utils.extractArray('optionalFields', @loadOptions)
     @loadOptions.filters ?= {}
     @loadOptions.thisLayerInclude = _.map @loadOptions.include, (i) -> _.keys(i)[0] # pull off the top layer of includes
@@ -256,7 +256,10 @@ class AbstractLoader
 
         if includedAssociation instanceof Backbone.Collection
           association.collection = includedAssociation
-
+          @additionalIncludes.push association
+        else if includedAssociation.brainstemParams
+          association.loadOptions = includedAssociation
+          association.name = associationName
           @additionalIncludes.push association
         else if includedAssociation.length
           association.include = includedAssociation
@@ -283,7 +286,11 @@ class AbstractLoader
         promises.push association.collection.fetch(loadOptions)
       else
         collectionName = @_getModel().associationDetails(association.name).collectionName
-        loadOptions.include = association.include
+        if association.loadOptions
+          loadOptions = _.extend(loadOptions, association.loadOptions)
+        else
+          loadOptions.include = association.include
+
         promises.push(@storageManager.loadObject(collectionName, loadOptions))
 
     $.when.apply($, promises)

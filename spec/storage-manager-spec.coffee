@@ -519,17 +519,24 @@ describe 'Brainstem Storage Manager', ->
                 include: ["time_entries": "task"]
                 test: 10
 
-              collection = manager.loadCollection "tasks",
-                filters: { parents_only: "true" },
+          context 'using brainstemParams', ->
+            it 'separately requests each layer of associations', ->
+              projectParams =
+                brainstemParams: true
+                include: ['time_entries': 'task']
+                test: 10
+
+              collection = manager.loadCollection 'tasks',
+                filters: { parents_only: 'true' },
                 success: success,
                 include: [
                   'assignees',
-                  { project: projectCollection },
-                  { sub_tasks: ["assignees"] }
+                  { project: projectParams },
+                  { sub_tasks: ['assignees'] }
                 ]
 
-              collection.bind "loaded", checkStructure
-              collection.bind "reset", checkStructure
+              collection.bind 'loaded', checkStructure
+              collection.bind 'reset', checkStructure
 
               expect(success).not.toHaveBeenCalled()
 
