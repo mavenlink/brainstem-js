@@ -188,9 +188,9 @@ new Post({ id: 1 })
   .fail(/* handle error */);
 ```
 
-Brainstem also supports requesting deeply nested associations. Under the hood, Brainstem makes recursive requests for each layer of associations. There are three ways to make this kind of request, using JSON Objects, Backbone Collections or BrainstemParams. Using Backbone Collections or BrainstemParams enables expressing additional options for the nested includes / associations.
+Brainstem also supports requesting deeply nested associations. Under the hood, Brainstem makes recursive requests for each layer of associations. There are three ways to make this kind of request, using JSON-like Objects, Backbone Collections or BrainstemParams. Using Backbone Collections or BrainstemParams enables expressing additional options for the nested includes / associations.
 
-##### JSON Object Example
+##### JSON-like Object Example
 
 ```javascript
 Post = require('./models/post');
@@ -243,7 +243,7 @@ new Post({ id: 1 })
   .fail(/* handle error */);
 ```
 
-Similar to the Backbone Collection example, again with BrainstemParams, we can include additional options for any association.
+Similar to the Backbone Collection example, again with brainstemParams, we can include additional options for any association.
 
 #### Collections
 
