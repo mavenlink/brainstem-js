@@ -44,14 +44,16 @@ class Utils
     result = [result] unless result instanceof Array
     _.compact(result)
 
-  @wrapObjects: (array) ->
+  @wrapObjects: (array, optionalPredicate) ->
+    optionalPredicate ||= -> true
+
     output = []
     _(array).each (elem) =>
       if elem.constructor == Object
         for key, value of elem
           o = {}
 
-          if @isPojo(value) || value instanceof Array || typeof value == 'string'
+          if (@isPojo(value) || value instanceof Array || typeof value == 'string') && optionalPredicate(value)
             o[key] = @wrapObjects(if value instanceof Array then value else [value])
           else
             o[key] = value
