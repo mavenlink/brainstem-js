@@ -10,12 +10,6 @@ ModelLoader = require './loaders/model-loader'
 CollectionLoader = require './loaders/collection-loader'
 sync = require './sync'
 
-
-# TODO: Record access timestamps on all Models by overloading #get and #set.
-#    - Keep a sorted list (Heap?) of model references
-#    - Clean up the oldest ones if memory is low
-#    - Allow passing a recency parameter to the StorageManager
-
 # The StorageManager class is used to manage a set of Collections.
 # It is responsible for loading data and maintaining caches.
 class _StorageManager
@@ -66,6 +60,10 @@ class _StorageManager
 
     collection.on 'remove', (model) ->
       model.invalidateCache()
+
+    collection.on 'destroy change', (model) =>
+      return unless model
+      @_invalidateCache(model.brainstemKey) unless model.isNew()
 
     @collections[name] =
       klass: collectionClass
@@ -206,6 +204,9 @@ class _StorageManager
 
   #
   # Private
+
+  _invalidateCache: (name) ->
+    @collections[name].cache = {}
 
   _checkPageSettings: (options) ->
     if options.limit? && options.limit != '' && options.offset? && options.offset != ''

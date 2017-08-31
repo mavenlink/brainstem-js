@@ -290,7 +290,7 @@ new Post({ id: 1 }).fetch({ include: ['comments', { user: userCollection }] })
   	reviews = user.get('reviews');
   	comments = post.get('comments');
   });
-  
+
 console.log(user);
 // User [BackboneModel]
 
@@ -328,7 +328,7 @@ posts.fetch()
   	console.log(posts);
   	// Posts [Brainstem Collection] – all posts filtered by `account_id`
   });
-  
+
 // Further scoped fetch
 
 posts.fetch({ filters: { user_id: 1 }, order: 'updated_at:desc' })
@@ -336,7 +336,7 @@ posts.fetch({ filters: { user_id: 1 }, order: 'updated_at:desc' })
   	console.log(posts);
   	// Posts [Brainstem Collection] – all posts filtered by `account_id` and `user_id` ordered by `updated_at`
   });
-  
+
 // Restoring base scope
 
 posts.fetch()
@@ -376,19 +376,19 @@ posts.fetch()
   	console.log(posts.pluck('id');
   	// [1, 2, 3, 4, 5, 6, 7, 8, 9 , 10]
   });
-  
+
 posts.getNextPage()
   .done(function (posts) {
   	console.log(posts.pluck('id');
   	// [11, 12, 13, 14, 15, 16, 17, 18, 19 , 20]
   });
-  
+
 posts.getPreviousPage()
   .done(function (posts) {
   	console.log(posts.pluck('id');
   	// [1, 2, 3, 4, 5, 6, 7, 8, 9 , 10]
   });
-  
+
 // The Backbone.Collection `add` option can be utilized for "load more" style pagination
 
 posts.getNextPage({ add: true })
@@ -406,19 +406,17 @@ We're always open to pull requests!
 ### Dependencies
 
   - [Node](https://nodejs.org/en/)
-  - [Gulp](http://gulpjs.com/)
 
 ### Development Environment
 
-    npm install -g gulp
-    npm install
+    yarn install
 
 #### `yarn link` usages
 
 To use this module as a symbolic link, run:
 
     yarn install
-    
+
  which runs `yarn prepublish`.
 
 
@@ -426,11 +424,11 @@ To use this module as a symbolic link, run:
 
 To run the specs on the command line, run:
 
-    gulp test
+    yarn test
 
 To run the specs in a server with live code reloading and compilation:
 
-    gulp test-watch
+    yarn test-watch
 
 
 ## License
