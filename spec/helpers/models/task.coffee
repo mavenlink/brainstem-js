@@ -12,5 +12,4 @@ class Task extends Model
     sub_tasks: ["tasks"]
     parent: "tasks"
 
-
 module.exports = Task

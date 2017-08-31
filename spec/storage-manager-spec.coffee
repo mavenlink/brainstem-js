@@ -1006,10 +1006,26 @@ describe 'Brainstem Storage Manager', ->
           expect(Object.keys(cacheMap).length).toEqual(1)
 
       describe 'existing model updated', ->
-        it 'wipes out the cache', ->
-          @collection.first().set('title', 'money')
-          cacheMap = manager.getCollectionDetails('time_entries').cache
-          expect(Object.keys(cacheMap).length).toEqual(0)
+        describe 'modified blacklisted attribute', ->
+          it 'does nothing to the cache', ->
+            blacklistedAttribute = @collection.first().defaultJSONBlacklist()[1]
+            @collection.first().set(blacklistedAttribute, 'nothing changes')
+            cacheMap = manager.getCollectionDetails('time_entries').cache
+            expect(Object.keys(cacheMap).length).toEqual(1)
+
+        describe 'modifed whitelisted attribute', ->
+          describe 'same value', ->
+            it 'does nothing to the cache', ->
+              @collection.first().set('title', 'money', silent: true)
+              @collection.first().set('title', 'money')
+              cacheMap = manager.getCollectionDetails('time_entries').cache
+              expect(Object.keys(cacheMap).length).toEqual(1)
+
+          describe 'new value', ->
+            it 'wipes out the cache', ->
+              @collection.first().set('title', 'money')
+              cacheMap = manager.getCollectionDetails('time_entries').cache
+              expect(Object.keys(cacheMap).length).toEqual(0)
 
     describe 'existing model destroyed', ->
       it 'wipes out the cache', ->

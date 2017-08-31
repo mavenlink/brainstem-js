@@ -206,7 +206,13 @@ class _StorageManager
   _shouldInvalidateCache: (model) ->
     return false if !model
     return false if model.isNew()
-    return true
+    return true if Object.keys(model.changed).length is 0 # destroyed
+
+    blacklist = model.defaultJSONBlacklist() || []
+    for attribute of model.changed when attribute not in blacklist
+      return true
+
+    return false
 
   _invalidateCache: (model) =>
     @collections[model.brainstemKey].cache = {} if @_shouldInvalidateCache(model)
