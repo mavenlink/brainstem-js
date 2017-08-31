@@ -987,32 +987,3 @@ describe 'Brainstem Storage Manager', ->
         expect(successHandler).not.toHaveBeenCalled()
         expect(errorHandler).toHaveBeenCalled()
         expect(errorHandler.calls.count()).toEqual(1)
-
-  describe 'cache invalidation', ->
-    beforeEach ->
-      timeEntries = [buildTimeEntry(), buildTimeEntry()]
-      respondWith server, '/api/time_entries?per_page=20&page=1', resultsFrom: 'time_entries', data: { time_entries: timeEntries }
-      @collection = manager.loadCollection 'time_entries'
-      server.respond()
-      cacheMap = manager.getCollectionDetails('time_entries').cache
-      expect(Object.keys(cacheMap).length).toEqual(1)
-
-    describe 'model changes', ->
-      describe 'new model updated', ->
-        it 'does nothing to the cache', ->
-          @collection.add(buildTimeEntry())
-          @collection.last().set('title', 'money')
-          cacheMap = manager.getCollectionDetails('time_entries').cache
-          expect(Object.keys(cacheMap).length).toEqual(1)
-
-      describe 'existing model updated', ->
-        it 'wipes out the cache', ->
-          @collection.first().set('title', 'money')
-          cacheMap = manager.getCollectionDetails('time_entries').cache
-          expect(Object.keys(cacheMap).length).toEqual(0)
-
-    describe 'existing model destroyed', ->
-      it 'wipes out the cache', ->
-        @collection.first().destroy()
-        cacheMap = manager.getCollectionDetails('time_entries').cache
-        expect(Object.keys(cacheMap).length).toEqual(0)

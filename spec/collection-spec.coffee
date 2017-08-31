@@ -205,7 +205,7 @@ describe 'Collection', ->
 
         collection.fetch(options)
         expectation.respond()
-
+  
         lastFetchOptions = collection.lastFetchOptions
         expect(lastFetchOptions).toEqual(jasmine.any Object)
         expect(lastFetchOptions.offset).toEqual(0)
@@ -265,7 +265,7 @@ describe 'Collection', ->
           options.reset = true
           collection.fetch(options)
           spyOn(collection, 'reset')
-
+          
         it 'it resets the collection with the server response', ->
           expectation.respond()
 
@@ -306,7 +306,7 @@ describe 'Collection', ->
 
     describe 'integration', ->
       options = collection = posts1 = posts2 = null
-
+        
       beforeEach ->
         posts1 = [buildPost(), buildPost(), buildPost(), buildPost(), buildPost()]
         posts2 = [buildPost(), buildPost()]
@@ -575,7 +575,7 @@ describe 'Collection', ->
           options = collection.fetch.calls.mostRecent().args[0]
           expect(options.perPage).toEqual 20
           expect(options.page).toEqual 5
-
+    
   describe '#getPreviousPage', ->
     beforeEach ->
       collection = new Tasks()
@@ -625,6 +625,7 @@ describe 'Collection', ->
           options = collection.fetch.calls.mostRecent().args[0]
           expect(options.perPage).toEqual 20
           expect(options.page).toEqual 1
+    
 
   describe '#getFirstPage', ->
     collection = null
@@ -697,11 +698,11 @@ describe 'Collection', ->
           fetchOptions = collection.fetch.calls.mostRecent().args[0]
           expect(fetchOptions.offset).toEqual(30)
           expect(fetchOptions.limit).toEqual(5)
-
+          
       context 'last page is a complete page', ->
         beforeEach ->
           spyOn(collection, 'getServerCount').and.returnValue(35)
-
+          
         it 'fetches with offset and limit defined correctly', ->
           collection.getLastPage()
 
@@ -968,7 +969,7 @@ describe 'Collection', ->
         it 'throws an error', ->
           expect(-> collection._canPaginate(true)).toThrow()
           expect(Utils.throwError.calls.mostRecent().args[0]).toMatch(/collection must have been fetched once/)
-
+      
     context 'lastFetchOptions is defined', ->
       beforeEach ->
         collection.lastFetchOptions = {}
@@ -991,7 +992,7 @@ describe 'Collection', ->
               expect(-> collection._canPaginate(true)).toThrow()
               expect(Utils.throwError.calls.mostRecent().args[0]).toMatch(/perPage or limit must be defined/)
 
-
+          
 
       context 'collection does not have count', ->
         beforeEach ->
