@@ -61,9 +61,7 @@ class _StorageManager
     collection.on 'remove', (model) ->
       model.invalidateCache()
 
-    collection.on 'destroy change', (model) =>
-      return unless model
-      @_invalidateCache(model.brainstemKey) unless model.isNew()
+    collection.on 'destroy change', @_invalidateCache
 
     @collections[name] =
       klass: collectionClass
@@ -205,8 +203,19 @@ class _StorageManager
   #
   # Private
 
-  _invalidateCache: (name) ->
-    @collections[name].cache = {}
+  _shouldInvalidateCache: (model) ->
+    return false if !model
+    return false if model.isNew()
+    return true unless model.hasChanged() # destroyed
+
+    blacklist = model.defaultJSONBlacklist() || []
+    for attribute of model.changed when attribute not in blacklist
+      return true
+
+    return false
+
+  _invalidateCache: (model) =>
+    @collections[model.brainstemKey].cache = {} if @_shouldInvalidateCache(model)
 
   _checkPageSettings: (options) ->
     if options.limit? && options.limit != '' && options.offset? && options.offset != ''

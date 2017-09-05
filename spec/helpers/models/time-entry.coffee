@@ -11,5 +11,7 @@ class TimeEntry extends Model
     task: "tasks"
     user: "users"
 
+  defaultJSONBlacklist: ->
+    ['calculated_attribute']
 
 module.exports = TimeEntry
