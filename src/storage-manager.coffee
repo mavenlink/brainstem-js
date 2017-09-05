@@ -206,7 +206,7 @@ class _StorageManager
   _shouldInvalidateCache: (model) ->
     return false if !model
     return false if model.isNew()
-    return true if Object.keys(model.changed).length is 0 # destroyed
+    return true unless model.hasChanged() # destroyed
 
     blacklist = model.defaultJSONBlacklist() || []
     for attribute of model.changed when attribute not in blacklist
