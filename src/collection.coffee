@@ -125,18 +125,23 @@ module.exports = class Collection extends Backbone.Collection
     @loaded = state
     @trigger 'loaded', this if state && options.trigger
 
-  update: (models) ->
+  update: (models, brainstemKey) ->
     models = models.models if models.models?
+    backboneModels = []
     for model in models
       model = this.model.parse(model) if this.model.parse?
       backboneModel = @_prepareModel(model, blacklist: [])
       if backboneModel
         if modelInCollection = @get(backboneModel.id)
-          modelInCollection.set backboneModel.attributes
+          backboneModels.push(modelInCollection.set(backboneModel.attributes))
         else
-          @add backboneModel
+          backboneModels.push(backboneModel)
       else
         Utils.warn 'Unable to update collection with invalid model', model
+
+    @set(backboneModels)
+    @trigger('collection_updated', this, brainstemKey);
+    backboneModels
 
   reload: (options) ->
     @storageManager.reset()
