@@ -846,6 +846,34 @@ describe 'Model', ->
                 expect(subTasks.at(1).get('position')).toEqual(2)
                 expect(subTasks.at(2).get('position')).toEqual(3)
 
+      describe "when the model has dynamic associations that haven't been set on the constructor yet", ->
+        testModel = spy = testAssociations = null
+
+        beforeEach ->
+          testAssociations = {
+            user: "users"
+            users: ["users"]
+          }
+
+          spy = jasmine.createSpy().and.returnValue(testAssociations)
+
+          class DynamicTestClass extends Model
+            dynamicAssociations: spy
+
+          testModel = new DynamicTestClass(associations: testAssociations)
+
+          expect(testModel.constructor.associations).toBeUndefined()
+
+        it "invokes the dynamic associations function and sets the result on the constructor the first time it's called", ->
+          testModel.get('foo')
+          expect(testModel.constructor.associations).toEqual(testAssociations)
+
+        it "does not call it again after the first time", ->
+          testModel.get('foo')
+          expect(spy.calls.count()).toEqual(1)
+          testModel.get('bar')
+          expect(spy.calls.count()).toEqual(1)
+
   describe '#invalidateCache', ->
     it 'invalidates all cache objects that a model is a result in', ->
       cache = storageManager.getCollectionDetails(model.brainstemKey).cache
