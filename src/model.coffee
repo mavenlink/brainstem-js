@@ -92,7 +92,7 @@ class Model extends Backbone.Model
   # Override Model#get to access associations as well as fields.
   get: (field, options = {}) ->
     if typeof @dynamicAssociations == 'function' && !@constructor.associations
-      @constructor.associations = @dynamicAssociations();
+      @constructor.associations = @dynamicAssociations()
 
     if details = @constructor.associationDetails(field)
       if details.type == 'BelongsTo'
