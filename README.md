@@ -122,6 +122,36 @@ Application.Collections.Posts = Brainstem.Collection.extend({
 });
 ```
 
+If you need to dynamically set your associations based on a server response, instead of defining the class property **associations**, you can define the class property **dynamicAssociations** as a function. You can then set the associations on your class by passing in an associations hash when instantiating your model. However, this will only work once for each class.
+
+#### Example
+```javascript
+BrainstemModel = require('brainstem-js').Model;
+
+Post = BrainstemModel.extend({
+  paramRoot: 'post',
+  brainstemKey: 'posts',
+  urlRoot: '/api/v1/posts'
+}, {
+  dynamicAssociations: ->
+    @attributes.associations
+});
+
+post = new Post(associations: {
+  user: 'users',
+  comments: ['comments'],
+  account: 'accounts',
+  parent: ['category', 'post']
+});
+
+post.get('user') // works
+
+otherPost = new Post(associations: {
+  attachments: ['attachments'],
+});
+
+otherPost.get('attachments') // will not work
+```
 
 ### StorageManager
 
