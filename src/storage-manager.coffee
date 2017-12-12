@@ -8,7 +8,7 @@ Utils = require './utils'
 Expectation = require './expectation'
 ModelLoader = require './loaders/model-loader'
 CollectionLoader = require './loaders/collection-loader'
-sync = require './sync'
+createSync = require './create-sync'
 
 # The StorageManager class is used to manage a set of Collections.
 # It is responsible for loading data and maintaining caches.
@@ -17,8 +17,9 @@ class _StorageManager
   #
   # Init
 
-  constructor: (options = {}) ->
-    Backbone.sync = sync
+  constructor: ->
+    options = arguments[0] ? {}
+    Backbone.sync = createSync(options)
 
     @collections = {}
 
@@ -223,7 +224,7 @@ class StorageManager
   instance = null
 
   @get: ->
-    instance ?= window.base?.data ? new _StorageManager(arguments)
+    instance ?= window.base?.data ? new _StorageManager(arguments...)
 
 
 module.exports = StorageManager
