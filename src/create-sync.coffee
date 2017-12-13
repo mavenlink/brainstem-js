@@ -27,7 +27,7 @@ module.exports = (hostOptions) ->
 
     # Ensure that we have a URL.
     unless options.url
-      urlHost = hostOptions.host ? ''
+      urlHost = hostOptions?.host ? ''
       url = _.result(model, 'url') || urlError()
       params.url = urlHost + url
 
@@ -86,7 +86,7 @@ module.exports = (hostOptions) ->
     if params.type == 'PATCH' && window.ActiveXObject && !(window.external && window.external.msActiveXFilteringEnabled)
       params.xhr = -> new ActiveXObject('Microsoft.XMLHTTP')
 
-    params.xhrFields = { withCredentials: hostOptions.withCredentials ? false }
+    params.xhrFields = { withCredentials: hostOptions?.withCredentials ? false }
 
     # Make the request, allowing the user to override any Ajax options.
     xhr = options.xhr = Backbone.ajax(_.extend(params, options))
