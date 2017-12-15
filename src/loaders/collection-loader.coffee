@@ -70,7 +70,7 @@ class CollectionLoader extends AbstractLoader
     # Loop over all returned data types and update our local storage to represent any new data.
 
     results = resp['results']
-    keys = _.reject(_.keys(resp), (key) -> _.contains(knownResponseKeys, key))
+    keys = _.without(_.keys(resp), knownResponseKeys...)
     unless _.isEmpty(results)
       keys.splice(keys.indexOf(@loadOptions.name), 1) if keys.indexOf(@loadOptions.name) != -1
       keys.push(@loadOptions.name)
