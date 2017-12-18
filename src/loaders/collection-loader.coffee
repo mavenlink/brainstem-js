@@ -4,7 +4,7 @@ _ = require 'underscore'
 Collection = require '../collection'
 AbstractLoader = require './abstract-loader'
 
-knownResponseKeys = ['count', 'page_count', 'page_number', 'results']
+knownResponseKeys = ['count', 'page_count', 'page_number', 'page_size', 'results']
 
 class CollectionLoader extends AbstractLoader
 
