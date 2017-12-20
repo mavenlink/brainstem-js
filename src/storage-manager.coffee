@@ -17,9 +17,8 @@ class _StorageManager
   #
   # Init
 
-  constructor: ->
-    options = arguments[0] ? {}
-    Backbone.sync = createSync(options)
+  constructor: (hostOptions = {}) ->
+    Backbone.sync = createSync(hostOptions)
 
     @collections = {}
 
@@ -223,8 +222,18 @@ class _StorageManager
 class StorageManager
   instance = null
 
-  @get: ->
-    instance ?= window.base?.data ? new _StorageManager(arguments...)
+  # Create or return the singleton instance of StorageManager
+  #
+  # @param [Object] hostOptions Optional configuration for the host that should
+  #   be used for the models' network requests; if this is not provided, the
+  #   current host is used
+  # @option hostOptions [String] host The URL of the host
+  # @option hostOptions [Boolean] withCredentials Indicates whether or
+  #   not cross-site Access-Control requests should be made using credentials.
+  #   See https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/withCredentials
+  #   for more information
+  @get: (hostOptions = {}) ->
+    instance ?= window.base?.data ? new _StorageManager(hostOptions)
 
 
 module.exports = StorageManager

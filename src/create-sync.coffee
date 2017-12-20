@@ -5,6 +5,17 @@ Backbone.$ = require 'jquery' # TODO remove after upgrading to backbone 1.2+
 Utils = require './utils'
 
 
+# Exports a function that will create a function that can be used as a
+# replacement for `Backbone.sync`
+#
+# @param [Object] hostOptions Optional configuration for the host that should
+#   be used for the models' network requests; if this is not provided, the
+#   current host is used
+# @option hostOptions [String] host The URL of the host
+# @option hostOptions [Boolean] withCredentials Indicates whether or
+#   not cross-site Access-Control requests should be made using credentials.
+#   See https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/withCredentials
+#   for more information
 module.exports = (hostOptions) ->
   (method, model, options) ->
     methodMap =
