@@ -60,12 +60,16 @@ class CollectionLoader extends AbstractLoader
     # The server response should look something like this:
     #  {
     #    count: 200,
-    #    page_number: 1,
-    #    page_count: 10,
     #    results: [{ key: "tasks", id: 10 }, { key: "tasks", id: 11 }],
     #    time_entries: [{ id: 2, title: "te1", project_id: 6, task_id: [10, 11] }]
     #    projects: [{id: 6, title: "some project", time_entry_ids: [2] }]
     #    tasks: [{id: 10, title: "some task" }, {id: 11, title: "some other task" }]
+    #    _meta: {
+    #      count: 200,
+    #      page_number: 1,
+    #      page_count: 10,
+    #      page_size: 20
+    #    }
     #  }
     # Loop over all returned data types and update our local storage to represent any new data.
 
