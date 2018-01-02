@@ -4,7 +4,7 @@ _ = require 'underscore'
 Collection = require '../collection'
 AbstractLoader = require './abstract-loader'
 
-knownResponseKeys = ['count', 'results', '_meta']
+knownResponseKeys = ['count', 'results', 'meta']
 
 class CollectionLoader extends AbstractLoader
 
@@ -64,7 +64,7 @@ class CollectionLoader extends AbstractLoader
     #    time_entries: [{ id: 2, title: "te1", project_id: 6, task_id: [10, 11] }]
     #    projects: [{id: 6, title: "some project", time_entry_ids: [2] }]
     #    tasks: [{id: 10, title: "some task" }, {id: 11, title: "some other task" }]
-    #    _meta: {
+    #    meta: {
     #      count: 200,
     #      page_number: 1,
     #      page_count: 10,
