@@ -3,6 +3,7 @@ $ = require 'jquery'
 Backbone = require 'backbone'
 Backbone.$ = require 'jquery' # TODO remove after upgrading to backbone 1.2+
 inflection = require 'inflection'
+{ knownResponseKeys } = require './constants'
 
 Utils = require './utils'
 StorageManager = require './storage-manager'
@@ -198,7 +199,7 @@ class Model extends Backbone.Model
     results = resp['results']
     return if _.isEmpty(results)
 
-    keys = _.reject(_.keys(resp), (key) -> key == 'count' || key == 'results')
+    keys = _.without(_.keys(resp), knownResponseKeys...)
     primaryModelKey = results[0]['key']
     keys.splice(keys.indexOf(primaryModelKey), 1)
     keys.push(primaryModelKey)

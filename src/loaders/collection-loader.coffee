@@ -3,7 +3,7 @@ _ = require 'underscore'
 
 Collection = require '../collection'
 AbstractLoader = require './abstract-loader'
-
+{ knownResponseKeys } = require '../constants'
 
 class CollectionLoader extends AbstractLoader
 
@@ -63,11 +63,17 @@ class CollectionLoader extends AbstractLoader
     #    time_entries: [{ id: 2, title: "te1", project_id: 6, task_id: [10, 11] }]
     #    projects: [{id: 6, title: "some project", time_entry_ids: [2] }]
     #    tasks: [{id: 10, title: "some task" }, {id: 11, title: "some other task" }]
+    #    meta: {
+    #      count: 200,
+    #      page_number: 1,
+    #      page_count: 10,
+    #      page_size: 20
+    #    }
     #  }
     # Loop over all returned data types and update our local storage to represent any new data.
 
     results = resp['results']
-    keys = _.reject(_.keys(resp), (key) -> key == 'count' || key == 'results')
+    keys = _.without(_.keys(resp), knownResponseKeys...)
     unless _.isEmpty(results)
       keys.splice(keys.indexOf(@loadOptions.name), 1) if keys.indexOf(@loadOptions.name) != -1
       keys.push(@loadOptions.name)
