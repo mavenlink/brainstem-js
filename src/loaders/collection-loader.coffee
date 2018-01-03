@@ -3,7 +3,7 @@ _ = require 'underscore'
 
 Collection = require '../collection'
 AbstractLoader = require './abstract-loader'
-{ knownResponseKeys } = require '../constants.coffee'
+{ knownResponseKeys } = require '../constants'
 
 class CollectionLoader extends AbstractLoader
 

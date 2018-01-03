@@ -3,7 +3,7 @@ $ = require 'jquery'
 Backbone = require 'backbone'
 Backbone.$ = require 'jquery' # TODO remove after upgrading to backbone 1.2+
 inflection = require 'inflection'
-{ knownResponseKeys } = require './constants.coffee'
+{ knownResponseKeys } = require './constants'
 
 Utils = require './utils'
 StorageManager = require './storage-manager'
