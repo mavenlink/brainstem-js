@@ -31,7 +31,7 @@
     "underscore": "1.4.4"
   },
   "devDependencies": {
-    "backbone-factory": "https://github.com/jrolfs/Backbone-Factory.git#master",
+    "backbone-factory": "https://github.com/mavenlink/Backbone-Factory.git#master",
     "browserify": "^13.0.0",
     "browserify-shim": "^3.8.12",
     "coffeeify": "^2.0.1",
