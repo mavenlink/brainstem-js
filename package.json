@@ -18,6 +18,12 @@
     "test": "gulp test",
     "test:watch": "gulp test-watch"
   },
+  "peerDependencies": {
+    "backbone": ">= 1.1.2",
+    "inflection": ">= 1.8.0",
+    "jquery": ">= 2.2.4",
+    "underscore": ">= 1.4.4"
+  },
   "dependencies": {
     "backbone": "1.1.2",
     "inflection": "^1.8.0",
