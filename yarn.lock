@@ -199,12 +199,12 @@ aws4@^1.2.1:
 
 "backbone-factory@https://github.com/mavenlink/Backbone-Factory.git#master":
   version "0.1.2"
-  resolved "https://github.com/mavenlink/Backbone-Factory.git#0de3cfb22cd3f520059d2390943b0531407fded5"
+  resolved "https://github.com/mavenlink/Backbone-Factory.git#e229c02457d3e9a665ef038ab6e26a7ccb732f46"
   dependencies:
     lodash.assign "^4.2.0"
     lodash.foreach "^4.5.0"
 
-backbone@1.1.2:
+"backbone@1.0.0 - 1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/backbone/-/backbone-1.1.2.tgz#c2c04c66bf87268fb82c177acebeff7d37ba6f2d"
   dependencies:
