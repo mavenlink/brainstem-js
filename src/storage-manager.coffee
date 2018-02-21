@@ -8,7 +8,7 @@ Utils = require './utils'
 Expectation = require './expectation'
 ModelLoader = require './loaders/model-loader'
 CollectionLoader = require './loaders/collection-loader'
-sync = require './sync'
+createSync = require './create-sync'
 
 # The StorageManager class is used to manage a set of Collections.
 # It is responsible for loading data and maintaining caches.
@@ -17,8 +17,8 @@ class _StorageManager
   #
   # Init
 
-  constructor: (options = {}) ->
-    Backbone.sync = sync
+  constructor: (hostOptions = {}) ->
+    Backbone.sync = createSync(hostOptions)
 
     @collections = {}
 
@@ -222,8 +222,18 @@ class _StorageManager
 class StorageManager
   instance = null
 
-  @get: ->
-    instance ?= window.base?.data ? new _StorageManager(arguments)
+  # Create or return the singleton instance of StorageManager
+  #
+  # @param [Object] hostOptions Optional configuration for the host that should
+  #   be used for the models' network requests; if this is not provided, the
+  #   current host is used
+  # @option hostOptions [String] host The URL of the host
+  # @option hostOptions [Boolean] withCredentials Indicates whether or
+  #   not cross-site Access-Control requests should be made using credentials.
+  #   See https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/withCredentials
+  #   for more information
+  @get: (hostOptions = {}) ->
+    instance ?= window.base?.data ? new _StorageManager(hostOptions)
 
 
 module.exports = StorageManager
