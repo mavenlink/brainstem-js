@@ -16,6 +16,7 @@
   "scripts": {
     "prepublish": "gulp build-module",
     "test": "gulp test",
+    "test:debug": "gulp test-debug",
     "test:watch": "gulp test-watch"
   },
   "peerDependencies": {
