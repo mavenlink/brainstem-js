@@ -2,6 +2,7 @@ Backbone = require 'backbone'
 Backbone.$ = require 'jquery'
 
 Model = require '../src/model'
+TimeEntries = require './helpers/models/time-entries.coffee'
 
 
 describe "Sync", ->
@@ -9,6 +10,15 @@ describe "Sync", ->
 
   beforeEach ->
     ajaxSpy = spyOn(Backbone.$, 'ajax')
+
+  describe 'custom headers', ->
+    it 'sets X-Feature-Name', ->
+      collection = new TimeEntries()
+      jqXhr = collection.fetch(feature_name: 'ima-feature')
+      beforeSend = ajaxSpy.calls.mostRecent().args[0].beforeSend
+      setRequestHeader = jasmine.createSpy('setRequestHeader')
+      beforeSend({ setRequestHeader })
+      expect(setRequestHeader).toHaveBeenCalledWith('X-Feature-Name', 'ima-feature')
 
   describe "updating models", ->
     it "should use toServerJSON instead of toJSON", ->

@@ -306,6 +306,7 @@ class AbstractLoader
     options = @loadOptions
     syncOptions =
       data: {}
+      featureName: @loadOptions.feature_name
       parse: true
       error: @_onServerLoadError
       success: @_onServerLoadSuccess
@@ -317,6 +318,7 @@ class AbstractLoader
     syncOptions.data.optional_fields = @loadOptions.optionalFields.join(',') if @loadOptions.optionalFields?.length
 
     blacklist = [
+      'feature_name'
       'include'
       'limit'
       'offset'
