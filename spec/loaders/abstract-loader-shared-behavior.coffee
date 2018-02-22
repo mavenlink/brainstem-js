@@ -473,9 +473,11 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     it 'respects "cache" option in nested includes', ->
       spyOn(loader.storageManager, 'loadObject')
       loader._loadAdditionalIncludes()
+      calls = loader.storageManager.loadObject.calls
+      expect(calls.count()).toBeGreaterThan(0)
 
-      for call in loader.storageManager.loadObject.calls
-        expect(call.args[1].cache).toBeFalsey
+      for call in calls.all()
+        expect(call.args[1].cache).toBe(false)
 
     it 'creates a request for each additional include and calls #_onLoadingCompleted when they all are done', ->
       promises = []
