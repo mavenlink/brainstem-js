@@ -85,9 +85,8 @@ module.exports = (method, model, options) ->
 
   beforeSend = options.beforeSend
   options.beforeSend = (xhr) ->
-    xhr.setRequestHeader 'X-Feature-Name', options.featureName
-    if beforeSend
-      beforeSend.apply this, arguments
+    xhr.setRequestHeader 'X-Feature-Name', options.featureName if options.featureName
+    beforeSend.apply this, arguments if beforeSend
 
   # Make the request, allowing the user to override any Ajax options.
   xhr = options.xhr = Backbone.ajax(_.extend(params, options))

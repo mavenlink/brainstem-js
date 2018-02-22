@@ -12,13 +12,26 @@ describe "Sync", ->
     ajaxSpy = spyOn(Backbone.$, 'ajax')
 
   describe 'custom headers', ->
-    it 'sets X-Feature-Name', ->
-      collection = new TimeEntries()
-      jqXhr = collection.fetch(feature_name: 'ima-feature')
-      beforeSend = ajaxSpy.calls.mostRecent().args[0].beforeSend
-      setRequestHeader = jasmine.createSpy('setRequestHeader')
-      beforeSend({ setRequestHeader })
-      expect(setRequestHeader).toHaveBeenCalledWith('X-Feature-Name', 'ima-feature')
+    beforeSend = null
+    collection = null
+    setRequestHeader = null
+
+    describe 'X-Feature-Name', ->
+      beforeEach ->
+        collection = new TimeEntries()
+        setRequestHeader = jasmine.createSpy('setRequestHeader')
+
+      it 'is not undefined', ->
+        jqXhr = collection.fetch()
+        beforeSend = ajaxSpy.calls.mostRecent().args[0].beforeSend
+        beforeSend({ setRequestHeader })
+        expect(setRequestHeader).not.toHaveBeenCalledWith('X-Feature-Name', undefined)
+
+      it 'settable via feature_name', ->
+        jqXhr = collection.fetch(feature_name: 'ima-feature')
+        beforeSend = ajaxSpy.calls.mostRecent().args[0].beforeSend
+        beforeSend({ setRequestHeader })
+        expect(setRequestHeader).toHaveBeenCalledWith('X-Feature-Name', 'ima-feature')
 
   describe "updating models", ->
     it "should use toServerJSON instead of toJSON", ->
