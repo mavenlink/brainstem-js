@@ -278,6 +278,7 @@ class AbstractLoader
     for association in @additionalIncludes
       loadOptions =
         cache: @loadOptions.cache
+        feature_name: @loadOptions.feature_name
         only: association.ids
         params:
           apply_default_filters: false
