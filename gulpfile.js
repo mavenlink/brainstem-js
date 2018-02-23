@@ -127,14 +127,4 @@ gulp.task('test-watch', (done) => {
   new Karma(config, karmaErrorHandler.bind(done)).start();
 });
 
-gulp.task('test-debug', (done) => {
-  var config = Object.assign({}, karmaConfig, {
-    browsers: ['Chrome'],
-    singleRun: false,
-    autoWatch: true
-  });
-
-  new Karma(config, karmaErrorHandler.bind(done)).start();
-});
-
 gulp.task('ci', ['coffeelint', 'test-ci']);
