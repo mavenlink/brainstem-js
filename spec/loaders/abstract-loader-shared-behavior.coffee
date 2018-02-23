@@ -462,7 +462,9 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
     beforeEach ->
       loader = createLoader()
-      opts = _.extend(defaultLoadOptions(), cache: false)
+      opts = _.extend defaultLoadOptions(),
+        cache: false
+        feature_name: 'a-feature'
       opts.include = fakeNestedInclude
 
       loader.setup(opts)
@@ -473,9 +475,20 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     it 'respects "cache" option in nested includes', ->
       spyOn(loader.storageManager, 'loadObject')
       loader._loadAdditionalIncludes()
+      calls = loader.storageManager.loadObject.calls
+      expect(calls.count()).toBeGreaterThan(0)
 
-      for call in loader.storageManager.loadObject.calls
-        expect(call.args[1].cache).toBeFalsey
+      for call in calls.all()
+        expect(call.args[1].cache).toBe(false)
+
+    it 'respects "feature_name" option in nested includes', ->
+      spyOn(loader.storageManager, 'loadObject')
+      loader._loadAdditionalIncludes()
+      calls = loader.storageManager.loadObject.calls
+      expect(calls.count()).toBeGreaterThan(0)
+
+      for call in calls.all()
+        expect(call.args[1].feature_name).toBe('a-feature')
 
     it 'creates a request for each additional include and calls #_onLoadingCompleted when they all are done', ->
       promises = []

@@ -65,8 +65,7 @@ module.exports = (method, model, options) ->
     beforeSend = options.beforeSend
     options.beforeSend = (xhr) ->
       xhr.setRequestHeader 'X-HTTP-Method-Override', type
-      if beforeSend
-        beforeSend.apply this, arguments
+      beforeSend?.apply this, arguments
 
   # Clear out default data for DELETE requests, fixes a firefox issue where this
   # exception is thrown: JavaScript component does not have a method named: “available”
@@ -82,6 +81,11 @@ module.exports = (method, model, options) ->
   # for XHR instead. Remove this line when jQuery supports `PATCH` on IE8.
   if params.type == 'PATCH' && window.ActiveXObject && !(window.external && window.external.msActiveXFilteringEnabled)
     params.xhr = -> new ActiveXObject('Microsoft.XMLHTTP')
+
+  beforeSend = options.beforeSend
+  options.beforeSend = (xhr) ->
+    xhr.setRequestHeader 'X-Feature-Name', options.featureName if options.featureName
+    beforeSend?.apply this, arguments
 
   # Make the request, allowing the user to override any Ajax options.
   xhr = options.xhr = Backbone.ajax(_.extend(params, options))

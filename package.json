@@ -6,7 +6,7 @@
   },
   "filename": "brainstem",
   "standalone": "Brainstem",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "author": {
     "name": "Mavenlink",
     "email": "dev@mavenlink.com"
@@ -16,6 +16,7 @@
   "scripts": {
     "prepublish": "gulp build-module",
     "test": "gulp test",
+    "test:debug": "gulp test-debug",
     "test:watch": "gulp test-watch"
   },
   "peerDependencies": {
