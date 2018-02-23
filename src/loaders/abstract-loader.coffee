@@ -278,7 +278,6 @@ class AbstractLoader
     for association in @additionalIncludes
       loadOptions =
         cache: @loadOptions.cache
-        feature_name: @loadOptions.feature_name
         only: association.ids
         params:
           apply_default_filters: false
@@ -307,7 +306,6 @@ class AbstractLoader
     options = @loadOptions
     syncOptions =
       data: {}
-      featureName: @loadOptions.feature_name
       parse: true
       error: @_onServerLoadError
       success: @_onServerLoadSuccess
@@ -318,18 +316,7 @@ class AbstractLoader
     syncOptions.data.search = options.search if options.search
     syncOptions.data.optional_fields = @loadOptions.optionalFields.join(',') if @loadOptions.optionalFields?.length
 
-    blacklist = [
-      'feature_name'
-      'include'
-      'limit'
-      'offset'
-      'only'
-      'optional_fields'
-      'order'
-      'page'
-      'per_page'
-      'search'
-    ]
+    blacklist = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search', 'optional_fields']
     _(syncOptions.data).chain()
       .extend(_(options.filters).omit(blacklist))
       .extend(_(options.params).omit(blacklist))
