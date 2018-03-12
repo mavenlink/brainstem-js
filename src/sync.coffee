@@ -84,7 +84,7 @@ module.exports = (method, model, options) ->
 
   beforeSend = options.beforeSend
   options.beforeSend = (xhr) ->
-    xhr.setRequestHeader 'X-Feature-Name', options.featureName if options.featureName
+    xhr.setRequestHeader 'X-Feature-Name', options.headers.featureName if options.headers?.featureName
     beforeSend?.apply this, arguments
 
   # Make the request, allowing the user to override any Ajax options.

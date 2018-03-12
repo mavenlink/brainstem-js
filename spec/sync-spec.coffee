@@ -28,7 +28,7 @@ describe "Sync", ->
         expect(setRequestHeader).not.toHaveBeenCalledWith('X-Feature-Name', undefined)
 
       it 'settable via feature_name', ->
-        jqXhr = collection.fetch(feature_name: 'ima-feature')
+        jqXhr = collection.fetch(headers: featureName: 'ima-feature')
         beforeSend = ajaxSpy.calls.mostRecent().args[0].beforeSend
         beforeSend({ setRequestHeader })
         expect(setRequestHeader).toHaveBeenCalledWith('X-Feature-Name', 'ima-feature')
