@@ -307,6 +307,7 @@ class AbstractLoader
     options = @loadOptions
     syncOptions =
       data: {}
+      headers: options.headers
       parse: true
       error: @_onServerLoadError
       success: @_onServerLoadSuccess

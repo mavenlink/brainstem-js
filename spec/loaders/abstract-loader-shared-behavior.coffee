@@ -536,6 +536,13 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
       expect(getSyncOptions(loader, opts).data.include).toEqual('task,time_entries')
 
+    it 'sets the headers', ->
+      opts.headers = {
+        'X-Custom-Header': 'custom-header-value',
+      }
+
+      expect(getSyncOptions(loader, opts).headers['X-Custom-Header']).toEqual('custom-header-value')
+
     describe 'data.only', ->
       context 'this is an only load', ->
         context '#_shouldUseOnly returns true', ->
