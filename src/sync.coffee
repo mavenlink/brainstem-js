@@ -82,11 +82,6 @@ module.exports = (method, model, options) ->
   if params.type == 'PATCH' && window.ActiveXObject && !(window.external && window.external.msActiveXFilteringEnabled)
     params.xhr = -> new ActiveXObject('Microsoft.XMLHTTP')
 
-  beforeSend = options.beforeSend
-  options.beforeSend = (xhr) ->
-    xhr.setRequestHeader 'X-Feature-Name', options.headers.featureName if options.headers?.featureName
-    beforeSend?.apply this, arguments
-
   # Make the request, allowing the user to override any Ajax options.
   xhr = options.xhr = Backbone.ajax(_.extend(params, options))
   model.trigger 'request', model, xhr, options
