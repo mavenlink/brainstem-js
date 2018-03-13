@@ -464,7 +464,8 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       loader = createLoader()
       opts = _.extend defaultLoadOptions(),
         cache: false
-        feature_name: 'a-feature'
+        headers:
+          'X-Feature-Name': 'a-feature'
       opts.include = fakeNestedInclude
 
       loader.setup(opts)
@@ -488,7 +489,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       expect(calls.count()).toBeGreaterThan(0)
 
       for call in calls.all()
-        expect(call.args[1].feature_name).toBe('a-feature')
+        expect(call.args[1].headers['X-Feature-Name']).toBe('a-feature')
 
     it 'creates a request for each additional include and calls #_onLoadingCompleted when they all are done', ->
       promises = []
