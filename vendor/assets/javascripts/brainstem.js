@@ -1167,7 +1167,7 @@ module.exports = Collection = (function(superClass) {
     return (ref = this._getCacheObject()) != null ? ref.count : void 0;
   };
 
-  Collection.prototype.getWithAssocation = function(id) {
+  Collection.prototype.getWithAssociation = function(id) {
     return this.get(id);
   };
 

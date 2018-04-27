@@ -70,7 +70,7 @@ module.exports = class Collection extends Backbone.Collection
   getServerCount: ->
     @_getCacheObject()?.count
 
-  getWithAssocation: (id) ->
+  getWithAssociation: (id) ->
     @get(id)
 
 
