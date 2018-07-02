@@ -88,10 +88,17 @@ describe 'Brainstem Utils', ->
     it 'returns an array of arrays of specified length', ->
       expect(Utils.chunk([1, 2, 3, 4], 2)).toEqual [[1, 2], [3, 4]]
 
-    context 'when array is not an array', ->
-      it 'returns an empty array', ->
-        expect(Utils.chunk(null, 2)).toEqual []
+    it 'handles counts that do not divide evenly into the array length', ->
+      expect(Utils.chunk([1, 2, 3, 4, 5], 2)).toEqual [[1, 2], [3, 4], [5]]
 
-    context 'when count is null or 0', ->
-      it 'returns empty', ->
-        expect(Utils.chunk([1, 2], null)).toEqual []
+    it 'handles non-arrays', ->
+      expect(Utils.chunk(null, 2)).toEqual []
+
+    it 'handles non-number counts', ->
+      expect(Utils.chunk([1, 2], null)).toEqual []
+
+    it 'handles a count of zero', ->
+      expect(Utils.chunk([1, 2], 0)).toEqual []
+
+    it 'handles a negative count', ->
+      expect(Utils.chunk([1, 2], -1)).toEqual []
