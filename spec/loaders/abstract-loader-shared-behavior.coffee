@@ -508,6 +508,27 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
       expect(loader._onLoadingCompleted).toHaveBeenCalled()
 
+    describe 'batching', ->
+      beforeEach ->
+        spyOn(loader, '_getIdsForAssociation').and.returnValue [1, 2, 3, 4, 5]
+        spyOn(loader.storageManager, 'loadObject')
+
+      context 'there are less than the associated ID limit', ->
+        beforeEach ->
+          loader.associationIdLimit = 100
+
+        it 'makes a single request for each association', ->
+          loader._loadAdditionalIncludes()
+          expect(loader.storageManager.loadObject.calls.count()).toEqual 2
+
+      context 'there are more than the associated ID limit', ->
+        beforeEach ->
+          loader.associationIdLimit = 2
+
+        it 'makes multiple requests for each association', ->
+          loader._loadAdditionalIncludes()
+          expect(loader.storageManager.loadObject.calls.count()).toEqual 6
+
   describe '#_buildSyncOptions', ->
     syncOptions = opts = null
 
