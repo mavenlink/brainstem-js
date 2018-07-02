@@ -279,7 +279,7 @@ class AbstractLoader
     for association in @additionalIncludes
       batches = Utils.chunk(association.ids, @associationIdLimit)
       batchPromises = batches.map(@_loadAdditionalIncludesBatch.bind(this, association))
-      promises = promises.concat(batchPromises)
+      promises.push(batchPromises...)
 
     $.when.apply($, promises)
       .done(@_onLoadingCompleted)
