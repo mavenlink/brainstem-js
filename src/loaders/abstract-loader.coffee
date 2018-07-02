@@ -278,29 +278,31 @@ class AbstractLoader
 
     for association in @additionalIncludes
       batches = Utils.chunk(association.ids, @associationIdLimit)
-
-      batches.forEach (batchedIds) =>
-        loadOptions =
-          cache: @loadOptions.cache
-          headers: @loadOptions.headers
-          only: batchedIds
-          params:
-            apply_default_filters: false
-
-        if association.collection
-          promises.push association.collection.fetch(loadOptions)
-        else
-          collectionName = @_getModel().associationDetails(association.name).collectionName
-          if association.loadOptions
-            loadOptions = _.extend(loadOptions, association.loadOptions)
-          else
-            loadOptions.include = association.include
-
-          promises.push(@storageManager.loadObject(collectionName, loadOptions))
+      batchPromises = batches.map(@_loadAdditionalIncludesBatch.bind(this, association))
+      promises = promises.concat(batchPromises)
 
     $.when.apply($, promises)
       .done(@_onLoadingCompleted)
       .fail(@_onServerLoadError)
+
+  _loadAdditionalIncludesBatch: (association, ids) ->
+    loadOptions =
+      cache: @loadOptions.cache
+      headers: @loadOptions.headers
+      only: ids
+      params:
+        apply_default_filters: false
+
+    if association.collection
+      association.collection.fetch(loadOptions)
+    else
+      collectionName = @_getModel().associationDetails(association.name).collectionName
+      if association.loadOptions
+        loadOptions = _.extend(loadOptions, association.loadOptions)
+      else
+        loadOptions.include = association.include
+
+      @storageManager.loadObject(collectionName, loadOptions)
 
 
   ###*
