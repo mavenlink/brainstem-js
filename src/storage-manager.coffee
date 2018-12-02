@@ -16,7 +16,7 @@ class StorageManager
   # Support the legacy API which exported an object which (possibly) lazily created the storage
   # manager. We're now creating the storage manager as soon as the JS is loaded, but still
   # implement the same `get` function as before.
-  get: () ->
+  get: ->
     this
 
   #
