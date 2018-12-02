@@ -223,7 +223,7 @@ class StorageManager
   instance = null
 
   @get: ->
-    instance ?= window.base?.data ? new _StorageManager(arguments)
+    instance ?= new _StorageManager(arguments)
 
 
 module.exports = StorageManager
