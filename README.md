@@ -181,9 +181,9 @@ Brainstem also supports requesting deeply nested associations. Under the hood, B
 Post = require('./models/post');
 
 new Post({ id: 1 })
-  .fetch({ 
+  .fetch({
     include: [
-      'user', 
+      'user',
       { comments: ['replies', 'ratings'] }
     ]
   })
@@ -209,7 +209,7 @@ new Post({ id: 1 })
 ```
 
 In this example we are able to specify a filter for the comments association. With the filter, we can request comments for the post filtered by user_id 1.
-Here, `comments` needs to be the name of the association 
+Here, `comments` needs to be the name of the association
 
 ##### brainstemParams Example
 
