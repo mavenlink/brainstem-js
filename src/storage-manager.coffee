@@ -12,7 +12,12 @@ sync = require './sync'
 
 # The StorageManager class is used to manage a set of Collections.
 # It is responsible for loading data and maintaining caches.
-class _StorageManager
+class StorageManager
+  # Support the legacy API which exported an object which (possibly) lazily created the storage
+  # manager. We're now creating the storage manager as soon as the JS is loaded, but still
+  # implement the same `get` function as before.
+  get: () ->
+    this
 
   #
   # Init
@@ -219,11 +224,4 @@ class _StorageManager
       options.page = options.page || 1
       options.page = 1 if options.page < 1
 
-class StorageManager
-  instance = null
-
-  @get: ->
-    instance ?= new _StorageManager(arguments)
-
-
-module.exports = StorageManager
+module.exports = new StorageManager()
