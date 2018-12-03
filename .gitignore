@@ -1,7 +1,6 @@
 .bundle/
 bin/
 lib/**/*.js
-!lib/*.rb
 tmp/
 .idea/
 pkg
