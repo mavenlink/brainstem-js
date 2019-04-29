@@ -430,6 +430,10 @@ describe 'Model', ->
         parsed = model.parse({created_at: "blargh 2013-01-25T11:25:57-08:00 churgh"})
         expect(parsed.created_at).toEqual("blargh 2013-01-25T11:25:57-08:00 churgh")
 
+      it "parses a UTC date", ->
+        parsed = model.parse({created_at: "2019-04-23T18:30:29Z"})
+        expect(parsed.created_at).toEqual(1556044229000)
+
   describe 'associations', ->
 
     class TestClass extends Model

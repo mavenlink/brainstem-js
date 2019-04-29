@@ -56,7 +56,7 @@ class Model extends Backbone.Model
   @parse: (modelObject) ->
     for k,v of modelObject
       # Date.parse will parse ISO 8601 in ECMAScript 5, but we include a shim for now
-      if isDateAttr(k) && /^\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}[-+]\d{2}:\d{2}$/.test(v)
+      if isDateAttr(k) && /^\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}([-+]\d{2}:\d{2})|Z$/.test(v)
         modelObject[k] = Date.parse(v)
     return modelObject
 
