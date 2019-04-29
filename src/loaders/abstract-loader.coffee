@@ -12,6 +12,7 @@ class AbstractLoader
 
   internalObject: null
   externalObject: null
+  associationIdLimit: 150
 
 
   #
@@ -276,27 +277,32 @@ class AbstractLoader
     promises = []
 
     for association in @additionalIncludes
-      loadOptions =
-        cache: @loadOptions.cache
-        headers: @loadOptions.headers
-        only: association.ids
-        params:
-          apply_default_filters: false
-
-      if association.collection
-        promises.push association.collection.fetch(loadOptions)
-      else
-        collectionName = @_getModel().associationDetails(association.name).collectionName
-        if association.loadOptions
-          loadOptions = _.extend(loadOptions, association.loadOptions)
-        else
-          loadOptions.include = association.include
-
-        promises.push(@storageManager.loadObject(collectionName, loadOptions))
+      batches = Utils.chunk(association.ids, @associationIdLimit)
+      batchPromises = batches.map(@_loadAdditionalIncludesBatch.bind(this, association))
+      promises.push(batchPromises...)
 
     $.when.apply($, promises)
       .done(@_onLoadingCompleted)
       .fail(@_onServerLoadError)
+
+  _loadAdditionalIncludesBatch: (association, ids) ->
+    loadOptions =
+      cache: @loadOptions.cache
+      headers: @loadOptions.headers
+      only: ids
+      params:
+        apply_default_filters: false
+
+    if association.collection
+      association.collection.fetch(loadOptions)
+    else
+      collectionName = @_getModel().associationDetails(association.name).collectionName
+      if association.loadOptions
+        loadOptions = _.extend(loadOptions, association.loadOptions)
+      else
+        loadOptions.include = association.include
+
+      @storageManager.loadObject(collectionName, loadOptions)
 
 
   ###*

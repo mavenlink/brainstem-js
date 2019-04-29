@@ -18,11 +18,9 @@ const { version, standalone, filename } = require('./package');
 
 
 const source = './src/**/*.coffee';
-const gemSource = './src/brainstem.coffee';
 const options = minimist(process.argv.slice(2));
 
 const moduleOutput = './lib';
-const gemOutput = './vendor/assets/javascripts';
 
 const styleguide = 'https://raw.githubusercontent.com/mavenlink/coffeescript-style-guide/master';
 const lintConfig = 'coffeelint.json';
@@ -36,28 +34,6 @@ gulp.task('build-module', () => {
     .pipe(gulp.dest(moduleOutput))
     .on('error', util.log);
 });
-
-gulp.task('build-gem', () => {
-  return browserify(gemSource, {
-    standalone,
-    transform: [coffeeify, shim],
-    extensions: ['.coffee']
-  }).bundle()
-    .pipe(stream(gemSource))
-    .pipe(rename(`${filename}.js`))
-    .pipe(gulp.dest(gemOutput))
-    .on('error', util.log);
-});
-
-gulp.task('version-gem', () => {
-  const base = './lib/brainstem/js/';
-
-  return gulp.src(path.join(base, 'version.rb'), { base : base })
-    .pipe(replace(/(VERSION = ").*(")/, `$1${version}$2`))
-    .pipe(gulp.dest(base));
-});
-
-gulp.task('publish-gem', ['build-gem', 'version-gem']);
 
 gulp.task('fetch-styleguide', () => {
   const url = `${styleguide}/${lintConfig}`;
@@ -74,10 +50,6 @@ gulp.task('coffeelint', ['fetch-styleguide'], () => {
 
 gulp.task('clean-module', () => {
   return del(`${moduleOutput}/**/*.js`);
-});
-
-gulp.task('clean-gem', () => {
-  return del(`${gemOutput}/**/*.js`);
 });
 
 gulp.task('clean-styleguide', () => {

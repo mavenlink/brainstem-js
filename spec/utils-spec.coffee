@@ -83,3 +83,22 @@ describe 'Brainstem Utils', ->
       it 'sets a function on options.error', ->
         expect(options.error).toBeDefined()
         expect(options.error).toEqual(jasmine.any(Function))
+
+  describe '.chunk', ->
+    it 'returns an array of arrays of specified length', ->
+      expect(Utils.chunk([1, 2, 3, 4], 2)).toEqual [[1, 2], [3, 4]]
+
+    it 'handles counts that do not divide evenly into the array length', ->
+      expect(Utils.chunk([1, 2, 3, 4, 5], 2)).toEqual [[1, 2], [3, 4], [5]]
+
+    it 'handles non-arrays', ->
+      expect(Utils.chunk(null, 2)).toEqual []
+
+    it 'handles non-number counts', ->
+      expect(Utils.chunk([1, 2], null)).toEqual []
+
+    it 'handles a count of zero', ->
+      expect(Utils.chunk([1, 2], 0)).toEqual []
+
+    it 'handles a negative count', ->
+      expect(Utils.chunk([1, 2], -1)).toEqual []

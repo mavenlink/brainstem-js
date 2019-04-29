@@ -80,5 +80,14 @@ class Utils
 
     gpo(obj) == proto
 
+  # Chunk is in underscore 1.9.1, but not 1.8.3, which we're currently on.
+  @chunk: (array, count) ->
+    return [] if !Array.isArray(array) || count == null || count < 1
+    result = []
+    i = 0
+    while i < array.length
+      result.push(array.slice(i, i += count))
+    result
+
 
 module.exports = Utils
