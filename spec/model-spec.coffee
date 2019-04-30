@@ -427,8 +427,8 @@ describe 'Model', ->
         expect(storageManager.storage('users').get(6).get('created_at')).toEqual(1359573957000)
 
       it "does not handle ISO 8601 dates with other characters", ->
-        parsed = model.parse({created_at: "blargh 2013-01-25T11:25:57-08:00 churgh"})
-        expect(parsed.created_at).toEqual("blargh 2013-01-25T11:25:57-08:00 churgh")
+        parsed = model.parse({created_at: "blargh 2013-01-25T11:25:57-08:00 churghZ"})
+        expect(parsed.created_at).toEqual("blargh 2013-01-25T11:25:57-08:00 churghZ")
 
       it "parses a UTC date", ->
         parsed = model.parse({created_at: "2019-04-23T18:30:29Z"})
