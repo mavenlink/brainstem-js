@@ -421,8 +421,9 @@ To run the specs in a server with live code reloading and compilation:
 2. Run `yarn install` to update dependencies
 3. Modify the semantic version appropriately as a commit
 4. Make a pull request with said changes
-5. Run `yarn publish` to publish to NPM
+5. If using a pre-release flag, run `yarn publish` to publish the alpha version to NPM
 6. Request a review (and merge accordingly)
+7. Run `yarn publish` on `master` to publish the latest release version to NPM
 
 Note: it might be worthwhile to publish a prerelease tag during normal development to test changes sooner rather than later. 
 
