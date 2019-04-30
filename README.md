@@ -415,6 +415,16 @@ To run the specs in a server with live code reloading and compilation:
 
     yarn test-watch
 
+## Publishing
+
+1. Use an NPM account (with 2FA enabled) on the Mavenlink organization
+2. Run `yarn install` to update dependencies
+3. Modify the semantic version appropriately as a commit
+4. Make a pull request with said changes
+5. Run `yarn publish` to publish to NPM
+6. Request a review (and merge accordingly)
+
+Note: it might be worthwhile to publish a prerelease tag during normal development to test changes sooner rather than later. 
 
 ## License
 
