@@ -322,6 +322,7 @@ class AbstractLoader
     syncOptions.data.only = options.only.join(',') if options.only && @_shouldUseOnly()
     syncOptions.data.order = options.order if options.order?
     syncOptions.data.search = options.search if options.search
+    syncOptions.data.firstFiftyAssociations = options.firstFiftyAssociations if options.firstFiftyAssociations
     syncOptions.data.optional_fields = @loadOptions.optionalFields.join(',') if @loadOptions.optionalFields?.length
 
     blacklist = [
