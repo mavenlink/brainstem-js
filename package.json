@@ -63,6 +63,9 @@
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.7.0"
   },
+  "resolutions": {
+    "lodash.template": "^4.5.0"
+  },
   "browserify-shim": {
     "jquery": "global:$",
     "underscore": "global:_",
