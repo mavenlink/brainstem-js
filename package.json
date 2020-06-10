@@ -6,7 +6,7 @@
   },
   "filename": "brainstem",
   "standalone": "Brainstem",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "author": {
     "name": "Mavenlink",
     "email": "dev@mavenlink.com"
@@ -35,7 +35,7 @@
     "coffeeify": "^2.0.1",
     "coffeelint-stylish": "^0.1.2",
     "del": "^2.2.0",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.2",
     "gulp-coffee": "^2.3.1",
     "gulp-coffeelint": "^0.6.0",
     "gulp-download": "0.0.1",
@@ -46,8 +46,8 @@
     "gulp-util": "^3.0.7",
     "jasmine-core": "2.5.2",
     "jasmine-jquery-matchers": "^1.1.1",
-    "karma": "^1.7.0",
-    "karma-browserify": "^5.0.2",
+    "karma": "4.4.1",
+    "karma-browserify": "^5.3.0",
     "karma-chrome-launcher": "^0.2.2",
     "karma-firefox-launcher": "^0.1.7",
     "karma-jasmine": "^1.1.0",
@@ -62,6 +62,9 @@
     "underscore": ">= 1.4.4",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.7.0"
+  },
+  "resolutions": {
+    "lodash.template": "^4.5.0"
   },
   "browserify-shim": {
     "jquery": "global:$",

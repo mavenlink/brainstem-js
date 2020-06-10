@@ -41,12 +41,12 @@ gulp.task('fetch-styleguide', () => {
   return download(url).pipe(gulp.dest('.'));
 });
 
-gulp.task('coffeelint', ['fetch-styleguide'], () => {
+gulp.task('coffeelint', gulp.series('fetch-styleguide', () => {
   return gulp.src(source)
     .pipe(coffeelint())
     .pipe(coffeelint.reporter('coffeelint-stylish'))
     .pipe(coffeelint.reporter('failOnWarning'));
-});
+}));
 
 gulp.task('clean-module', () => {
   return del(`${moduleOutput}/**/*.js`);
@@ -109,4 +109,4 @@ gulp.task('test-debug', (done) => {
   new Karma(config, karmaErrorHandler.bind(done)).start();
 });
 
-gulp.task('ci', ['coffeelint', 'test-ci']);
+gulp.task('ci', gulp.series(gulp.parallel(['coffeelint', 'test-ci'])));
