@@ -324,7 +324,7 @@ class AbstractLoader
     syncOptions.data.search = options.search if options.search
     syncOptions.data.optional_fields = @loadOptions.optionalFields.join(',') if @loadOptions.optionalFields?.length
 
-    blacklist = [
+    blocklist = [
       'include'
       'limit'
       'offset'
@@ -336,8 +336,8 @@ class AbstractLoader
       'search'
     ]
     _(syncOptions.data).chain()
-      .extend(_(options.filters).omit(blacklist))
-      .extend(_(options.params).omit(blacklist))
+      .extend(_(options.filters).omit(blocklist))
+      .extend(_(options.params).omit(blocklist))
       .value()
 
     unless options.only?

@@ -67,7 +67,7 @@ describe 'Collection', ->
         continue if key is 'bogus' or 'stuff'
         expect(keys).toContain(key)
 
-    it 'does not contain non whitelisted options', ->
+    it 'does not contain non allowlisted options', ->
       expect(keys).not.toContain('bogus')
       expect(keys).not.toContain('stuff')
 
