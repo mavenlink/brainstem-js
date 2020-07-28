@@ -49,7 +49,7 @@ module.exports = class Expectation
     else
       returnedData = @_handleModelResults(loader)
 
-    loader._onLoadSuccess(returnedData)
+    loader._onLoadSuccess(returnedData, this)
 
   recordRequest: (loader) ->
     if @immediate

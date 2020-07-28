@@ -231,8 +231,7 @@ describe 'Collection', ->
 
         collection.fetch(options)
         expectation.respond()
-
-        expect(collection.trigger).toHaveBeenCalledWith('sync', collection, jasmine.any(Array), jasmine.any(Object))
+        expect(collection.trigger).toHaveBeenCalledWith('sync', collection, jasmine.any(Array), jasmine.any(Object), jasmine.any(Object))
 
       context 'reset option is set to false', ->
         beforeEach ->
@@ -426,7 +425,10 @@ describe 'Collection', ->
       expect(collection.lastFetchOptions.perPage).toEqual 5
       expect(collection.lastFetchOptions.include).toEqual ['replies']
       server.responses = []
-      respondWith server, '/api/posts?include=replies&parents_only=true&per_page=5&page=1', resultsFrom: 'posts', data: { posts: [buildPost(message: 'new post', reply_ids: [])] }
+
+      posts = [buildPost(message: 'new post', reply_ids: [])]
+      responseData = { posts: resultsObject(posts), results: resultsArray("posts", posts) }
+      respondWith server, '/api/posts?include=replies&parents_only=true&per_page=5&page=1', data: responseData
       expect(collection.models[0].get('message')).toEqual 'old post'
       resetCounter = jasmine.createSpy('resetCounter')
       loadedCounter = jasmine.createSpy('loadedCounter')
@@ -443,7 +445,9 @@ describe 'Collection', ->
       expect(collection.models[0].get('message')).toEqual 'new post'
       expect(resetCounter.calls.count()).toEqual 1
       expect(loadedCounter.calls.count()).toEqual 1
-      expect(callback).toHaveBeenCalledWith(collection)
+
+      expectedResponse = JSON.parse(JSON.stringify(responseData))
+      expect(callback).toHaveBeenCalledWith(collection, expectedResponse)
 
   describe '#loadNextPage', ->
     it 'loads the next page of data for a collection that has previously been loaded in the storage manager, returns the collection and whether it thinks there is another page or not', ->
