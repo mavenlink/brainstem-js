@@ -29,13 +29,17 @@ window.convertTopLevelKeysToObjects = (data) ->
     continue if key in ["count", "results"]
     if data[key] instanceof Array
       data[key] = _(data[key]).reduce(((memo, item) -> memo[item.id] = item; memo ), {})
+  data
 
-window.respondWith = (server, url, options) ->
+window.formatResponseData = (options) ->
   if options.resultsFrom?
     data = $.extend {}, options.data, results: resultsArray(options.resultsFrom, options.data[options.resultsFrom])
   else
     data = options.data
   convertTopLevelKeysToObjects data
+
+window.respondWith = (server, url, options) ->
+  data = formatResponseData(options)
   server.respondWith options.method || "GET",
                      url, [ options.status || 200,
                            {"Content-Type": options.content_type || "application/json"},
@@ -93,6 +97,7 @@ window.clearLiveEventBindings = ->
 
 window.context = describe
 window.xcontext = xdescribe
+window.fcontext = fdescribe
 
 # Shared Behaviors
 window.SharedBehaviors ?= {};
