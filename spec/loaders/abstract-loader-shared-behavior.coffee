@@ -741,8 +741,8 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     it 'calls #_onServerLoadSuccess with the result from #_updateStorageManagerFromResponse', ->
       loader._updateStorageManagerFromResponse.and.returnValue 'data'
 
-      loader._onServerLoadSuccess()
-      expect(loader._onLoadSuccess).toHaveBeenCalledWith 'data'
+      loader._onServerLoadSuccess('response')
+      expect(loader._onLoadSuccess).toHaveBeenCalledWith 'data', 'response'
 
   describe '#_onLoadSuccess', ->
     beforeEach ->
@@ -753,25 +753,25 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       spyOn(loader, '_calculateAdditionalIncludes')
 
     it 'calls #_updateObjects with the internalObject, the data, and silent set to true', ->
-      loader._onLoadSuccess('test data')
+      loader._onLoadSuccess('test data', 'response')
       expect(loader._updateObjects).toHaveBeenCalledWith(loader.internalObject, 'test data', true)
 
     it 'calls #_calculateAdditionalIncludes', ->
-      loader._onLoadSuccess()
+      loader._onLoadSuccess('test data', 'response')
       expect(loader._calculateAdditionalIncludes).toHaveBeenCalled()
 
     context 'additional includes are needed', ->
       it 'calls #_loadAdditionalIncludes', ->
         loader._calculateAdditionalIncludes.and.callFake -> @additionalIncludes = ['foo']
 
-        loader._onLoadSuccess()
+        loader._onLoadSuccess('test data', 'response')
         expect(loader._loadAdditionalIncludes).toHaveBeenCalled()
         expect(loader._onLoadingCompleted).not.toHaveBeenCalled()
 
     context 'additional includes are not needed', ->
       it 'calls #_onLoadingCompleted', ->
-        loader._onLoadSuccess()
-        expect(loader._onLoadingCompleted).toHaveBeenCalled()
+        loader._onLoadSuccess('test data', 'response')
+        expect(loader._onLoadingCompleted).toHaveBeenCalledWith('response')
         expect(loader._loadAdditionalIncludes).not.toHaveBeenCalled()
 
   describe '#_onLoadingCompleted', ->
@@ -779,12 +779,12 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       loader = createLoader()
 
     it 'calls #_updateObjects with the externalObject and internalObject', ->
-      loader._onLoadingCompleted()
+      loader._onLoadingCompleted('response')
       expect(loader._updateObjects).toHaveBeenCalledWith(loader.externalObject, loader.internalObject)
 
     it 'resolves the deferred object with the externalObject', ->
       spy = jasmine.createSpy()
       loader.then(spy)
 
-      loader._onLoadingCompleted()
-      expect(spy).toHaveBeenCalledWith(loader.externalObject)
+      loader._onLoadingCompleted('response')
+      expect(spy).toHaveBeenCalledWith(loader.externalObject, 'response')

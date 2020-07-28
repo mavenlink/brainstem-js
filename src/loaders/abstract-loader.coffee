@@ -378,14 +378,14 @@ class AbstractLoader
 
   ###*
    * Called when the Backbone.sync successfully responds from the server.
-   * @param  {object} resp    JSON response from the server.
+   * @param  {object} response JSON response from the server.
    * @param  {string} _status
    * @param  {object} _xhr    jQuery XHR object
    * @return {undefined}
   ###
-  _onServerLoadSuccess: (resp, _status, _xhr) =>
-    data = @_updateStorageManagerFromResponse(resp)
-    @_onLoadSuccess(data)
+  _onServerLoadSuccess: (response, _status, _xhr) =>
+    data = @_updateStorageManagerFromResponse(response)
+    @_onLoadSuccess(data, response)
 
   ###*
    * Called when the Backbone.sync has errored.
@@ -400,25 +400,27 @@ class AbstractLoader
    * Updates the internalObject with the data in the storageManager and either loads more data or resolves this load.
    * Called after sync + storage manager updating.
    * @param  {array|object} data array of models or model from _updateStorageManagerFromResponse
+   * @param  {object} response JSON response from the server.
    * @return {undefined}
   ###
-  _onLoadSuccess: (data) ->
+  _onLoadSuccess: (data, response) ->
     @_updateObjects(@internalObject, data, true)
     @_calculateAdditionalIncludes()
 
     if @additionalIncludes.length
       @_loadAdditionalIncludes()
     else
-      @_onLoadingCompleted()
+      @_onLoadingCompleted(response)
 
   ###*
    * Called when all loading (including nested loads) are complete.
    * Updates the `externalObject` with the data that was gathered and resolves the promise.
+   * @param  {object} response JSON response from the server.
    * @return {undefined}
   ###
-  _onLoadingCompleted: =>
+  _onLoadingCompleted: (response) =>
     @_updateObjects(@externalObject, @internalObject)
-    @_deferred.resolve(@externalObject)
+    @_deferred.resolve(@externalObject, response)
 
 
 module.exports = AbstractLoader
