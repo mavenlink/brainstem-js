@@ -49,7 +49,7 @@ module.exports = class Expectation
     else
       returnedData = @_handleModelResults(loader)
 
-    loader._onLoadSuccess(returnedData, this)
+    loader._onLoadSuccess(returnedData, @_formatResponse(loader))
 
   recordRequest: (loader) ->
     if @immediate
@@ -151,3 +151,11 @@ module.exports = class Expectation
 
     existingModel.set(attributes)
     existingModel
+
+  _formatResponse: (loader) ->
+    if loader?.loadOptions?.response
+      collectionName = loader.loadOptions.name
+      models = loader.loadOptions.response(this)
+      formatJSONResponse(collectionName, models)
+    else
+      '{}'

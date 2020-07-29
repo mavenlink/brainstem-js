@@ -231,7 +231,7 @@ describe 'Collection', ->
 
         collection.fetch(options)
         expectation.respond()
-        expect(collection.trigger).toHaveBeenCalledWith('sync', collection, jasmine.any(Array), jasmine.any(Object), jasmine.any(Object))
+        expect(collection.trigger).toHaveBeenCalledWith('sync', collection, jasmine.any(Array), jasmine.any(Object), jasmine.any(String))
 
       context 'reset option is set to false', ->
         beforeEach ->
