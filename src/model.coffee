@@ -71,14 +71,14 @@ class Model extends Backbone.Model
 
     if options.cached != false && attributes.id && @brainstemKey && cache
       existing = cache.get(attributes.id)
-      blocklist = options.blocklist || @_associationKeyBlocklist()
-      valid = existing?.set(_.omit(attributes, blocklist))
+      blacklist = options.blacklist || @_associationKeyBlacklist()
+      valid = existing?.set(_.omit(attributes, blacklist))
 
       return existing if valid
 
     super
 
-  _associationKeyBlocklist: ->
+  _associationKeyBlacklist: ->
     return [] unless @constructor.associations
 
     _.chain(@constructor.associations)
@@ -265,32 +265,32 @@ class Model extends Backbone.Model
 
   toServerJSON: (method, options) ->
     json = @toJSON(options)
-    blocklist = @defaultJSONBlocklist()
+    blacklist = @defaultJSONBlacklist()
 
     switch method
       when 'create'
-        if @createJSONAllowlist
-          blocklist = _.difference(Object.keys(@attributes), @createJSONAllowlist())
+        if @createJSONWhitelist
+          blacklist = _.difference(Object.keys(@attributes), @createJSONWhitelist())
         else
-          blocklist = blocklist.concat @createJSONBlocklist()
+          blacklist = blacklist.concat @createJSONBlacklist()
       when 'update'
-        if @updateJSONAllowlist
-          blocklist = _.difference(Object.keys(@attributes), @updateJSONAllowlist())
+        if @updateJSONWhitelist
+          blacklist = _.difference(Object.keys(@attributes), @updateJSONWhitelist())
         else
-          blocklist = blocklist.concat @updateJSONBlocklist()
+          blacklist = blacklist.concat @updateJSONBlacklist()
 
-    for blocklistKey in blocklist
-      delete json[blocklistKey]
+    for blacklistKey in blacklist
+      delete json[blacklistKey]
 
     json
 
-  defaultJSONBlocklist: ->
+  defaultJSONBlacklist: ->
     ['id', 'created_at', 'updated_at']
 
-  createJSONBlocklist: ->
+  createJSONBlacklist: ->
     []
 
-  updateJSONBlocklist: ->
+  updateJSONBlacklist: ->
     []
 
 
