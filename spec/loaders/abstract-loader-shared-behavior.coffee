@@ -30,7 +30,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     loader._getCollectionName = -> 'tasks'
     loader._createObjects = ->
       @internalObject = bar: 'foo'
-      @externalObject = foo: 'bar'
+      @externalObject = foo: 'bar', trigger: jasmine.createSpy()
 
     loader._getModelsForAssociation = -> [{ id: 5 }, { id: 2 }, { id: 1 }, { id: 4 }, { id: 1 }, [{ id: 6 }], { id: null }]
     loader._getModel = -> Tasks::model
@@ -741,36 +741,42 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     it 'calls #_onServerLoadSuccess with the result from #_updateStorageManagerFromResponse', ->
       loader._updateStorageManagerFromResponse.and.returnValue 'data'
 
-      loader._onServerLoadSuccess()
-      expect(loader._onLoadSuccess).toHaveBeenCalledWith 'data'
+      loader._onServerLoadSuccess('response')
+      expect(loader._updateStorageManagerFromResponse).toHaveBeenCalledWith('response')
+      expect(loader._onLoadSuccess).toHaveBeenCalledWith 'data', 'response'
 
   describe '#_onLoadSuccess', ->
     beforeEach ->
       loader = createLoader()
       loader.additionalIncludes = []
+      loader.setup()
       spyOn(loader, '_onLoadingCompleted')
       spyOn(loader, '_loadAdditionalIncludes')
       spyOn(loader, '_calculateAdditionalIncludes')
 
     it 'calls #_updateObjects with the internalObject, the data, and silent set to true', ->
-      loader._onLoadSuccess('test data')
+      loader._onLoadSuccess('test data', 'response data')
       expect(loader._updateObjects).toHaveBeenCalledWith(loader.internalObject, 'test data', true)
 
+    it 'triggers the response event on the external object with the response data', ->
+      loader._onLoadSuccess('test data', 'response data')
+      expect(loader.externalObject.trigger).toHaveBeenCalledWith('response', loader, 'response data')
+
     it 'calls #_calculateAdditionalIncludes', ->
-      loader._onLoadSuccess()
+      loader._onLoadSuccess('test data', 'response data')
       expect(loader._calculateAdditionalIncludes).toHaveBeenCalled()
 
     context 'additional includes are needed', ->
       it 'calls #_loadAdditionalIncludes', ->
         loader._calculateAdditionalIncludes.and.callFake -> @additionalIncludes = ['foo']
 
-        loader._onLoadSuccess()
+        loader._onLoadSuccess('test data', 'response data')
         expect(loader._loadAdditionalIncludes).toHaveBeenCalled()
         expect(loader._onLoadingCompleted).not.toHaveBeenCalled()
 
     context 'additional includes are not needed', ->
       it 'calls #_onLoadingCompleted', ->
-        loader._onLoadSuccess()
+        loader._onLoadSuccess('test data', 'response data')
         expect(loader._onLoadingCompleted).toHaveBeenCalled()
         expect(loader._loadAdditionalIncludes).not.toHaveBeenCalled()
 
