@@ -955,6 +955,22 @@ describe 'Model', ->
           for key in allowlist
             expect(json[key]).toBeTruthy()
 
+        context 'when createJSONAllowlist returns an empty value', ->
+          beforeEach ->
+            expectedBlocklist = ['possums', 'racoons', 'potatoes']
+
+            model.createJSONBlocklist = ->
+              expectedBlocklist
+
+            model.createJSONAllowlist = ->
+              undefined
+
+          it 'defaults back to the blocklist', ->
+            json = model.toServerJSON("create")
+
+            for key in expectedBlocklist
+              expect(json[key]).toBeUndefined()
+
       context 'update', ->
         it "sets the blocklist to the model's attributes except for those in the allowlist", ->
           json = model.toServerJSON("update")
@@ -964,6 +980,22 @@ describe 'Model', ->
 
           for key in allowlist
             expect(json[key]).toBeTruthy()
+
+        context 'when updateJSONAllowlist returns an empty value', ->
+          beforeEach ->
+            expectedBlocklist = ['possums', 'racoons', 'potatoes']
+
+            model.updateJSONBlocklist = ->
+              expectedBlocklist
+
+            model.updateJSONAllowlist = ->
+              undefined
+
+          it 'defaults back to the blocklist', ->
+            json = model.toServerJSON("update")
+
+            for key in expectedBlocklist
+              expect(json[key]).toBeUndefined()
 
   describe '#_linkCollection', ->
     story = null

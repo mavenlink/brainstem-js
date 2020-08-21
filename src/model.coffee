@@ -269,12 +269,12 @@ class Model extends Backbone.Model
 
     switch method
       when 'create'
-        if @createJSONAllowlist
+        if @createJSONAllowlist && !_.isEmpty(@createJSONAllowlist())
           blocklist = _.difference(Object.keys(@attributes), @createJSONAllowlist())
         else
           blocklist = blocklist.concat @createJSONBlocklist()
       when 'update'
-        if @updateJSONAllowlist
+        if @updateJSONAllowlist && !_.isEmpty(@updateJSONAllowlist())
           blocklist = _.difference(Object.keys(@attributes), @updateJSONAllowlist())
         else
           blocklist = blocklist.concat @updateJSONBlocklist()
