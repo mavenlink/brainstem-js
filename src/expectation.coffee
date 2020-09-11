@@ -119,7 +119,7 @@ module.exports = class Expectation
 
     for result in @results
       if result instanceof @Model
-        @manager.storage(result.brainstemKey).update [result]
+        @manager.storage(result.brainstemKey).update [result], loader.loadOptions.silent
 
     returnedModels = _.map @results, (result) =>
       if result instanceof @Model

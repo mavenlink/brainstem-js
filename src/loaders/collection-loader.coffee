@@ -79,7 +79,7 @@ class CollectionLoader extends AbstractLoader
       keys.push(@loadOptions.name)
 
     for underscoredModelName in keys
-      @storageManager.storage(underscoredModelName).update _(resp[underscoredModelName]).values()
+      @storageManager.storage(underscoredModelName).update(_(resp[underscoredModelName]).values(), @loadOptions.silent)
 
     cachedData =
       count: resp.count
