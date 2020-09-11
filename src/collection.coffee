@@ -126,7 +126,7 @@ module.exports = class Collection extends Backbone.Collection
     @loaded = state
     @trigger 'loaded', this if state && options.trigger
 
-  update: (models, silent=false) ->
+  update: (models, silent = false) ->
     models = models.models if models.models?
     for model in models
       model = this.model.parse(model) if this.model.parse?
