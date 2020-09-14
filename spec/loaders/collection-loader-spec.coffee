@@ -176,8 +176,8 @@ describe 'Loaders CollectionLoader', ->
           spyOn(Collection.prototype, 'update')
           fakeResponse =
             count: 1,
-            results: [{ key: "tasks", id: 1 }]
-            tasks: [{ id: 1, title: "title" }]
+            results: [{ key: 'tasks', id: 1 }]
+            tasks: [{ id: 1, title: 'title' }]
 
         context 'when the silent argument is true', ->
           beforeEach ->
@@ -185,16 +185,15 @@ describe 'Loaders CollectionLoader', ->
             loader._updateStorageManagerFromResponse(fakeResponse)
 
           it 'calls Collection#update with silent=true', ->
-            expect(Collection.prototype.update).toHaveBeenCalledWith(fakeResponse.tasks, true)
+            expect(Collection.prototype.update).toHaveBeenCalledWith(fakeResponse.tasks, silent: true)
 
         context 'when the silent argument is false', ->
           beforeEach ->
             loader.setup(_.extend(opts, silent: false))
             loader._updateStorageManagerFromResponse(fakeResponse)
 
-          it 'calls Collection#update with silent=true', ->
-            expect(Collection.prototype.update).toHaveBeenCalledWith(fakeResponse.tasks, false)
-
+          it 'calls Collection#update with silent: false', ->
+            expect(Collection.prototype.update).toHaveBeenCalledWith(fakeResponse.tasks, silent: false)
 
       describe 'updating the cache', ->
         it 'caches the count from the response in the cacheObject', ->

@@ -241,12 +241,12 @@ describe 'Collection', ->
         it 'is true when silent is true', ->
           collection.fetch(_.extend(options, silent: true))
           expectation.respond()
-          expect(Collection.prototype.update).toHaveBeenCalledWith(jasmine.any(Array), true)
+          expect(Collection.prototype.update).toHaveBeenCalledWith(jasmine.any(Array), silent: true)
 
         it 'is false when silent is false', ->
           collection.fetch(_.extend(options, silent: false))
           expectation.respond()
-          expect(Collection.prototype.update).toHaveBeenCalledWith(jasmine.any(Array), false)
+          expect(Collection.prototype.update).toHaveBeenCalledWith(jasmine.any(Array), silent: false)
 
       context 'reset option is set to false', ->
         beforeEach ->
@@ -434,14 +434,14 @@ describe 'Collection', ->
     context 'when the silent option is true', ->
       it 'should call Backbone.Collection#add with { silent: true }', ->
         spyOn(collection, 'add')
-        collection.update updateArray, true
+        collection.update updateArray, silent: true
         expect(collection.add).toHaveBeenCalledWith(jasmine.anything(), { silent: true })
 
     context 'when the silent option is false', ->
       it 'should call Backbone.Collection#add with no options', ->
         spyOn(collection, 'add')
-        collection.update updateArray, false
-        expect(collection.add).toHaveBeenCalledWith(jasmine.anything(), {})
+        collection.update updateArray, silent: false
+        expect(collection.add).toHaveBeenCalledWith(jasmine.anything(), { silent: false })
 
     context 'when the silent option is undefined', ->
       it 'should call Backbone.Collection#add with no options', ->
