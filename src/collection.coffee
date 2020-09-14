@@ -21,6 +21,7 @@ module.exports = class Collection extends Backbone.Collection
     'cache'
     'cacheKey'
     'optionalFields'
+    'silent'
   ]
 
   @getComparatorWithIdFailover: (order) ->
@@ -125,7 +126,8 @@ module.exports = class Collection extends Backbone.Collection
     @loaded = state
     @trigger 'loaded', this if state && options.trigger
 
-  update: (models) ->
+  update: (models, options = {}) ->
+    addOpts = _.pick(options, 'silent')
     models = models.models if models.models?
     for model in models
       model = this.model.parse(model) if this.model.parse?
@@ -134,7 +136,7 @@ module.exports = class Collection extends Backbone.Collection
         if modelInCollection = @get(backboneModel.id)
           modelInCollection.set backboneModel.attributes
         else
-          @add backboneModel
+          @add(backboneModel, addOpts)
       else
         Utils.warn 'Unable to update collection with invalid model', model
 
