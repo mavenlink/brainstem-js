@@ -184,7 +184,7 @@ describe 'Loaders CollectionLoader', ->
             loader.setup(_.extend(opts, silent: true))
             loader._updateStorageManagerFromResponse(fakeResponse)
 
-          it 'calls Collection#update with silent=true', ->
+          it 'calls Collection#update with { silent: true }', ->
             expect(Collection.prototype.update).toHaveBeenCalledWith(fakeResponse.tasks, silent: true)
 
         context 'when the silent argument is false', ->
@@ -192,7 +192,7 @@ describe 'Loaders CollectionLoader', ->
             loader.setup(_.extend(opts, silent: false))
             loader._updateStorageManagerFromResponse(fakeResponse)
 
-          it 'calls Collection#update with silent: false', ->
+          it 'calls Collection#update with { silent: false }', ->
             expect(Collection.prototype.update).toHaveBeenCalledWith(fakeResponse.tasks, silent: false)
 
       describe 'updating the cache', ->

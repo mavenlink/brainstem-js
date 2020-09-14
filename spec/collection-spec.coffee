@@ -438,7 +438,7 @@ describe 'Collection', ->
         expect(collection.add).toHaveBeenCalledWith(jasmine.anything(), { silent: true })
 
     context 'when the silent option is false', ->
-      it 'should call Backbone.Collection#add with no options', ->
+      it 'should call Backbone.Collection#add with { silent: false }', ->
         spyOn(collection, 'add')
         collection.update updateArray, silent: false
         expect(collection.add).toHaveBeenCalledWith(jasmine.anything(), { silent: false })
