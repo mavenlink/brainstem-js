@@ -4,6 +4,7 @@ Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 StorageManager = require '../../src/storage-manager'
 CollectionLoader = require '../../src/loaders/collection-loader'
+Collection = require '../../src/collection'
 
 Task = require '../helpers/models/task'
 Tasks = require '../helpers/models/tasks'
@@ -169,6 +170,30 @@ describe 'Loaders CollectionLoader', ->
             { key: "tasks", id: 4 }
             { key: "tasks", id: 5 }
           ]
+
+      describe 'forwarding the silent argument to Collection#update', ->
+        beforeEach ->
+          spyOn(Collection.prototype, 'update')
+          fakeResponse =
+            count: 1,
+            results: [{ key: 'tasks', id: 1 }]
+            tasks: [{ id: 1, title: 'title' }]
+
+        context 'when the silent argument is true', ->
+          beforeEach ->
+            loader.setup(_.extend(opts, silent: true))
+            loader._updateStorageManagerFromResponse(fakeResponse)
+
+          it 'calls Collection#update with { silent: true }', ->
+            expect(Collection.prototype.update).toHaveBeenCalledWith(fakeResponse.tasks, silent: true)
+
+        context 'when the silent argument is false', ->
+          beforeEach ->
+            loader.setup(_.extend(opts, silent: false))
+            loader._updateStorageManagerFromResponse(fakeResponse)
+
+          it 'calls Collection#update with { silent: false }', ->
+            expect(Collection.prototype.update).toHaveBeenCalledWith(fakeResponse.tasks, silent: false)
 
       describe 'updating the cache', ->
         it 'caches the count from the response in the cacheObject', ->

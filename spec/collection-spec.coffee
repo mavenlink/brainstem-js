@@ -67,7 +67,7 @@ describe 'Collection', ->
         continue if key is 'bogus' or 'stuff'
         expect(keys).toContain(key)
 
-    it 'does not contain non allowlisted options', ->
+    it 'does not contain non whitelisted options', ->
       expect(keys).not.toContain('bogus')
       expect(keys).not.toContain('stuff')
 
@@ -233,6 +233,20 @@ describe 'Collection', ->
         expectation.respond()
 
         expect(collection.trigger).toHaveBeenCalledWith('sync', collection, jasmine.any(Array), jasmine.any(Object))
+
+      describe 'Collection#update silent option', ->
+        beforeEach ->
+          spyOn(Collection.prototype, 'update')
+
+        it 'is true when silent is true', ->
+          collection.fetch(_.extend(options, silent: true))
+          expectation.respond()
+          expect(Collection.prototype.update).toHaveBeenCalledWith(jasmine.any(Array), silent: true)
+
+        it 'is false when silent is false', ->
+          collection.fetch(_.extend(options, silent: false))
+          expectation.respond()
+          expect(Collection.prototype.update).toHaveBeenCalledWith(jasmine.any(Array), silent: false)
 
       context 'reset option is set to false', ->
         beforeEach ->
@@ -416,6 +430,25 @@ describe 'Collection', ->
       collection.update updateArray
       expect(model.get('title')).toEqual '1 new'
       expect(spy).toHaveBeenCalled()
+
+    context 'when the silent option is true', ->
+      it 'should call Backbone.Collection#add with { silent: true }', ->
+        spyOn(collection, 'add')
+        collection.update updateArray, silent: true
+        expect(collection.add).toHaveBeenCalledWith(jasmine.anything(), { silent: true })
+
+    context 'when the silent option is false', ->
+      it 'should call Backbone.Collection#add with { silent: false }', ->
+        spyOn(collection, 'add')
+        collection.update updateArray, silent: false
+        expect(collection.add).toHaveBeenCalledWith(jasmine.anything(), { silent: false })
+
+    context 'when the silent option is undefined', ->
+      it 'should call Backbone.Collection#add with no options', ->
+        spyOn(collection, 'add')
+        collection.update updateArray
+        expect(collection.add).toHaveBeenCalledWith(jasmine.anything(), {})
+
 
   describe '#reload', ->
     it 'reloads the collection with the original params', ->
