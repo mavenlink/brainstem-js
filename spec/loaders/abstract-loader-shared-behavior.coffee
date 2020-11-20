@@ -591,14 +591,14 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         expect(getSyncOptions(loader, opts).data.order).toEqual 'foo'
 
     describe 'extending data with filters and custom params', ->
-      blocklist = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search']
+      blacklist = ['include', 'only', 'order', 'per_page', 'page', 'limit', 'offset', 'search']
 
-      excludesBlocklistFromObject = (object) ->
-        object[key] = 'overwritten' for key in blocklist
+      excludesBlacklistFromObject = (object) ->
+        object[key] = 'overwritten' for key in blacklist
 
         data = getSyncOptions(loader, opts).data
 
-        expect(data[key]).toBeUndefined() for key in blocklist
+        expect(data[key]).toBeUndefined() for key in blacklist
 
       context 'filters do not exist', ->
         beforeEach ->
@@ -619,8 +619,8 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
           expect(data.foo).toEqual 'bar'
 
-        it 'excludes blocklisted brainstem specific keys from filters', ->
-          excludesBlocklistFromObject(opts.filters)
+        it 'excludes blacklisted brainstem specific keys from filters', ->
+          excludesBlacklistFromObject(opts.filters)
 
       context 'params do not exist', ->
         beforeEach ->
@@ -640,8 +640,8 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
           expect(data.color).toEqual 'red'
 
-        it 'excludes blocklisted brainstem specific keys from custom params', ->
-          excludesBlocklistFromObject(opts.params)
+        it 'excludes blacklisted brainstem specific keys from custom params', ->
+          excludesBlacklistFromObject(opts.params)
 
     describe 'pagination', ->
       beforeEach ->

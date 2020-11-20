@@ -80,9 +80,9 @@ describe 'Model', ->
             it 'does not overwrite existing association attributes', ->
               expect(+newModel.get('project_id')).toEqual 1
 
-            context 'with blocklist option', ->
+            context 'with blacklist option', ->
               beforeEach ->
-                newModel = new Task({ id: model.id, project_id: 2 }, { blocklist: [] })
+                newModel = new Task({ id: model.id, project_id: 2 }, { blacklist: [] })
 
               it 'does overwrite the existing association attributes', ->
                 expect(+newModel.get('project_id')).toEqual 2
@@ -891,78 +891,78 @@ describe 'Model', ->
       model.toServerJSON()
       expect(spy).toHaveBeenCalled()
 
-    it "always removes default blocklisted keys", ->
-      defaultBlocklistKeys = model.defaultJSONBlocklist()
-      expect(defaultBlocklistKeys.length).toEqual(3)
+    it "always removes default blacklisted keys", ->
+      defaultBlacklistKeys = model.defaultJSONBlacklist()
+      expect(defaultBlacklistKeys.length).toEqual(3)
 
       model.set('safe', true)
-      for key in defaultBlocklistKeys
+      for key in defaultBlacklistKeys
         model.set(key, true)
 
       json = model.toServerJSON("create")
       expect(json['safe']).toEqual(true)
-      for key in defaultBlocklistKeys
+      for key in defaultBlacklistKeys
         expect(json[key]).toBeUndefined()
 
-    it "removes blocklisted keys for create actions", ->
-      createBlocklist = ['flies', 'ants', 'fire ants']
-      spyOn(model, 'createJSONBlocklist').and.returnValue(createBlocklist)
+    it "removes blacklisted keys for create actions", ->
+      createBlacklist = ['flies', 'ants', 'fire ants']
+      spyOn(model, 'createJSONBlacklist').and.returnValue(createBlacklist)
 
-      for key in createBlocklist
+      for key in createBlacklist
         model.set(key, true)
 
       json = model.toServerJSON("create")
-      for key in createBlocklist
+      for key in createBlacklist
         expect(json[key]).toBeUndefined()
 
-    it "removes blocklisted keys for update actions", ->
-      updateBlocklist = ['possums', 'racoons', 'potatoes']
-      spyOn(model, 'updateJSONBlocklist').and.returnValue(updateBlocklist)
+    it "removes blacklisted keys for update actions", ->
+      updateBlacklist = ['possums', 'racoons', 'potatoes']
+      spyOn(model, 'updateJSONBlacklist').and.returnValue(updateBlacklist)
 
-      for key in updateBlocklist
+      for key in updateBlacklist
         model.set(key, true)
 
       json = model.toServerJSON("update")
-      for key in updateBlocklist
+      for key in updateBlacklist
         expect(json[key]).toBeUndefined()
 
-    describe 'createJSONAllowlist, updateJSONAllowlist', ->
-      attributeKeys = expectedBlocklist = allowlist = null
+    describe 'createJSONWhitelist, updateJSONWhitelist', ->
+      attributeKeys = expectedBlacklist = whitelist = null
 
       beforeEach ->
-        allowlist = ['label', 'name']
+        whitelist = ['label', 'name']
 
-        model.updateJSONAllowlist = ->
-          allowlist
+        model.updateJSONWhitelist = ->
+          whitelist
 
-        model.createJSONAllowlist = ->
-          allowlist
+        model.createJSONWhitelist = ->
+          whitelist
 
         attributeKeys = ['possums', 'racoons', 'potatoes', 'label', 'name']
 
         for key in attributeKeys
           model.set(key, true)
 
-        expectedBlocklist = ['possums', 'racoons', 'potatoes']
+        expectedBlacklist = ['possums', 'racoons', 'potatoes']
 
       context 'create', ->
-        it "sets the blocklist to the model's attributes except for those in the allowlist", ->
+        it "sets the blacklist to the model's attributes except for those in the whitelist", ->
           json = model.toServerJSON("create")
 
-          for key in expectedBlocklist
+          for key in expectedBlacklist
             expect(json[key]).toBeUndefined()
 
-          for key in allowlist
+          for key in whitelist
             expect(json[key]).toBeTruthy()
 
       context 'update', ->
-        it "sets the blocklist to the model's attributes except for those in the allowlist", ->
+        it "sets the blacklist to the model's attributes except for those in the whitelist", ->
           json = model.toServerJSON("update")
 
-          for key in expectedBlocklist
+          for key in expectedBlacklist
             expect(json[key]).toBeUndefined()
 
-          for key in allowlist
+          for key in whitelist
             expect(json[key]).toBeTruthy()
 
   describe '#_linkCollection', ->
