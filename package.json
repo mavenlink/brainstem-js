@@ -30,7 +30,7 @@
   "devDependencies": {
     "backbone": "1.0.0 - 1.1.2",
     "backbone-factory": "https://github.com/mavenlink/Backbone-Factory.git#master",
-    "browserify": "^13.0.0",
+    "browserify": "^14.0.0",
     "browserify-shim": "^3.8.12",
     "coffeeify": "^2.0.1",
     "coffeelint-stylish": "^0.1.2",
