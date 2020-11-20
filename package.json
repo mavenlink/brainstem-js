@@ -64,7 +64,8 @@
     "watchify": "^3.7.0"
   },
   "resolutions": {
-    "lodash.template": "^4.5.0"
+    "lodash.template": "^4.5.0",
+    "minimist": "1.2.5"
   },
   "browserify-shim": {
     "jquery": "global:$",
