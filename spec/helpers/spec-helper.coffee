@@ -24,6 +24,12 @@ window.resultsObject = (models) ->
     results[model.id] = model
   results
 
+window.formatJSONResponse = (collectionName, models) ->
+  responseData = {}
+  responseData[collectionName] = resultsObject(models)
+  responseData.results = resultsArray(collectionName, models)
+  JSON.stringify(responseData)
+
 window.convertTopLevelKeysToObjects = (data) ->
   for key in _(data).keys()
     continue if key in ["count", "results"]
@@ -93,6 +99,7 @@ window.clearLiveEventBindings = ->
 
 window.context = describe
 window.xcontext = xdescribe
+window.fcontext = fdescribe
 
 # Shared Behaviors
 window.SharedBehaviors ?= {};

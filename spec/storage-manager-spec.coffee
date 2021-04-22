@@ -350,12 +350,14 @@ describe 'Brainstem Storage Manager', ->
 
     it "accepts a success function", ->
       timeEntries = [buildTimeEntry(), buildTimeEntry()]
-      respondWith server, "/api/time_entries?per_page=20&page=1", resultsFrom: "time_entries", data: { time_entries: timeEntries }
+      responseData = { time_entries: resultsObject(timeEntries), results: resultsArray("time_entries", timeEntries) }
+      respondWith server, "/api/time_entries?per_page=20&page=1", data: responseData
       spy = jasmine.createSpy().and.callFake (collection) ->
         expect(collection.loaded).toBe true
       collection = manager.loadCollection "time_entries", success: spy
       server.respond()
-      expect(spy).toHaveBeenCalledWith(collection)
+      expectedResponse = JSON.parse(JSON.stringify(responseData))
+      expect(spy).toHaveBeenCalledWith(collection, expectedResponse)
 
     it "saves it's options onto the returned collection", ->
       collection = manager.loadCollection "time_entries", order: "baz:desc", filters: { bar: 2 }
@@ -510,7 +512,7 @@ describe 'Brainstem Storage Manager', ->
 
               server.respond() until server.queue.length == 0
 
-              expect(success).toHaveBeenCalledWith(collection)
+              expect(success).toHaveBeenCalledWith(collection, jasmine.any(Object))
               expect(callCount).toEqual 3
 
           context 'using a backbone collection', ->
