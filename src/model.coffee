@@ -118,6 +118,8 @@ class Model extends Backbone.Model
         notFoundIds = []
         if ids
           for id in ids
+            if id == null or id == undefined
+              continue
             model = @storageManager.storage(details.collectionName).get(id)
             models.push(model)
             notFoundIds.push(id) unless model
