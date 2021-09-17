@@ -806,6 +806,11 @@ describe 'Model', ->
           storageManager.storage("tasks").add { id: 11, title: "Second Task" }
           project = new Project(id: 25, task_ids: [10, 11])
 
+        context "when there are null values in id list" , ->
+          it "ignores the null values", ->
+            project = new Project(id: 25, task_ids: [10, 11, null, undefined])
+            expect(-> project.get('tasks')).not.toThrowError()
+
         context "when association ids is not present", ->
           it "returns an empty collection", ->
             expect(project.get("time_entries").models).toEqual []
