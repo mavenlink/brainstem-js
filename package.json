@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "inflection": "^1.8.0",
-    "jquery": "2.2.4"
+    "jquery": "3.5.0"
   },
   "devDependencies": {
     "backbone": "1.0.0 - 1.1.2",
