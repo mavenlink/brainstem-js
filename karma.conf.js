@@ -26,21 +26,22 @@ module.exports = function (config) {
     reporters: ['spec'],
 
     files: [
+      'spec/helpers/**/*.js',
       'spec/helpers/**/*.coffee',
       'spec/**/*-behavior.coffee',
       'spec/**/*-spec.coffee'
     ],
 
     preprocessors: {
-      'src/**/*.coffee': ['browserify', 'sourcemap'],
       'src/**/*.js': ['browserify', 'sourcemap'],
-      'spec/**/*.coffee': ['browserify', 'sourcemap'],
       'spec/**/*.js': ['browserify', 'sourcemap'],
+      'src/**/*.coffee': ['browserify', 'sourcemap'],
+      'spec/**/*.coffee': ['browserify', 'sourcemap'],
     },
 
     browserify: {
-      extensions: ['.coffee', '.js'],
-      transform: ['coffeeify', 'babelify'],
+      extensions: ['.js', '.coffee'],
+      transform: ['babelify', 'coffeeify'],
       watch: true,
       debug: true
     }
