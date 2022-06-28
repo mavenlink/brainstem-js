@@ -13,14 +13,13 @@ module.exports = function (config) {
       'karma-jasmine',
       'karma-sinon',
       'karma-spec-reporter',
-      'karma-phantomjs-launcher',
       'karma-chrome-launcher',
       'karma-firefox-launcher',
       'karma-browserify',
       'karma-sourcemap-loader'
     ],
 
-    browsers: ['PhantomJS'],
+    browsers: ['FirefoxHeadless'],
 
     frameworks: ['jasmine', 'sinon', 'browserify'],
 

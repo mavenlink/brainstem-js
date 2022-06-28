@@ -86,7 +86,7 @@ gulp.task('test', (done) => {
 
 gulp.task('test-ci', (done) => {
   new Karma(Object.assign({}, karmaConfig, {
-    browsers: ['Firefox', 'PhantomJS']
+    browsers: ['Firefox']
   }), karmaErrorHandler.bind(done)).start();
 });
 
