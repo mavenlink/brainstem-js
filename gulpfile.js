@@ -9,6 +9,7 @@ const del = require('del');
 const stream = require('vinyl-source-stream');
 const browserify = require('browserify');
 const shim = require('browserify-shim');
+const babel = require('gulp-babel');
 const { Server: Karma } = require('karma');
 
 const { version, standalone, filename } = require('./package');
@@ -24,8 +25,9 @@ const moduleOutput = './lib';
 
 gulp.task('build-module', () => {
   return gulp.src(source)
-    .pipe(gulp.dest(moduleOutput))
-    .on('error', util.log);
+      .pipe(babel({presets: ['@babel/env']}))
+      .pipe(gulp.dest(moduleOutput))
+      .on('error', util.log);
 });
 
 gulp.task('clean-module', () => {
