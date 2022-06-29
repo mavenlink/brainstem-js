@@ -1547,7 +1547,7 @@ describe('Model', function() {
 
     beforeEach(function() {
       task = buildAndCacheTask({ id: 5, project_id: 10 });
-      return (project = buildAndCacheProject({ id: 10, task_ids: [task.id] }));
+      project = buildAndCacheProject({ id: 10, task_ids: [task.id] });
     });
 
     it('should delegate to Backbone.Model#destroy', function() {
@@ -1559,13 +1559,11 @@ describe('Model', function() {
       return expect(destroySpy).toHaveBeenCalledWith(options);
     });
 
-    context(
-      'when deleted object is referenced in a belongs-to relationship',
-      function() {
+    context( 'when deleted object is referenced in a belongs-to relationship', function() {
         it('should set the associated reference to undefined', function() {
           project.destroy();
 
-          return expect(task.get('project_id')).toBeUndefined();
+          expect(task.get('project_id')).toBeUndefined();
         });
 
         return it('should not remove associations to other objects', function() {

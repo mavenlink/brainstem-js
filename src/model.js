@@ -7,14 +7,12 @@ const {knownResponseKeys} = require('./constants');
 
 const Utils = require('./utils');
 const StorageManager = require('./storage-manager');
+const {debug} = require("karma-firefox-launcher/release.config");
 
 const isDateAttr = key => key.indexOf('date') > -1 || /_at$/.test(key);
 
 class Model extends Backbone.Model {
-    static initClass() {
-        //
-        // Properties
-
+    preinitialize() {
         this.OPTION_KEYS = ['name', 'include', 'cacheKey'];
     }
 
@@ -89,6 +87,7 @@ class Model extends Backbone.Model {
         let cache;
         this._onAssociatedCollectionChange = this._onAssociatedCollectionChange.bind(this);
         this._linkCollection = this._linkCollection.bind(this);
+        this._cleanUpAssociatedReferences = this._cleanUpAssociatedReferences.bind(this);
 
         try {
             cache = this.storageManager.storage(this.brainstemKey);
@@ -260,43 +259,34 @@ ${this.storageManager
             .promise(options.returnValues.jqXhr);
     }
 
-    destroy(options) {
-        if (options == null) {
-            options = {};
-        }
-        const cleanUpAssociatedReferences = () => {
-            return _.each(
-                this.storageManager.collections,
-                function (collection) {
-                    return _.each(
-                        collection.modelKlass.associations,
-                        function (associator, reference) {
-                            const associationKey = collection.modelKlass.associationDetails(
-                                reference
-                            ).key;
-                            if (this._collectionHasMany(associator)) {
-                                return collection.storage.each(function (model) {
-                                    return model.set(
-                                        associationKey,
-                                        _.without(model.get(associationKey), this.id)
-                                    );
-                                }, this);
-                            } else if (this._collectionBelongsTo(associator)) {
-                                return collection.storage.each(function (model) {
-                                    if (model.get(associationKey) === this.id) {
-                                        return model.unset(associationKey);
-                                    }
-                                }, this);
-                            }
-                        },
-                        this
-                    );
-                },
-                this
-            );
-        };
+    _cleanUpAssociatedReferences() {
+        _.each(this.storageManager.collections, function (collection) {
+                _.each(collection.modelKlass.associations, function (associator, reference) {
+                        const associationKey = collection.modelKlass.associationDetails(reference).key;
+                        if (this._collectionHasMany(associator)) {
+                            return collection.storage.each(function (model) {
+                                model.set(
+                                    associationKey,
+                                    _.without(model.get(associationKey), this.id)
+                                );
+                            }, this);
+                        } else if (this._collectionBelongsTo(associator)) {
+                            collection.storage.each(function (model) {
+                                if (model.get(associationKey) === this.id) {
+                                    return model.unset(associationKey);
+                                }
+                            }, this);
+                        }
+                    },
+                    this
+                );
+            },
+            this
+        );
+    };
 
-        this.listenTo(this, 'destroy', cleanUpAssociatedReferences);
+    destroy(options) {
+        this.on('destroy', this._cleanUpAssociatedReferences);
         return super.destroy(options);
     }
 
@@ -566,7 +556,5 @@ ${this.storageManager
         );
     }
 }
-
-Model.initClass();
 
 module.exports = Model;

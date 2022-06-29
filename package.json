@@ -20,7 +20,7 @@
     "test:watch": "gulp test-watch"
   },
   "peerDependencies": {
-    "backbone": ">= 1.1.2",
+    "backbone": ">= 1.4.1",
     "underscore": ">= 1.12.1"
   },
   "dependencies": {
@@ -31,7 +31,7 @@
     "@babel/core": "^7.18.6",
     "@babel/preset-env": "^7.18.6",
     "babelify": "^10.0.0",
-    "backbone": "1.0.0 - 1.1.2",
+    "backbone": "1.4.1",
     "backbone-factory": "https://github.com/mavenlink/Backbone-Factory.git#master",
     "browserify": "^13.0.0",
     "browserify-shim": "^3.8.12",
