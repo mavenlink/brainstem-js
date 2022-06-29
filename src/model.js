@@ -130,12 +130,9 @@ class Model extends Backbone.Model {
     // Accessors
 
     // Override Model#get to access associations as well as fields.
-    get(field, options) {
-        let details;
-        if (options == null) {
-            options = {};
-        }
-        if ((details = this.constructor.associationDetails(field))) {
+    get(field, options = {}) {
+        const details =  this.constructor.associationDetails && this.constructor.associationDetails(field);
+        if (details) {
             let collectionName, id, model;
             if (details.type === 'BelongsTo') {
                 const pointer = super.get(details.key); // project_id

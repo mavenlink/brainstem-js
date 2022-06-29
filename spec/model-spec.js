@@ -30,6 +30,14 @@ describe('Model', function() {
     return storageManager.reset();
   });
 
+  describe('extend', () => {
+    it('allows extending the Model', () => {
+      const TestModel = Model.extend({ name: 'jim '});
+      const foo = new TestModel({ name: 'bill' });
+      expect(foo.get('name')).toEqual('bill');
+    });
+  });
+
   describe('instantiation', function() {
     let newModel = null;
 
