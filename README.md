@@ -48,9 +48,9 @@ Assocations are defined as a map in the class property **associations** to decla
 Model:
 
 ```javascript
-BrainstemModel = require('brainstem-js').Model;
+const BrainstemModel = require('brainstem-js').Model;
 
-Post = BrainstemModel.extend({
+const Post = BrainstemModel.extend({
   paramRoot: 'post',
   brainstemKey: 'posts',
   urlRoot: '/api/v1/posts'
@@ -68,10 +68,10 @@ module.exports = Post;
 Collection:
 
 ```javascript
-BrainstemCollection = require('brainstem-js').Collection;
-Post = require('./models/post');
+const BrainstemCollection = require('brainstem-js').Collection;
+const Post = require('./models/post');
 
-Posts = BrainstemCollection.extend({
+const Posts = BrainstemCollection.extend({
   model: Post,
   url: '/api/v1/posts'
 });
