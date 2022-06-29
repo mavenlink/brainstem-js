@@ -2,7 +2,7 @@ Backbone = require 'backbone'
 Backbone.$ = require 'jquery'
 
 Model = require '../src/model'
-TimeEntries = require './helpers/models/time-entries.coffee'
+TimeEntries = require './helpers/models/time-entries'
 
 
 describe "Sync", ->
