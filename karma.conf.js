@@ -27,9 +27,8 @@ module.exports = function (config) {
 
     files: [
       'spec/helpers/**/*.js',
-      'spec/helpers/**/*.coffee',
-      'spec/**/*-behavior.coffee',
-      'spec/**/*-spec.coffee'
+      'spec/**/*-behavior.js',
+      'spec/**/*-spec.js'
     ],
 
     preprocessors: {
