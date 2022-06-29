@@ -34,13 +34,11 @@ module.exports = function (config) {
     preprocessors: {
       'src/**/*.js': ['browserify', 'sourcemap'],
       'spec/**/*.js': ['browserify', 'sourcemap'],
-      'src/**/*.coffee': ['browserify', 'sourcemap'],
-      'spec/**/*.coffee': ['browserify', 'sourcemap'],
     },
 
     browserify: {
-      extensions: ['.js', '.coffee'],
-      transform: ['babelify', 'coffeeify'],
+      extensions: ['.js'],
+      transform: ['babelify'],
       watch: true,
       debug: true
     }
