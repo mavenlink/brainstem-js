@@ -25,7 +25,7 @@
     "underscore": ">= 1.12.1"
   },
   "dependencies": {
-    "inflection": "^1.8.0",
+    "inflection": "^3.0.0",
     "jquery": "2.2.4"
   },
   "devDependencies": {
