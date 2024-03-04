@@ -72,6 +72,6 @@
     "backbone": "global:Backbone"
   },
   "engines": {
-    "node": "^21.6.2"
+    "node": "^18.19.0"
   }
 }
