@@ -58,7 +58,7 @@
     "minimist": "^1.2.0",
     "path": "^0.12.7",
     "sinon": "1.17.3",
-    "underscore": ">= 1.12.1",
+    "underscore": "^1.13.6",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.7.0",
     "yarn-deduplicate": "^6.0.2"
