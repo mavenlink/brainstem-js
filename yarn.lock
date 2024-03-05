@@ -577,12 +577,13 @@ browserify-rsa@^4.0.0, browserify-rsa@^4.1.0:
     bn.js "^5.0.0"
     randombytes "^2.0.1"
 
-browserify-shim@^3.8.12:
-  version "3.8.14"
-  resolved "https://registry.yarnpkg.com/browserify-shim/-/browserify-shim-3.8.14.tgz#bf1057026932d3253c75ef7dd714f3b877edec6b"
+browserify-shim@^3.8.16:
+  version "3.8.16"
+  resolved "https://registry.yarnpkg.com/browserify-shim/-/browserify-shim-3.8.16.tgz#f65a77d0e249ae9001f9fa31bbae4360be18e467"
+  integrity sha512-+Ap0xOKUC5Hz8sdUROxCJHgzA5IeU7pgUquCdlbBxyxkexzU4kpU6u1TsIvnFJcdx1bxO902J08AEjbMqDbA3g==
   dependencies:
     exposify "~0.5.0"
-    mothership "~0.2.0"
+    mothership "~0.3.0"
     rename-function-calls "~0.1.0"
     resolve "~0.6.1"
     through "~2.3.4"
@@ -3190,9 +3191,10 @@ module-deps@^6.2.3:
     through2 "^2.0.0"
     xtend "^4.0.0"
 
-mothership@~0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/mothership/-/mothership-0.2.0.tgz#93d48a2fbc3e50e2a5fc8ed586f5bc44c65f9a99"
+mothership@~0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/mothership/-/mothership-0.3.0.tgz#6eddd86a0649f4451f8af1d27c9f63be97bcaf89"
+  integrity sha512-/ORGXVhkG5Qal0ZD3BnxG/JtMcCJKOn7FkbbTA8N9HwJyXGsBYq9EXH7WbsRCpGUwmwrpQqN6ENLUL+ebmNTCQ==
   dependencies:
     find-parent-dir "~0.3.0"
 
