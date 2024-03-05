@@ -32,7 +32,7 @@
     "backbone": "1.0.0 - 1.1.2",
     "backbone-factory": "https://github.com/mavenlink/Backbone-Factory.git#master",
     "browserify": "^17.0.0",
-    "browserify-shim": "^3.8.12",
+    "browserify-shim": "^3.8.16",
     "coffeeify": "^2.0.1",
     "coffeelint-stylish": "^0.1.2",
     "del": "^2.2.0",
