@@ -4,13 +4,7 @@ const minimist = require('minimist');
 const path = require('path');
 const del = require('del');
 const coffee = require('gulp-coffee');
-const browserify = require('browserify');
-const coffeeify = require('coffeeify');
-const shim = require('browserify-shim');
 const karma = require('karma');
-
-const { version, standalone, filename } = require('./package');
-
 
 const source = './src/**/*.coffee';
 const options = minimist(process.argv.slice(2));
