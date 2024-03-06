@@ -416,7 +416,7 @@ describe 'Brainstem Storage Manager', ->
       expect(collection.length).toEqual(1)
 
     it "works with an empty response", ->
-      exceptionSpy = spyOn(sinon, 'logError').and.callThrough()
+      exceptionSpy = spyOn(sinon, 'configureLogError').and.callThrough()
       respondWith server, "/api/time_entries?per_page=20&page=1", resultsFrom: "time_entries", data: { time_entries: [] }
       manager.loadCollection "time_entries"
       server.respond()
