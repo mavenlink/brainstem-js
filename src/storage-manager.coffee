@@ -92,7 +92,7 @@ class _StorageManager
   loadModel: (name, id, options = {}) ->
     return if not id
 
-    loader = @loadObject(name, $.extend({}, options, only: id), isCollection: false)
+    loader = @loadObject(name, Object.assign({}, options, only: id), isCollection: false)
     loader
 
   # Request a set of data to be loaded, optionally ensuring that associations be
@@ -113,14 +113,14 @@ class _StorageManager
 
   # Helpers
   loadObject: (name, loadOptions = {}, options = {}) ->
-    options = $.extend({}, { isCollection: true }, options)
+    options = Object.assign({}, { isCollection: true }, options)
 
     completeCallback = loadOptions.complete
     successCallback = loadOptions.success
     errorCallback = loadOptions.error
 
     loadOptions = _.omit(loadOptions, 'success', 'error', 'complete')
-    loadOptions = $.extend({}, loadOptions, name: name)
+    loadOptions = Object.assign({}, loadOptions, name: name)
 
     if options.isCollection
       loaderClass = CollectionLoader
@@ -155,7 +155,7 @@ class _StorageManager
   # brainstem AJAX response. Useful in avoiding unnecessary AJAX request(s) when rendering the page.
   bootstrap: (name, response, loadOptions = {}) ->
     loader = new CollectionLoader storageManager: this
-    loader.setup $.extend({}, loadOptions, name: name)
+    loader.setup Object.assign({}, loadOptions, name: name)
     loader._updateStorageManagerFromResponse response
 
   collectionError: (name) ->
@@ -179,10 +179,10 @@ class _StorageManager
       ')
 
   stubModel: (modelName, modelId, options = {}) ->
-    @stub(inflection.pluralize(modelName), $.extend({}, options, only: modelId))
+    @stub(inflection.pluralize(modelName), Object.assign({}, options, only: modelId))
 
   stubImmediate: (collectionName, options) ->
-    @stub collectionName, $.extend({}, options, immediate: true)
+    @stub collectionName, Object.assign({}, options, immediate: true)
 
   enableExpectations: ->
     @expectations = []
