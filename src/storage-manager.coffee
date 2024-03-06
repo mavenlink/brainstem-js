@@ -1,7 +1,5 @@
 _ = require 'underscore'
-$ = require 'jquery'
 Backbone = require 'backbone'
-Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 inflection = require 'inflection'
 
 Utils = require './utils'
