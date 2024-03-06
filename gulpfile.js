@@ -32,18 +32,19 @@ gulp.task('clean-module', () => {
 });
 
 let configFilePath = path.join(__dirname, 'karma.conf.js');
-let karmaConfig = {
-  configFile: configFilePath,
+let karmaConfigOptions = {
   singleRun: true,
   sourceMaps: true
 };
 
+let parsedKarmaConfig = karma.config.parseConfig(configFilePath, karmaConfigOptions, { throwErrors: true })
+
 if (typeof options.browsers === 'string') {
-  karmaConfig.browsers = options.browsers.split();
+  parsedKarmaConfig.browsers = options.browsers.split();
 }
 
 if (typeof options.grep === 'string') {
-  karmaConfig.client = { args: ['--grep', options.grep] };
+  parsedKarmaConfig.client = { args: ['--grep', options.grep] };
 }
 
 const karmaErrorHandler = function(code) {
@@ -56,17 +57,17 @@ const karmaErrorHandler = function(code) {
 };
 
 gulp.task('test', (done) => {
-  new karmaServer(karmaConfig, karmaErrorHandler.bind(done)).start();
+  new karmaServer(parsedKarmaConfig, karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('test-ci', (done) => {
-  new karmaServer(Object.assign({}, karmaConfig, {
+  new karmaServer(Object.assign({}, parsedKarmaConfig, {
     browsers: ['Firefox']
   }), karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('test-watch', (done) => {
-  var config = Object.assign({}, karmaConfig, {
+  var config = Object.assign({}, parsedKarmaConfig, {
     singleRun: false,
     autoWatch: true
   });
@@ -75,7 +76,7 @@ gulp.task('test-watch', (done) => {
 });
 
 gulp.task('test-debug', (done) => {
-  var config = Object.assign({}, karmaConfig, {
+  var config = Object.assign({}, parsedKarmaConfig, {
     browsers: ['Chrome'],
     singleRun: false,
     autoWatch: true
