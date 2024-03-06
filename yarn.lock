@@ -2382,13 +2382,15 @@ isobject@^3.0.0, isobject@^3.0.1:
   resolved "https://registry.yarnpkg.com/isobject/-/isobject-3.0.1.tgz#4e431e92b11a9731636aa1f9c8d1ccbcfdab78df"
   integrity sha1-TkMekrEalzFjaqH5yNHMvP2reN8=
 
-jasmine-core@2.5.2:
-  version "2.5.2"
-  resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-2.5.2.tgz#6f61bd79061e27f43e6f9355e44b3c6cab6ff297"
+jasmine-core@^5.1.2:
+  version "5.1.2"
+  resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-5.1.2.tgz#8f2789faa79ef1ffad7abab6bff8d4bd661094f7"
+  integrity sha512-2oIUMGn00FdUiqz6epiiJr7xcFyNYj3rDcfmnzfkBnHyBQ3cBQUs4mmyGsOb7TTLb9kxk7dBcmEmqhDKkBoDyA==
 
-jasmine-jquery-matchers@^1.1.1:
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/jasmine-jquery-matchers/-/jasmine-jquery-matchers-1.4.2.tgz#023500a97520a927c99169f7f14a20a1a8a66281"
+jasmine-jquery-matchers@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/jasmine-jquery-matchers/-/jasmine-jquery-matchers-2.1.1.tgz#096445c4e2b6af79d6cf1c930955f4bde978e867"
+  integrity sha512-KjUSXpC5FUc8emSjebj9Hmef4ucB8o+shfBa/ueW0sv8E2xiQbzmdsx5X+RUS2dlAOi5q/akDdRCHrrGgNz8WQ==
 
 jquery@2.2.4:
   version "2.2.4"
