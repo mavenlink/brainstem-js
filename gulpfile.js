@@ -76,16 +76,12 @@ gulp.task('test-debug', (done) => {
   let karmaConfigOptions = {
     singleRun: false,
     sourceMaps: true,
-
+    browsers: ['Chrome'],
   };
 
   let parsedKarmaConfig = karma.config.parseConfig(configFilePath, karmaConfigOptions, { throwErrors: true })
 
-  var config = Object.assign({}, parsedKarmaConfig, {
-    browsers: ['Chrome'],
-  });
-
-  new karmaServer(config, karmaErrorHandler.bind(done)).start();
+  new karmaServer(parsedKarmaConfig, karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('ci', gulp.series(gulp.parallel(['test-ci'])));
