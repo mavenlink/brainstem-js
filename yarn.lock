@@ -984,15 +984,7 @@ custom-event@~1.0.0:
   resolved "https://registry.yarnpkg.com/custom-event/-/custom-event-1.0.1.tgz#5d02a46850adf1b4a317946a3928fccb5bfd0425"
   integrity sha1-XQKkaFCt8bSjF5RqOSj8y1v9BCU=
 
-d@1, d@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/d/-/d-1.0.1.tgz#8698095372d58dbee346ffd0c7093f99f8f9eb5a"
-  integrity sha512-m62ShEObQ39CfralilEQRjH6oAMtNCV1xJyEx5LpRYUVN+EviphDgUc/F3hnYbADmkiNs67Y+3ylmlG7Lnu+FA==
-  dependencies:
-    es5-ext "^0.10.50"
-    type "^1.0.1"
-
-d@^1.0.2:
+d@1, d@^1.0.1, d@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/d/-/d-1.0.2.tgz#2aefd554b81981e7dccf72d6842ae725cb17e5de"
   integrity sha512-MOqHvMWF9/9MX6nza0KgvFH4HpMU0EF5uUDXqX/BtxtU8NfB0QzRtJ8Oe/6SuS4kbhyzVJwjd97EA4PKrzJ8bw==
@@ -1314,7 +1306,7 @@ es-errors@^1.3.0:
   resolved "https://registry.yarnpkg.com/es-errors/-/es-errors-1.3.0.tgz#05f75a25dab98e4fb1dcd5e1472c0546d5057c8f"
   integrity sha512-Zf5H2Kxt2xjTvbJvP2ZWLEICxA6j+hAmMzIlypy4xcBg1vKVnx89Wy0GbS+kf5cwCVFFzdCFh2XSCFNULS6csw==
 
-es5-ext@^0.10.35, es5-ext@^0.10.46, es5-ext@^0.10.50, es5-ext@^0.10.62, es5-ext@^0.10.64, es5-ext@~0.10.14:
+es5-ext@^0.10.35, es5-ext@^0.10.46, es5-ext@^0.10.62, es5-ext@^0.10.64, es5-ext@~0.10.14:
   version "0.10.64"
   resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.64.tgz#12e4ffb48f1ba2ea777f1fcdd1918ef73ea21714"
   integrity sha512-p2snDhiLaXe6dahss1LddxqEm+SkuDvV8dnIQG0MWjyHpcMNfXKPE+/Cc0y+PhxJX3A4xGNeFCj5oc0BUh6deg==
@@ -1333,15 +1325,7 @@ es6-iterator@^2.0.1, es6-iterator@^2.0.3:
     es5-ext "^0.10.35"
     es6-symbol "^3.1.1"
 
-es6-symbol@^3.1.1:
-  version "3.1.3"
-  resolved "https://registry.yarnpkg.com/es6-symbol/-/es6-symbol-3.1.3.tgz#bad5d3c1bcdac28269f4cb331e431c78ac705d18"
-  integrity sha512-NJ6Yn3FuDinBaBRWl/q5X/s4koRHBrgKAu+yGI6JCBeiu3qrcbJhwT2GeR/EXVfylRk8dpQVJoLEFhK+Mu31NA==
-  dependencies:
-    d "^1.0.1"
-    ext "^1.1.2"
-
-es6-symbol@^3.1.3:
+es6-symbol@^3.1.1, es6-symbol@^3.1.3:
   version "3.1.4"
   resolved "https://registry.yarnpkg.com/es6-symbol/-/es6-symbol-3.1.4.tgz#f4e7d28013770b4208ecbf3e0bf14d3bcb557b8c"
   integrity sha512-U9bFFjX8tFiATgtkJ1zg25+KviIXpgRvRHS8sau3GfhVzThRQrOeksPeT0BWW2MNZs1OEWJ1DPXOQMn0KKRkvg==
@@ -1464,13 +1448,6 @@ exposify@~0.5.0:
     replace-requires "~1.0.3"
     through2 "~0.4.0"
     transformify "~0.1.1"
-
-ext@^1.1.2:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/ext/-/ext-1.4.0.tgz#89ae7a07158f79d35517882904324077e4379244"
-  integrity sha512-Key5NIsUxdqKg3vIsdw9dSuXpPCQ297y6wBjL30edxwPgt2E44WcWBZey/ZvUc6sERLTxKdyCu4gZFmUbk1Q7A==
-  dependencies:
-    type "^2.0.0"
 
 ext@^1.7.0:
   version "1.7.0"
@@ -2355,16 +2332,6 @@ is-plain-object@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/is-plain-object/-/is-plain-object-5.0.0.tgz#4427f50ab3429e9025ea7d52e9043a9ef4159344"
   integrity sha512-VRSzKkbMm5jMDoKLbltAkFQ5Qr7VDiTFGXxYFXXowVj387GeGNOCsOH6Msy00SGZ3Fp84b1Naa1psqgcCIEP5Q==
-
-is-posix-bracket@^0.1.0:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/is-posix-bracket/-/is-posix-bracket-0.1.1.tgz#3334dc79774368e92f016e6fbc0a88f5cd6e6bc4"
-  integrity sha1-MzTceXdDaOkvAW5vvAqI9c1ua8Q=
-
-is-primitive@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/is-primitive/-/is-primitive-2.0.0.tgz#207bab91638499c07b2adf240a41a87210034575"
-  integrity sha1-IHurkWOEmcB7Kt8kCkGochADRXU=
 
 is-relative@^1.0.0:
   version "1.0.0"
@@ -4144,16 +4111,6 @@ type-is@~1.6.18:
   dependencies:
     media-typer "0.3.0"
     mime-types "~2.1.24"
-
-type@^1.0.1:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/type/-/type-1.2.0.tgz#848dd7698dafa3e54a6c479e759c4bc3f18847a0"
-  integrity sha512-+5nt5AAniqsCnu2cEQQdpzCAh33kVx8n0VoFidKpB1dVVLAN/F+bgVOqOJqOnEnrhp222clB5p3vUlD+1QAnfg==
-
-type@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/type/-/type-2.0.0.tgz#5f16ff6ef2eb44f260494dae271033b29c09a9c3"
-  integrity sha512-KBt58xCHry4Cejnc2ISQAF7QY+ORngsWfxezO68+12hKV6lQY8P/psIkcbjeHWn7MqcgciWJyCCevFMJdIXpow==
 
 type@^2.7.2:
   version "2.7.2"
