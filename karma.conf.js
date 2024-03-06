@@ -26,9 +26,18 @@ module.exports = function (config) {
     reporters: ['spec'],
 
     files: [
-      'spec/helpers/**/*.coffee',
-      'spec/**/*-behavior.coffee',
-      'spec/**/*-spec.coffee'
+      {
+        pattern: 'spec/helpers/**/*.coffee',
+        type: 'js'
+      },
+      {
+        pattern: 'spec/**/*-behavior.coffee',
+        type: 'js'
+      },
+      {
+        pattern: 'spec/**/*-spec.coffee',
+        type: 'js'
+      }
     ],
 
     preprocessors: {
