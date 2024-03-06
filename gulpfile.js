@@ -31,8 +31,9 @@ gulp.task('clean-module', () => {
   return del(`${moduleOutput}/**/*.js`);
 });
 
+let configFilePath = path.join(__dirname, 'karma.conf.js');
 let karmaConfig = {
-  configFile: path.join(__dirname, 'karma.conf.js'),
+  configFile: configFilePath,
   singleRun: true,
   sourceMaps: true
 };
