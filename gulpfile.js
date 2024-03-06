@@ -61,19 +61,28 @@ gulp.task('test-ci', (done) => {
 });
 
 gulp.task('test-watch', (done) => {
-  var config = Object.assign({}, parsedKarmaConfig, {
+  let karmaConfigOptions = {
     singleRun: false,
+    sourceMaps: true,
     autoWatch: true
-  });
+  };
 
-  new karmaServer(config, karmaErrorHandler.bind(done)).start();
+  let parsedKarmaConfig = karma.config.parseConfig(configFilePath, karmaConfigOptions, { throwErrors: true })
+
+  new karmaServer(parsedKarmaConfig, karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('test-debug', (done) => {
+  let karmaConfigOptions = {
+    singleRun: false,
+    sourceMaps: true,
+
+  };
+
+  let parsedKarmaConfig = karma.config.parseConfig(configFilePath, karmaConfigOptions, { throwErrors: true })
+
   var config = Object.assign({}, parsedKarmaConfig, {
     browsers: ['Chrome'],
-    singleRun: false,
-    autoWatch: true
   });
 
   new karmaServer(config, karmaErrorHandler.bind(done)).start();
