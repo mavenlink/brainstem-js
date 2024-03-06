@@ -4,19 +4,13 @@ const minimist = require('minimist');
 const path = require('path');
 const del = require('del');
 const coffee = require('gulp-coffee');
-const browserify = require('browserify');
-const coffeeify = require('coffeeify');
-const shim = require('browserify-shim');
-const { Server: Karma } = require('karma');
-
-const { version, standalone, filename } = require('./package');
-
+const karma = require('karma');
 
 const source = './src/**/*.coffee';
 const options = minimist(process.argv.slice(2));
 
 const moduleOutput = './lib';
-
+const karmaServer = karma.Server;
 
 // Tasks
 
@@ -31,18 +25,20 @@ gulp.task('clean-module', () => {
   return del(`${moduleOutput}/**/*.js`);
 });
 
-let karmaConfig = {
-  configFile: path.join(__dirname, 'karma.conf.js'),
+let configFilePath = path.join(__dirname, 'karma.conf.js');
+let karmaConfigOptions = {
   singleRun: true,
   sourceMaps: true
 };
 
+let parsedKarmaConfig = karma.config.parseConfig(configFilePath, karmaConfigOptions, { throwErrors: true })
+
 if (typeof options.browsers === 'string') {
-  karmaConfig.browsers = options.browsers.split();
+  parsedKarmaConfig.browsers = options.browsers.split();
 }
 
 if (typeof options.grep === 'string') {
-  karmaConfig.client = { args: ['--grep', options.grep] };
+  parsedKarmaConfig.client = { args: ['--grep', options.grep] };
 }
 
 const karmaErrorHandler = function(code) {
@@ -55,32 +51,37 @@ const karmaErrorHandler = function(code) {
 };
 
 gulp.task('test', (done) => {
-  new Karma(karmaConfig, karmaErrorHandler.bind(done)).start();
+  new karmaServer(parsedKarmaConfig, karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('test-ci', (done) => {
-  new Karma(Object.assign({}, karmaConfig, {
+  new karmaServer(Object.assign({}, parsedKarmaConfig, {
     browsers: ['Firefox']
   }), karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('test-watch', (done) => {
-  var config = Object.assign({}, karmaConfig, {
+  let karmaConfigOptions = {
     singleRun: false,
+    sourceMaps: true,
     autoWatch: true
-  });
+  };
 
-  new Karma(config, karmaErrorHandler.bind(done)).start();
+  let parsedKarmaConfig = karma.config.parseConfig(configFilePath, karmaConfigOptions, { throwErrors: true })
+
+  new karmaServer(parsedKarmaConfig, karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('test-debug', (done) => {
-  var config = Object.assign({}, karmaConfig, {
-    browsers: ['Chrome'],
+  let karmaConfigOptions = {
     singleRun: false,
-    autoWatch: true
-  });
+    sourceMaps: true,
+    browsers: ['Chrome'],
+  };
 
-  new Karma(config, karmaErrorHandler.bind(done)).start();
+  let parsedKarmaConfig = karma.config.parseConfig(configFilePath, karmaConfigOptions, { throwErrors: true })
+
+  new karmaServer(parsedKarmaConfig, karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('ci', gulp.series(gulp.parallel(['test-ci'])));
