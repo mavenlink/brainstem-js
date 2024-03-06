@@ -7,7 +7,7 @@ const coffee = require('gulp-coffee');
 const browserify = require('browserify');
 const coffeeify = require('coffeeify');
 const shim = require('browserify-shim');
-const { Server: Karma } = require('karma');
+const karma = require('karma');
 
 const { version, standalone, filename } = require('./package');
 
@@ -16,7 +16,7 @@ const source = './src/**/*.coffee';
 const options = minimist(process.argv.slice(2));
 
 const moduleOutput = './lib';
-
+const karmaServer = karma.Server;
 
 // Tasks
 
@@ -55,11 +55,11 @@ const karmaErrorHandler = function(code) {
 };
 
 gulp.task('test', (done) => {
-  new Karma(karmaConfig, karmaErrorHandler.bind(done)).start();
+  new karmaServer(karmaConfig, karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('test-ci', (done) => {
-  new Karma(Object.assign({}, karmaConfig, {
+  new karmaServer(Object.assign({}, karmaConfig, {
     browsers: ['Firefox']
   }), karmaErrorHandler.bind(done)).start();
 });
@@ -70,7 +70,7 @@ gulp.task('test-watch', (done) => {
     autoWatch: true
   });
 
-  new Karma(config, karmaErrorHandler.bind(done)).start();
+  new karmaServer(config, karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('test-debug', (done) => {
@@ -80,7 +80,7 @@ gulp.task('test-debug', (done) => {
     autoWatch: true
   });
 
-  new Karma(config, karmaErrorHandler.bind(done)).start();
+  new karmaServer(config, karmaErrorHandler.bind(done)).start();
 });
 
 gulp.task('ci', gulp.series(gulp.parallel(['test-ci'])));
