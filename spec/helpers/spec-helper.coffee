@@ -2,7 +2,6 @@ $ = require 'jquery'
 _ = require 'underscore'
 Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
-merge = require 'lodash.merge'
 
 jqueryMatchers = require 'jasmine-jquery-matchers'
 BackboneFactory = require 'backbone-factory'
@@ -33,7 +32,7 @@ window.convertTopLevelKeysToObjects = (data) ->
 
 window.respondWith = (server, url, options) ->
   if options.resultsFrom?
-    data = merge({}, options.data, { results: resultsArray(options.resultsFrom, options.data[options.resultsFrom]) })
+    data = $.extend {}, options.data, results: resultsArray(options.resultsFrom, options.data[options.resultsFrom])
   else
     data = options.data
   convertTopLevelKeysToObjects data
