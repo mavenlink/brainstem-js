@@ -47,7 +47,7 @@ beforeEach ->
   $.fx.off = true
 
   # Basic page fixture
-  $(document.body).html('''
+  document.body.innerHTML = ('''
     <div id="jasmine_content">
       <div id="wrapper"></div>
       <div id="overlays"></div>
@@ -83,7 +83,7 @@ afterEach ->
   window.clearLiveEventBindings()
   window.server.restore()
 
-  $(document.body).empty()
+  document.body.innerHTML = ''
 
   jasmine.clock().uninstall()
 
