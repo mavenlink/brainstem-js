@@ -40,8 +40,7 @@ class CollectionLoader extends AbstractLoader
     @externalObject = @loadOptions.collection || @storageManager.createNewCollection @loadOptions.name, []
     @externalObject.setLoaded false
     @externalObject.reset([], silent: false) if @loadOptions.reset
-    loadOptions = merge({}, @loadOptions)
-    @externalObject.lastFetchOptions = _.pick(loadOptions, Collection.OPTION_KEYS)
+    @externalObject.lastFetchOptions = _.pick(merge({}, @loadOptions), Collection.OPTION_KEYS)
     @externalObject.lastFetchOptions.include = @originalOptions.include
 
   _updateObjects: (object, data, silent = false) ->
