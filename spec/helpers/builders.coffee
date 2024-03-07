@@ -30,7 +30,7 @@ spec.defineBuilders = ->
 
     factory = BackboneFactory.define(name, klass, -> return class_defaults)
     builder = (opts) ->
-      BackboneFactory.create(name, $.extend({}, class_defaults, idsToStrings(opts)))
+      BackboneFactory.create(name, Object.assign({}, class_defaults, idsToStrings(opts)))
 
     creator = (opts) ->
       storageManager = StorageManager.get()
