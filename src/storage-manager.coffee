@@ -1,5 +1,7 @@
 _ = require 'underscore'
+$ = require 'jquery'
 Backbone = require 'backbone'
+Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 inflection = require 'inflection'
 
 Utils = require './utils'
@@ -90,7 +92,7 @@ class _StorageManager
   loadModel: (name, id, options = {}) ->
     return if not id
 
-    loader = @loadObject(name, Object.assign({}, options, only: id), isCollection: false)
+    loader = @loadObject(name, $.extend({}, options, only: id), isCollection: false)
     loader
 
   # Request a set of data to be loaded, optionally ensuring that associations be
@@ -111,14 +113,14 @@ class _StorageManager
 
   # Helpers
   loadObject: (name, loadOptions = {}, options = {}) ->
-    options = Object.assign({}, { isCollection: true }, options)
+    options = $.extend({}, { isCollection: true }, options)
 
     completeCallback = loadOptions.complete
     successCallback = loadOptions.success
     errorCallback = loadOptions.error
 
     loadOptions = _.omit(loadOptions, 'success', 'error', 'complete')
-    loadOptions = Object.assign({}, loadOptions, name: name)
+    loadOptions = $.extend({}, loadOptions, name: name)
 
     if options.isCollection
       loaderClass = CollectionLoader
@@ -153,7 +155,7 @@ class _StorageManager
   # brainstem AJAX response. Useful in avoiding unnecessary AJAX request(s) when rendering the page.
   bootstrap: (name, response, loadOptions = {}) ->
     loader = new CollectionLoader storageManager: this
-    loader.setup Object.assign({}, loadOptions, name: name)
+    loader.setup $.extend({}, loadOptions, name: name)
     loader._updateStorageManagerFromResponse response
 
   collectionError: (name) ->
@@ -177,10 +179,10 @@ class _StorageManager
       ')
 
   stubModel: (modelName, modelId, options = {}) ->
-    @stub(inflection.pluralize(modelName), Object.assign({}, options, only: modelId))
+    @stub(inflection.pluralize(modelName), $.extend({}, options, only: modelId))
 
   stubImmediate: (collectionName, options) ->
-    @stub collectionName, Object.assign({}, options, immediate: true)
+    @stub collectionName, $.extend({}, options, immediate: true)
 
   enableExpectations: ->
     @expectations = []
