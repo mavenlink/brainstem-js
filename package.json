@@ -26,8 +26,7 @@
   },
   "dependencies": {
     "inflection": "^3.0.0",
-    "jquery": "2.2.4",
-    "lodash.merge": "^4.6.2"
+    "jquery": "2.2.4"
   },
   "devDependencies": {
     "backbone": "1.0.0 - 1.1.2",
