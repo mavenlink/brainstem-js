@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require './utility-functions'
 Error = require './error'
 CollectionLoader = require './loaders/collection-loader'
 

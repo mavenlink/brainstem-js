@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = require 'underscore'
+_ = require '../utility-functions'
 
 Collection = require '../collection'
 AbstractLoader = require './abstract-loader'
