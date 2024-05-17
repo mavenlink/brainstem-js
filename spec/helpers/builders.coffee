@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = require 'underscore'
+_ = require '../../src/utility-functions'
 inflection = require 'inflection'
 
 StorageManager = require '../../src/storage-manager'
