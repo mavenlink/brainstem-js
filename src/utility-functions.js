@@ -1,5 +1,5 @@
-underscore = require('underscore')
+_ = require('underscore')
 
 module.exports =
-    underscore
+    _
 
