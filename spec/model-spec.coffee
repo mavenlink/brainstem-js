@@ -1,4 +1,4 @@
-_ = require 'underscore'
+{ each, pluck } = require '../src/utility-functions'
 $ = require 'jquery'
 Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
@@ -386,7 +386,7 @@ describe 'Model', ->
 
         usersIndex = tasksIndex = null
 
-        _.each storageManager.storage.calls.all(), (call, index) ->
+        each storageManager.storage.calls.all(), (call, index) ->
           switch call.args[0]
             when 'users' then usersIndex = index
             when 'tasks' then tasksIndex = index
@@ -1052,7 +1052,7 @@ describe 'Model', ->
     context 'when the deleted object is referenced in a has-many relationship', ->
       it 'should remove the reference to the deleted object', ->
         childTaskToDelete = buildAndCacheTask(id:103 , position: 3, updated_at: 845785, parent_task_id: 7)
-        survivingChildTaskIds = _.pluck(
+        survivingChildTaskIds = pluck(
           [
             buildAndCacheTask(id:77 , position: 2, updated_at: 995785, parent_task_id: 7)
             buildAndCacheTask(id:99 , position: 1, updated_at: 635785, parent_task_id: 7)

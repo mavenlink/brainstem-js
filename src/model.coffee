@@ -1,4 +1,4 @@
-_ = require 'underscore'
+{ all, chain, clone, difference, each, filter, find, isEmpty, isArray: underscoreIsArray, keys: underscoreKeys, omit, without, underscore } = require './utility-functions'
 $ = require 'jquery'
 Backbone = require 'backbone'
 Backbone.$ = require 'jquery' # TODO remove after upgrading to backbone 1.2+
@@ -31,7 +31,7 @@ class Model extends Backbone.Model
     if @associations && @associations[association]
       @associationDetailsCache[association] ||= do =>
         associator = @associations[association]
-        isArray = _.isArray associator
+        isArray = underscoreIsArray associator
         if isArray && associator.length > 1
           {
             type: 'BelongsTo'
@@ -72,7 +72,7 @@ class Model extends Backbone.Model
     if options.cached != false && attributes.id && @brainstemKey && cache
       existing = cache.get(attributes.id)
       blacklist = options.blacklist || @_associationKeyBlacklist()
-      valid = existing?.set(_.omit(attributes, blacklist))
+      valid = existing?.set(omit(attributes, blacklist))
 
       return existing if valid
 
@@ -81,7 +81,7 @@ class Model extends Backbone.Model
   _associationKeyBlacklist: ->
     return [] unless @constructor.associations
 
-    _.chain(@constructor.associations)
+    chain(@constructor.associations)
       .keys()
       .map((association) => @constructor.associationDetails(association).key)
       .value()
@@ -150,7 +150,7 @@ class Model extends Backbone.Model
   # Control
 
   fetch: (options) ->
-    options = if options then _.clone(options) else {}
+    options = if options then clone(options) else {}
 
     id = @id || options.id
 
@@ -174,12 +174,12 @@ class Model extends Backbone.Model
 
   destroy: (options = {}) ->
     cleanUpAssociatedReferences = =>
-      _.each @storageManager.collections, (collection) ->
-        _.each collection.modelKlass.associations, (associator, reference) ->
+      each @storageManager.collections, (collection) ->
+        each collection.modelKlass.associations, (associator, reference) ->
           associationKey = collection.modelKlass.associationDetails(reference).key
           if @_collectionHasMany(associator)
             collection.storage.each (model) ->
-              model.set(associationKey, _.without(model.get(associationKey), @id))
+              model.set(associationKey, without(model.get(associationKey), @id))
             , this
           else if @_collectionBelongsTo(associator)
             collection.storage.each (model) ->
@@ -199,9 +199,9 @@ class Model extends Backbone.Model
 
   updateStorageManager: (resp) ->
     results = resp['results']
-    return if _.isEmpty(results)
+    return if isEmpty(results)
 
-    keys = _.without(_.keys(resp), knownResponseKeys...)
+    keys = without(underscoreKeys(resp), knownResponseKeys...)
     primaryModelKey = results[0]['key']
     keys.splice(keys.indexOf(primaryModelKey), 1)
     keys.push(primaryModelKey)
@@ -226,21 +226,21 @@ class Model extends Backbone.Model
 
   optionalFieldsAreLoaded: (optionalFields) ->
     return true unless optionalFields?
-    _.all optionalFields, (optionalField) => @attributes.hasOwnProperty(optionalField)
+    all optionalFields, (optionalField) => @attributes.hasOwnProperty(optionalField)
 
   # This method determines if all of the provided associations have been loaded for this model.  If no associations are
   # provided, all associations are assumed.
   #   model.associationsAreLoaded(["project", "task"]) # => true|false
   #   model.associationsAreLoaded() # => true|false
   associationsAreLoaded: (associations) ->
-    associations ||= _.keys(@constructor.associations)
-    associations = _.filter associations, (association) => @constructor.associationDetails(association)
+    associations ||= underscoreKeys(@constructor.associations)
+    associations = filter associations, (association) => @constructor.associationDetails(association)
 
-    _.all associations, (association) =>
+    all associations, (association) =>
       details = @constructor.associationDetails association
       key = details.key
 
-      return false unless _(@attributes).has key
+      return false unless underscore(@attributes).has key
 
       pointer = @attributes[key]
 
@@ -252,7 +252,7 @@ class Model extends Backbone.Model
         else
           @storageManager.storage(details.collectionName).get(pointer)
       else
-        _.all pointer, (id) =>
+        all pointer, (id) =>
           @storageManager.storage(details.collectionName).get(id)
 
   setLoaded: (state, options) ->
@@ -262,7 +262,7 @@ class Model extends Backbone.Model
 
   invalidateCache: ->
     for cacheKey, cacheObject of @storageManager.getCollectionDetails(@brainstemKey).cache
-      if _.find(cacheObject.results, (result) => result.id == @id)
+      if find(cacheObject.results, (result) => result.id == @id)
         cacheObject.valid = false
 
   toServerJSON: (method, options) ->
@@ -272,12 +272,12 @@ class Model extends Backbone.Model
     switch method
       when 'create'
         if @createJSONWhitelist
-          blacklist = _.difference(Object.keys(@attributes), @createJSONWhitelist())
+          blacklist = difference(Object.keys(@attributes), @createJSONWhitelist())
         else
           blacklist = blacklist.concat @createJSONBlacklist()
       when 'update'
         if @updateJSONWhitelist
-          blacklist = _.difference(Object.keys(@attributes), @updateJSONWhitelist())
+          blacklist = difference(Object.keys(@attributes), @updateJSONWhitelist())
         else
           blacklist = blacklist.concat @updateJSONBlacklist()
 
@@ -326,10 +326,10 @@ class Model extends Backbone.Model
     @attributes[@constructor.associationDetails(field).key] = collectionChangeDetails[1].pluck('id')
 
   _collectionHasMany: (associator) ->
-    _.isArray(associator) &&
-    _.find(associator, (collectionName) => inflection.singularize(collectionName) == @className())
+    underscoreIsArray(associator) &&
+    find(associator, (collectionName) => inflection.singularize(collectionName) == @className())
 
   _collectionBelongsTo: (associator) ->
-    !_.isArray(associator) && inflection.singularize(associator) == @className()
+    !underscoreIsArray(associator) && inflection.singularize(associator) == @className()
 
 module.exports = Model
