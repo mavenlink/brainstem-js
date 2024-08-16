@@ -1,4 +1,4 @@
-_ = require 'underscore'
+{ isArray } = require '../utility-functions'
 Backbone = require 'backbone'
 Backbone.$ = require 'jquery' # TODO remove after upgrading to backbone 1.2+
 inflection = require 'inflection'
@@ -49,7 +49,7 @@ class ModelLoader extends AbstractLoader
     attributes = @internalObject.parse(resp)
 
   _updateObjects: (object, data) ->
-    if _.isArray(data) && data.length == 1
+    if isArray(data) && data.length == 1
       data = data[0]
 
     if data instanceof Backbone.Model

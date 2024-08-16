@@ -1,4 +1,4 @@
-_ = require 'underscore'
+{ extend } = require '../../src/utility-functions'
 $ = require 'jquery'
 Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
@@ -26,7 +26,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
     defaults =
       storageManager: storageManager
 
-    loader = new loaderClass(_.extend {}, defaults, opts)
+    loader = new loaderClass(extend {}, defaults, opts)
     loader._getCollectionName = -> 'tasks'
     loader._createObjects = ->
       @internalObject = bar: 'foo'
@@ -243,7 +243,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       expect(loadOptions.cache).toEqual false
 
     it 'sets cache to false if search is present', ->
-      opts = _.extend opts, cache: true, search: 'term'
+      opts = extend opts, cache: true, search: 'term'
 
       loadOptions = loader._parseLoadOptions(opts)
       expect(loadOptions.cache).toEqual false
@@ -265,7 +265,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
         only: [3, 1, 2]
         search: 'foobar'
 
-      opts = _.extend(opts, myOpts)
+      opts = extend(opts, myOpts)
       loadOptions = loader._parseLoadOptions(opts)
       expect(loadOptions.cacheKey).toEqual 'myOrder|{"key1":"value1","key2":"value2","key3":{"value1":"a","value2":"b"}}|1,2,3|1|200|50|0|foobar'
 
@@ -462,7 +462,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
     beforeEach ->
       loader = createLoader()
-      opts = _.extend defaultLoadOptions(),
+      opts = extend defaultLoadOptions(),
         cache: false
         headers:
           'X-Feature-Name': 'a-feature'
