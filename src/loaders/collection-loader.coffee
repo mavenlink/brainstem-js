@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = require 'underscore'
+{ pick, without, keys: underscoreKeys, isEmpty, map, underscore } = require '../utility-functions'
 
 Collection = require '../collection'
 AbstractLoader = require './abstract-loader'
@@ -40,7 +40,7 @@ class CollectionLoader extends AbstractLoader
     @externalObject = @loadOptions.collection || @storageManager.createNewCollection @loadOptions.name, []
     @externalObject.setLoaded false
     @externalObject.reset([], silent: false) if @loadOptions.reset
-    @externalObject.lastFetchOptions = _.pick($.extend(true, {}, @loadOptions), Collection.OPTION_KEYS)
+    @externalObject.lastFetchOptions = pick($.extend(true, {}, @loadOptions), Collection.OPTION_KEYS)
     @externalObject.lastFetchOptions.include = @originalOptions.include
 
   _updateObjects: (object, data, silent = false) ->
@@ -73,14 +73,14 @@ class CollectionLoader extends AbstractLoader
     # Loop over all returned data types and update our local storage to represent any new data.
 
     results = resp['results']
-    keys = _.without(_.keys(resp), knownResponseKeys...)
-    unless _.isEmpty(results)
+    keys = without(underscoreKeys(resp), knownResponseKeys...)
+    unless isEmpty(results)
       keys.splice(keys.indexOf(@loadOptions.name), 1) if keys.indexOf(@loadOptions.name) != -1
       keys.push(@loadOptions.name)
 
     for underscoredModelName in keys
       @storageManager.storage(underscoredModelName).update(
-        _(resp[underscoredModelName]).values(),
+        underscore(resp[underscoredModelName]).values(),
         silent: @loadOptions.silent
       )
 
@@ -90,7 +90,7 @@ class CollectionLoader extends AbstractLoader
       valid: true
 
     @storageManager.getCollectionDetails(@loadOptions.name).cache[@loadOptions.cacheKey] = cachedData
-    _.map(results, (result) => @storageManager.storage(result.key).get(result.id))
+    map(results, (result) => @storageManager.storage(result.key).get(result.id))
 
 
 module.exports = CollectionLoader

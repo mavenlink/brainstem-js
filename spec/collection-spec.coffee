@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = require 'underscore'
+{ keys: underscoreKeys, clone, extend, pluck, underscore } = require '../src/utility-functions'
 Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 
@@ -60,7 +60,7 @@ describe 'Collection', ->
         cacheKey  : 1
         bogus     : 1
         stuff     : 1
-      keys = _.keys(Collection.pickFetchOptions(sampleOptions))
+      keys = underscoreKeys(Collection.pickFetchOptions(sampleOptions))
 
     it 'returns an array with picked option keys', ->
       for key of sampleOptions
@@ -176,11 +176,11 @@ describe 'Collection', ->
         collection.fetch(options)
 
         for key of options
-          expect(_.keys(loadObjectSpy.calls.mostRecent().args[1])).toContain key
+          expect(underscoreKeys(loadObjectSpy.calls.mostRecent().args[1])).toContain key
           expect(loadObjectSpy.calls.mostRecent().args[1][key]).toEqual options[key]
 
       it 'does not modify `firstFetchOptions`', ->
-        firstFetchOptions = _.clone collection.firstFetchOptions
+        firstFetchOptions = clone collection.firstFetchOptions
 
         collection.fetch(bla: 'bla')
 
@@ -239,12 +239,12 @@ describe 'Collection', ->
           spyOn(Collection.prototype, 'update')
 
         it 'is true when silent is true', ->
-          collection.fetch(_.extend(options, silent: true))
+          collection.fetch(extend(options, silent: true))
           expectation.respond()
           expect(Collection.prototype.update).toHaveBeenCalledWith(jasmine.any(Array), silent: true)
 
         it 'is false when silent is false', ->
-          collection.fetch(_.extend(options, silent: false))
+          collection.fetch(extend(options, silent: false))
           expectation.respond()
           expect(Collection.prototype.update).toHaveBeenCalledWith(jasmine.any(Array), silent: false)
 
@@ -258,7 +258,7 @@ describe 'Collection', ->
           expectation.respond()
 
           objects = collection.set.calls.mostRecent().args[0]
-          expect(_.pluck(objects, 'id')).toEqual(_.pluck(posts, 'id'))
+          expect(pluck(objects, 'id')).toEqual(pluck(posts, 'id'))
           expect(object).toEqual(jasmine.any Post) for object in objects
 
         context 'add option is set to true', ->
@@ -271,7 +271,7 @@ describe 'Collection', ->
             expectation.respond()
 
             objects = collection.add.calls.mostRecent().args[0]
-            expect(_.pluck(objects, 'id')).toEqual(_.pluck(posts, 'id'))
+            expect(pluck(objects, 'id')).toEqual(pluck(posts, 'id'))
             expect(object).toEqual(jasmine.any Post) for object in objects
 
       context 'reset option is set to true', ->
@@ -284,7 +284,7 @@ describe 'Collection', ->
           expectation.respond()
 
           objects = collection.reset.calls.mostRecent().args[0]
-          expect(_.pluck(objects, 'id')).toEqual(_.pluck(posts, 'id'))
+          expect(pluck(objects, 'id')).toEqual(pluck(posts, 'id'))
           expect(object).toEqual(jasmine.any Post) for object in objects
 
       context 'collection is fetched again with different options', ->
@@ -307,7 +307,7 @@ describe 'Collection', ->
 
         it 'returns only the second set of results', ->
           objects = collection.set.calls.mostRecent().args[0]
-          expect(_.pluck(objects, 'id')).toEqual(_.pluck(secondPosts, 'id'))
+          expect(pluck(objects, 'id')).toEqual(pluck(secondPosts, 'id'))
           expect(object).toEqual(jasmine.any Post) for object in objects
 
         it 'updates `lastFetchOptions` on the collection instance', ->
@@ -343,7 +343,7 @@ describe 'Collection', ->
         respondWith(server, '/api/posts?per_page=5&page=1', resultsFrom: 'posts', data: { posts: posts1 })
 
         promise = collection.fetch()
-        methods = _.keys(promise)
+        methods = underscoreKeys(promise)
 
         for method in ['reject', 'resolve', 'rejectWith', 'resolveWith']
           expect(methods).not.toContain(method)
@@ -365,7 +365,7 @@ describe 'Collection', ->
         collection.fetch()
         server.respond()
 
-        expect(collection.pluck('id')).toEqual(_(posts1).pluck('id'))
+        expect(collection.pluck('id')).toEqual(underscore(posts1).pluck('id'))
 
       it 'responds to requests with custom params', ->
         paramsOnDoneSpy = jasmine.createSpy('paramsOnDoneSpy')
@@ -387,8 +387,8 @@ describe 'Collection', ->
         it 'returns data from storage manager cache', ->
           collection.fetch()
 
-          expect(collection.pluck 'id').toEqual(_.pluck posts1, 'id')
-          expect(collection.pluck 'id').not.toEqual(_.pluck posts2, 'id')
+          expect(collection.pluck 'id').toEqual(pluck posts1, 'id')
+          expect(collection.pluck 'id').not.toEqual(pluck posts2, 'id')
 
         context 'different options are provided', ->
           beforeEach ->
@@ -397,8 +397,8 @@ describe 'Collection', ->
             server.respond()
 
           it 'updates collection with new data', ->
-            expect(collection.pluck 'id').not.toEqual(_.pluck posts1, 'id')
-            expect(collection.pluck 'id').toEqual(_.pluck posts2, 'id')
+            expect(collection.pluck 'id').not.toEqual(pluck posts1, 'id')
+            expect(collection.pluck 'id').toEqual(pluck posts2, 'id')
 
   describe '#refresh', ->
     beforeEach ->
@@ -931,7 +931,7 @@ describe 'Collection', ->
       spyOn(model, 'toServerJSON').and.callThrough() for model in collection.models
 
     it 'returns model contents serialized using model server json', ->
-      expect(_(collection.toServerJSON()).pluck('id')).toEqual(collection.pluck('id'))
+      expect(underscore(collection.toServerJSON()).pluck('id')).toEqual(collection.pluck('id'))
 
     it 'passes method to model method calls', ->
       collection.toServerJSON('update')

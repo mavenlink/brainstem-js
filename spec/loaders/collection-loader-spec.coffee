@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = require 'underscore'
+{ extend } = require '../../src/utility-functions'
 Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 StorageManager = require '../../src/storage-manager'
@@ -25,7 +25,7 @@ describe 'Loaders CollectionLoader', ->
     defaults =
       storageManager: storageManager
 
-    loader = new loaderClass(_.extend {}, defaults, opts)
+    loader = new loaderClass(extend {}, defaults, opts)
     loader
 
   # It should keep the AbstractLoader behavior.
@@ -181,7 +181,7 @@ describe 'Loaders CollectionLoader', ->
 
         context 'when the silent argument is true', ->
           beforeEach ->
-            loader.setup(_.extend(opts, silent: true))
+            loader.setup(extend(opts, silent: true))
             loader._updateStorageManagerFromResponse(fakeResponse)
 
           it 'calls Collection#update with { silent: true }', ->
@@ -189,7 +189,7 @@ describe 'Loaders CollectionLoader', ->
 
         context 'when the silent argument is false', ->
           beforeEach ->
-            loader.setup(_.extend(opts, silent: false))
+            loader.setup(extend(opts, silent: false))
             loader._updateStorageManagerFromResponse(fakeResponse)
 
           it 'calls Collection#update with { silent: false }', ->
@@ -208,14 +208,14 @@ describe 'Loaders CollectionLoader', ->
 
         describe 'cache option', ->
           it 'updates the cache when true', ->
-            loader.setup(_.extend(opts, cache: true))
+            loader.setup(extend(opts, cache: true))
             expect(loader.getCacheObject()).toBeUndefined()
 
             loader._updateStorageManagerFromResponse(fakeResponse)
             expect(loader.getCacheObject()).not.toBeUndefined()
 
           it 'updates the cache when false', ->
-            loader.setup(_.extend(opts, cache: false))
+            loader.setup(extend(opts, cache: false))
             expect(loader.getCacheObject()).toBeUndefined()
 
             loader._updateStorageManagerFromResponse(fakeResponse)
