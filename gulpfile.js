@@ -1,5 +1,6 @@
 const gulp = require('gulp');
-const util = require('gulp-util');
+const log = require('fancy-log');
+const colors = require('ansi-colors');
 const minimist = require('minimist');
 const path = require('path');
 const del = require('del');
@@ -18,7 +19,7 @@ gulp.task('build-module', () => {
   return gulp.src(source)
     .pipe(coffee())
     .pipe(gulp.dest(moduleOutput))
-    .on('error', util.log);
+    .on('error', log);
 });
 
 gulp.task('clean-module', () => {
@@ -43,7 +44,7 @@ if (typeof options.grep === 'string') {
 
 const karmaErrorHandler = function(code) {
   if (code === 1) {
-    util.log(util.colors.red('Tests finished with failures.'));
+    log(colors.red('Tests finished with failures.'));
     process.exit(1);
   } else {
     this();
