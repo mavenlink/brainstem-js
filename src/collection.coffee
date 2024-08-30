@@ -1,5 +1,5 @@
 $ = require 'jquery'
-{ clone, extend, isFunction, isUndefined, pick } = require './utility-functions'
+_ = require 'underscore'
 Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 
@@ -39,7 +39,7 @@ module.exports = class Collection extends Backbone.Collection
     return (a, b) -> a.get(field) - b.get(field)
 
   @pickFetchOptions: (options) ->
-    pick options, @OPTION_KEYS
+    _.pick options, @OPTION_KEYS
 
 
   #
@@ -79,7 +79,7 @@ module.exports = class Collection extends Backbone.Collection
   # Control
 
   fetch: (options) ->
-    options = if options then clone(options) else {}
+    options = if options then _.clone(options) else {}
 
     options.parse = options.parse ? true
     options.name = options.name ? @model?.prototype.brainstemKey
@@ -95,7 +95,7 @@ module.exports = class Collection extends Backbone.Collection
 
     Utils.wrapError(this, options)
 
-    loader = @storageManager.loadObject(options.name, extend({}, @firstFetchOptions, options))
+    loader = @storageManager.loadObject(options.name, _.extend({}, @firstFetchOptions, options))
     xhr = options.returnValues.jqXhr
 
     @trigger('request', this, xhr, options)
@@ -119,7 +119,7 @@ module.exports = class Collection extends Backbone.Collection
       .promise(xhr)
 
   refresh: (options = {}) ->
-    @fetch extend(@lastFetchOptions, options, cache: false)
+    @fetch _.extend(@lastFetchOptions, options, cache: false)
 
   setLoaded: (state, options) ->
     options = { trigger: true } unless options? && options.trigger? && !options.trigger
@@ -127,7 +127,7 @@ module.exports = class Collection extends Backbone.Collection
     @trigger 'loaded', this if state && options.trigger
 
   update: (models, options = {}) ->
-    addOpts = pick(options, 'silent')
+    addOpts = _.pick(options, 'silent')
     models = models.models if models.models?
     for model in models
       model = this.model.parse(model) if this.model.parse?
@@ -144,15 +144,15 @@ module.exports = class Collection extends Backbone.Collection
     @storageManager.reset()
     @reset [], silent: true
     @setLoaded false
-    loadOptions = extend({}, @lastFetchOptions, options, page: 1, collection: this)
+    loadOptions = _.extend({}, @lastFetchOptions, options, page: 1, collection: this)
     @storageManager.loadCollection @lastFetchOptions.name, loadOptions
 
   loadNextPage: (options = {}) ->
-    if isFunction(options.success)
+    if _.isFunction(options.success)
       success = options.success
       delete options.success
 
-    @getNextPage(extend(options, add: true)).done(=> success?(this, @hasNextPage()))
+    @getNextPage(_.extend(options, add: true)).done(=> success?(this, @hasNextPage()))
 
   getPageIndex: ->
     return 1 unless @lastFetchOptions
@@ -177,7 +177,7 @@ module.exports = class Collection extends Backbone.Collection
   getPage: (index, options = {}) ->
     @_canPaginate(true)
 
-    options = extend(options, @lastFetchOptions)
+    options = _.extend(options, @lastFetchOptions)
 
     index = 1 if index < 1
 
@@ -189,7 +189,7 @@ module.exports = class Collection extends Backbone.Collection
       max = @_maxPage()
       options.page = if index < max then index else max
 
-    @fetch extend(options, { reset: true })
+    @fetch _.extend(options, { reset: true })
 
   hasNextPage: ->
     return false unless @_canPaginate()
@@ -211,7 +211,7 @@ module.exports = class Collection extends Backbone.Collection
     @_getCacheObject()?.valid = false
 
   toServerJSON: (method) ->
-    @map (model) -> extend(model.toServerJSON(method), id: model.id)
+    @map (model) -> _.extend(model.toServerJSON(method), id: model.id)
 
 
   #
@@ -235,12 +235,12 @@ module.exports = class Collection extends Backbone.Collection
 
   _maxOffset: ->
     limit = @lastFetchOptions.limit
-    Utils.throwError('(pagination) you must define limit when using offset') if isUndefined(limit)
+    Utils.throwError('(pagination) you must define limit when using offset') if _.isUndefined(limit)
     limit * Math.ceil(@getServerCount() / limit) - limit
 
   _maxPage: ->
     perPage = @lastFetchOptions.perPage
-    Utils.throwError('(pagination) you must define perPage when using page') if isUndefined(perPage)
+    Utils.throwError('(pagination) you must define perPage when using page') if _.isUndefined(perPage)
     Math.ceil(@getServerCount() / perPage)
 
   _getCacheObject: ->

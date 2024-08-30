@@ -1,5 +1,5 @@
 $ = require 'jquery'
-{ underscore } = require '../../src/utility-functions'
+_ = require 'underscore'
 Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 
@@ -16,7 +16,7 @@ Users = require './models/users'
 
 
 window.resultsArray = (key, models) ->
-  underscore(models).map (model) -> { key: key, id: model.get("id") }
+  _(models).map (model) -> { key: key, id: model.get("id") }
 
 window.resultsObject = (models) ->
   results = {}
@@ -25,10 +25,10 @@ window.resultsObject = (models) ->
   results
 
 window.convertTopLevelKeysToObjects = (data) ->
-  for key in underscore(data).keys()
+  for key in _(data).keys()
     continue if key in ["count", "results"]
     if data[key] instanceof Array
-      data[key] = underscore(data[key]).reduce(((memo, item) -> memo[item.id] = item; memo ), {})
+      data[key] = _(data[key]).reduce(((memo, item) -> memo[item.id] = item; memo ), {})
 
 window.respondWith = (server, url, options) ->
   if options.resultsFrom?
