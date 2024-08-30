@@ -1,5 +1,5 @@
 $ = require 'jquery'
-{ all, extend, isArray, clone, isObject, size, keys, map, select, underscore } = require '../utility-functions'
+_ = require 'underscore'
 Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 
@@ -109,8 +109,8 @@ class AbstractLoader
   ###
   _getIdsForAssociation: (association) ->
     models = @_getModelsForAssociation(association)
-    if isArray(models)
-      underscore(models).chain().flatten().pluck('id').compact().uniq().sort().value()
+    if _.isArray(models)
+      _(models).chain().flatten().pluck('id').compact().uniq().sort().value()
     else
       [models.id]
 
@@ -147,16 +147,16 @@ class AbstractLoader
    * @return {object} transformed loadOptions
   ###
   _parseLoadOptions: (loadOptions = {}) ->
-    @originalOptions = clone(loadOptions)
-    @loadOptions = clone(loadOptions)
+    @originalOptions = _.clone(loadOptions)
+    @loadOptions = _.clone(loadOptions)
     ignoreWrappingBrainstemParams = (options) -> options.brainstemParams != true
     @loadOptions.include = Utils.wrapObjects(Utils.extractArray('include', @loadOptions), ignoreWrappingBrainstemParams)
     @loadOptions.optionalFields = Utils.extractArray('optionalFields', @loadOptions)
     @loadOptions.filters ?= {}
-    @loadOptions.thisLayerInclude = map @loadOptions.include, (i) -> keys(i)[0] # pull off the top layer of includes
+    @loadOptions.thisLayerInclude = _.map @loadOptions.include, (i) -> _.keys(i)[0] # pull off the top layer of includes
 
     if @loadOptions.only
-      @loadOptions.only = map((Utils.extractArray 'only', @loadOptions), (id) -> String(id))
+      @loadOptions.only = _.map((Utils.extractArray 'only', @loadOptions), (id) -> String(id))
     else
       @loadOptions.only = null
 
@@ -174,7 +174,7 @@ class AbstractLoader
    * @return {string} cache key
   ###
   _buildCacheKey: ->
-    filterKeys = if isObject(@loadOptions.filters) && size(@loadOptions.filters) > 0
+    filterKeys = if _.isObject(@loadOptions.filters) && _.size(@loadOptions.filters) > 0
       JSON.stringify(@loadOptions.filters)
     else
       ''
@@ -199,10 +199,10 @@ class AbstractLoader
   ###
   _checkCacheForData: ->
     if @loadOptions.only?
-      alreadyLoadedIds = select @loadOptions.only, (id) =>
+      alreadyLoadedIds = _.select @loadOptions.only, (id) =>
         @cachedCollection.get(id)?.dependenciesAreLoaded(@loadOptions)
       if alreadyLoadedIds.length == @loadOptions.only.length
-        @_onLoadSuccess(map @loadOptions.only, (id) => @cachedCollection.get(id))
+        @_onLoadSuccess(_.map @loadOptions.only, (id) => @cachedCollection.get(id))
         return @externalObject
     else
       # Check if we have a cache for this request and if so make sure that
@@ -210,8 +210,8 @@ class AbstractLoader
       cacheObject = @getCacheObject()
 
       if cacheObject && cacheObject.valid
-        subset = map cacheObject.results, (result) => @storageManager.storage(result.key).get(result.id)
-        if (all(subset, (model) => model.dependenciesAreLoaded(@loadOptions)))
+        subset = _.map cacheObject.results, (result) => @storageManager.storage(result.key).get(result.id)
+        if (_.all(subset, (model) => model.dependenciesAreLoaded(@loadOptions)))
           @_onLoadSuccess(subset)
           return @externalObject
 
@@ -246,7 +246,7 @@ class AbstractLoader
     @additionalIncludes = []
 
     for hash in @loadOptions.include
-      associationName = keys(hash)[0]
+      associationName = _.keys(hash)[0]
       associationIds = @_getIdsForAssociation(associationName)
       includedAssociation = hash[associationName]
 
@@ -298,7 +298,7 @@ class AbstractLoader
     else
       collectionName = @_getModel().associationDetails(association.name).collectionName
       if association.loadOptions
-        loadOptions = extend(loadOptions, association.loadOptions)
+        loadOptions = _.extend(loadOptions, association.loadOptions)
       else
         loadOptions.include = association.include
 
@@ -335,9 +335,9 @@ class AbstractLoader
       'per_page'
       'search'
     ]
-    underscore(syncOptions.data).chain()
-      .extend(underscore(options.filters).omit(blacklist))
-      .extend(underscore(options.params).omit(blacklist))
+    _(syncOptions.data).chain()
+      .extend(_(options.filters).omit(blacklist))
+      .extend(_(options.params).omit(blacklist))
       .value()
 
     unless options.only?

@@ -1,4 +1,4 @@
-{ all, compact, flatten, map, omit } = require './utility-functions'
+_ = require 'underscore'
 Error = require './error'
 CollectionLoader = require './loaders/collection-loader'
 
@@ -85,11 +85,11 @@ module.exports = class Expectation
                   'search'
                   'optionalFields']
 
-    all optionKeys, (optionType) =>
+    _.all optionKeys, (optionType) =>
       return true if @options[optionType] == '*'
 
-      option = compact(flatten([loader.originalOptions[optionType]]))
-      expectedOption = compact(flatten([@options[optionType]]))
+      option = _.compact(_.flatten([loader.originalOptions[optionType]]))
+      expectedOption = _.compact(_.flatten([@options[optionType]]))
 
       if optionType == 'include'
         option = Utils.wrapObjects(option)
@@ -121,7 +121,7 @@ module.exports = class Expectation
       if result instanceof @Model
         @manager.storage(result.brainstemKey).update [result], silent: loader.loadOptions.silent
 
-    returnedModels = map @results, (result) =>
+    returnedModels = _.map @results, (result) =>
       if result instanceof @Model
         @manager.storage(result.brainstemKey).get(result.id)
       else
@@ -138,7 +138,7 @@ module.exports = class Expectation
       attributes = @result.attributes
     else
       key = @result.key
-      attributes = omit @result, 'key'
+      attributes = _.omit @result, 'key'
 
     if !key
       throw Error('Brainstem key is required on the result (brainstemKey on model or key in JSON)')

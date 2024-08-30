@@ -1,5 +1,5 @@
 $ = require 'jquery'
-{ extend } = require '../../src/utility-functions'
+_ = require 'underscore'
 Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
 StorageManager = require '../../src/storage-manager'
@@ -25,7 +25,7 @@ describe 'Loaders ModelLoader', ->
     defaults = 
       storageManager: storageManager
 
-    loader = new loaderClass(extend {}, defaults, opts)
+    loader = new loaderClass(_.extend {}, defaults, opts)
     loader
 
   # It should keep the AbstractLoader behavior.

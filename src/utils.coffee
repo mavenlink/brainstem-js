@@ -1,4 +1,4 @@
-{ compact, every, keys, underscore } = require './utility-functions';
+_ = require 'underscore'
 Backbone = require 'backbone'
 Backbone.$ = require 'jquery' # TODO remove after upgrading to backbone 1.2+
 
@@ -21,11 +21,11 @@ class Utils
     if @empty(obj1) && @empty(obj2)
       true
     else if obj1 instanceof Array && obj2 instanceof Array
-      obj1.length == obj2.length && every obj1, (value, index) => @matches(value, obj2[index])
+      obj1.length == obj2.length && _.every obj1, (value, index) => @matches(value, obj2[index])
     else if obj1 instanceof Object && obj2 instanceof Object
-      obj1Keys = underscore(obj1).keys()
-      obj2Keys = underscore(obj2).keys()
-      obj1Keys.length == obj2Keys.length && every obj1Keys, (key) => @matches(obj1[key], obj2[key])
+      obj1Keys = _(obj1).keys()
+      obj2Keys = _(obj2).keys()
+      obj1Keys.length == obj2Keys.length && _.every obj1Keys, (key) => @matches(obj1[key], obj2[key])
     else
       String(obj1) == String(obj2)
 
@@ -35,20 +35,20 @@ class Utils
     if thing instanceof Array
       thing.length == 0 || thing.length == 1 && @empty(thing[0])
     else if thing instanceof Object
-      keys(thing).length == 0
+      _.keys(thing).length == 0
     else
       false
 
   @extractArray: (option, options) ->
     result = options[option]
     result = [result] unless result instanceof Array
-    compact(result)
+    _.compact(result)
 
   @wrapObjects: (array, optionalPredicate) ->
     optionalPredicate ||= -> true
 
     output = []
-    underscore(array).each (elem) =>
+    _(array).each (elem) =>
       if elem.constructor == Object
         for key, value of elem
           o = {}

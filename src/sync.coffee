@@ -1,4 +1,4 @@
-{ defaults, extend, result } = require './utility-functions'
+_ = require 'underscore'
 Backbone = require 'backbone'
 Backbone.$ = require 'jquery' # TODO remove after upgrading to backbone 1.2+
 
@@ -16,7 +16,7 @@ module.exports = (method, model, options) ->
   type = methodMap[method]
 
   # Default options, unless specified.
-  defaults(options || (options = {}), {
+  _.defaults(options || (options = {}), {
     emulateHTTP: Backbone.emulateHTTP,
     emulateJSON: Backbone.emulateJSON
   })
@@ -26,7 +26,7 @@ module.exports = (method, model, options) ->
 
   # Ensure that we have a URL.
   unless options.url
-    params.url = result(model, 'url') || urlError()
+    params.url = _.result(model, 'url') || urlError()
 
   # Ensure that we have the appropriate request data.
   if !options.data? && model && (method == 'create' || method == 'update' || method == 'patch')
@@ -47,7 +47,7 @@ module.exports = (method, model, options) ->
     data.filters = Utils.extractArray('filters', options).join(',')
     data.optional_fields = Utils.extractArray('optionalFields', options).join(',')
 
-    extend(data, options.params || {})
+    _.extend(data, options.params || {})
 
     params.data = JSON.stringify(data)
 
@@ -83,6 +83,6 @@ module.exports = (method, model, options) ->
     params.xhr = -> new ActiveXObject('Microsoft.XMLHTTP')
 
   # Make the request, allowing the user to override any Ajax options.
-  xhr = options.xhr = Backbone.ajax(extend(params, options))
+  xhr = options.xhr = Backbone.ajax(_.extend(params, options))
   model.trigger 'request', model, xhr, options
   xhr

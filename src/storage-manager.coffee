@@ -1,4 +1,4 @@
-{ isFunction, keys, omit, underscore } = require './utility-functions'
+_ = require 'underscore'
 $ = require 'jquery'
 Backbone = require 'backbone'
 Backbone.$ = $ # TODO remove after upgrading to backbone 1.2+
@@ -44,7 +44,7 @@ class _StorageManager
     @collections[name] || @collectionError(name)
 
   collectionNames: ->
-    keys(@collections)
+    _.keys(@collections)
 
   collectionExists: (name) ->
     !!@collections[name]
@@ -119,7 +119,7 @@ class _StorageManager
     successCallback = loadOptions.success
     errorCallback = loadOptions.error
 
-    loadOptions = omit(loadOptions, 'success', 'error', 'complete')
+    loadOptions = _.omit(loadOptions, 'success', 'error', 'complete')
     loadOptions = $.extend({}, loadOptions, name: name)
 
     if options.isCollection
@@ -132,13 +132,13 @@ class _StorageManager
     loader = new loaderClass(storageManager: this)
     loader.setup(loadOptions)
 
-    if completeCallback? && isFunction(completeCallback)
+    if completeCallback? && _.isFunction(completeCallback)
       loader.always(completeCallback)
 
-    if successCallback? && isFunction(successCallback)
+    if successCallback? && _.isFunction(successCallback)
       loader.done(successCallback)
 
-    if errorCallback? && isFunction(errorCallback)
+    if errorCallback? && _.isFunction(errorCallback)
       loader.fail(errorCallback)
 
     if @expectations?
@@ -160,7 +160,7 @@ class _StorageManager
 
   collectionError: (name) ->
     Utils.throwError("""
-      Unknown collection #{name} in StorageManager. Known collections: #{underscore(@collections).keys().join(", ")}
+      Unknown collection #{name} in StorageManager. Known collections: #{_(@collections).keys().join(", ")}
     """)
 
 

@@ -1,5 +1,5 @@
 $ = require 'jquery'
-{ isArray, map } = require '../../src/utility-functions'
+_ = require 'underscore'
 inflection = require 'inflection'
 
 StorageManager = require '../../src/storage-manager'
@@ -46,8 +46,8 @@ spec.defineBuilders = ->
     attrName == 'id' || attrName.match(/_id$/) || (attrName.match(/_ids$/))
 
   arrayPreservedToString = (value) ->
-    if isArray(value)
-      map(value, (v) -> arrayPreservedToString(v))
+    if _.isArray(value)
+      _.map(value, (v) -> arrayPreservedToString(v))
     else if value? && !$.isPlainObject(value)
       String(value)
     else
