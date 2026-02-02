@@ -65,8 +65,5 @@
     "jquery": "global:$",
     "underscore": "global:_",
     "backbone": "global:Backbone"
-  },
-  "engines": {
-    "node": "^20"
   }
 }
