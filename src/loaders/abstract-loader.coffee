@@ -281,9 +281,25 @@ class AbstractLoader
       batchPromises = batches.map(@_loadAdditionalIncludesBatch.bind(this, association))
       promises.push(batchPromises...)
 
-    $.when.apply($, promises)
-      .done(@_onLoadingCompleted)
-      .fail(@_onServerLoadError)
+    remaining = promises.length
+    failed = false
+    onEach = =>
+      return if failed
+      @_onLoadingCompleted() if --remaining == 0
+    onFail = (args...) =>
+      return if failed
+      failed = true
+      @_onServerLoadError(args...)
+
+    if remaining == 0
+      @_onLoadingCompleted()
+      return
+
+    for promise in promises
+      if promise?.done? && promise?.fail?
+        promise.done(onEach).fail(onFail)
+      else
+        onEach()
 
   _loadAdditionalIncludesBatch: (association, ids) ->
     loadOptions =

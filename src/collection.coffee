@@ -100,8 +100,8 @@ module.exports = class Collection extends Backbone.Collection
 
     @trigger('request', this, xhr, options)
 
-    loader.then(-> loader.internalObject.models)
-      .done((response) =>
+    loader.done(=>
+        response = loader.internalObject.models
         @lastFetchOptions = loader.externalObject.lastFetchOptions
 
         if options.add
@@ -115,7 +115,6 @@ module.exports = class Collection extends Backbone.Collection
 
         @trigger('sync', this, response, options)
       )
-      .then(-> loader.externalObject)
       .promise(xhr)
 
   refresh: (options = {}) ->
