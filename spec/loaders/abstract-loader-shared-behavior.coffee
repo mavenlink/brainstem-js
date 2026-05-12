@@ -53,7 +53,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
       loader = createLoader()
       expect(loader._deferred).not.toBeUndefined()
-      loader.then(spy)
+      loader.done(spy)
 
       loader._deferred.resolve()
       expect(spy).toHaveBeenCalled()
@@ -430,7 +430,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
       loader.setup(opts)
 
       loader._loadFromServer()
-      expect(returnValues.jqXhr.success).not.toBeUndefined()
+      expect(returnValues.jqXhr.done).not.toBeUndefined()
 
     it 'returns the externalObject', ->
       loader.setup(opts)
@@ -784,7 +784,7 @@ registerSharedBehavior "AbstractLoaderSharedBehavior", (sharedContext) ->
 
     it 'resolves the deferred object with the externalObject', ->
       spy = jasmine.createSpy()
-      loader.then(spy)
+      loader.done(spy)
 
       loader._onLoadingCompleted()
       expect(spy).toHaveBeenCalledWith(loader.externalObject)
